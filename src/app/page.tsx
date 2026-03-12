@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { LogoutButton } from '@/components/LogoutButton';
 import { ViewModeToggle } from '@/components/ViewModeToggle';
 import { useViewMode } from '@/lib/viewMode';
+import { MAP_WORKSPACE_ENABLED } from '@/lib/map/feature-flags';
 
 const AI_FEATURES = [
   {
@@ -138,6 +139,34 @@ export default function HomePage() {
               )}
             </div>
           </Link>
+
+          {MAP_WORKSPACE_ENABLED && (
+            <Link
+              href="/estimate/map"
+              className="group rounded-lg border-2 border-blue-400 bg-white p-6 transition hover:bg-blue-50 hover:shadow-md"
+            >
+              <h2 className="text-xl font-semibold text-blue-600 group-hover:underline">
+                Map Workspace
+              </h2>
+              <p className="mt-2 text-sm text-gray-600">
+                Draw conduit runs, trench paths, and place equipment on a satellite map. Turf.js measures geometry and auto-populates estimate fields.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
+                  Satellite view
+                </span>
+                <span className="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
+                  5 run types
+                </span>
+                <span className="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
+                  Auto-measure
+                </span>
+                <span className="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
+                  Patch review
+                </span>
+              </div>
+            </Link>
+          )}
 
           <Link
             href="/debug"

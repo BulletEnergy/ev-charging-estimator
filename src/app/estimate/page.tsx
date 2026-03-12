@@ -252,6 +252,17 @@ export default function EstimatePage() {
             <p className="text-xs text-blue-300 print:text-gray-500">Prototype v0.1.0</p>
           </div>
           <div className="flex items-center gap-4">
+            {MAP_WORKSPACE_ENABLED && (
+              <button
+                onClick={() => {
+                  sessionStorage.setItem('estimateInput', JSON.stringify(input));
+                  window.location.href = '/estimate/map';
+                }}
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500 print:hidden"
+              >
+                Map Workspace
+              </button>
+            )}
             <ViewModeToggle />
             <Link href="/" className="text-sm text-blue-300 hover:text-white print:hidden">Home</Link>
           </div>
