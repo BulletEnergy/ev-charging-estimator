@@ -465,7 +465,7 @@ export const PRICEBOOK: readonly PricebookItem[] = [
     description: 'Permit Fees (Billed At Actual Cost + 10%)',
     catalogPrice: 0,
     unit: 'LS',
-    notes: 'Billed at actual cost + 10% markup; $0 placeholder on estimate',
+    notes: 'Billed at actual cost + 10% markup. Final amount determined after permit submission.',
     status: 'zero_passthrough',
   },
   {

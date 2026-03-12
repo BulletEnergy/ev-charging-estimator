@@ -28,7 +28,12 @@ export async function POST(request: Request) {
       { jsonMode: true, temperature: 0.2, maxTokens: 4096 },
     );
 
-    const parsed: ReviewEstimateResponse = JSON.parse(raw);
+    let parsed: ReviewEstimateResponse;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return NextResponse.json({ error: 'AI returned invalid response. Please try again.' }, { status: 502 });
+    }
 
     // Strip any suggested changes that try to modify pricing
     if (parsed.suggestedChanges) {

@@ -6,8 +6,6 @@ import { BOARD_CONFIG } from './config';
 // ============================================================
 // Converts raw monday.com column_values into EstimateInput.
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 interface MondayColumnValue {
   id: string;
   value: string | null;
@@ -49,16 +47,16 @@ function getBool(item: MondayItem, colId: string): boolean | null {
   }
 }
 
-function mapLabel<T extends string>(
+function mapLabel(
   item: MondayItem,
   colId: string,
   labelMap: Record<string, string>,
-  fallback: T | null = null,
-): T | null {
+  fallback: string | null = null,
+): string | null {
   const text = getText(item, colId);
   if (!text) return fallback;
   const mapped = labelMap[text];
-  return (mapped as T) ?? fallback;
+  return mapped ?? fallback;
 }
 
 // ── Main Normalizer ──────────────────────────────────────────
@@ -72,7 +70,7 @@ export function normalizeMondayItem(item: MondayItem): EstimateInput {
       name: item.name || getText(item, cols.projectName),
       salesRep: getText(item, cols.salesRep),
       projectType:
-        (mapLabel(item, cols.projectType, labels.projectType) as any) ??
+        (mapLabel(item, cols.projectType, labels.projectType) as EstimateInput['project']['projectType']) ??
         'full_turnkey',
       timeline: getText(item, cols.timeline),
       isNewConstruction: getBool(item, cols.isNewConstruction),
@@ -86,47 +84,51 @@ export function normalizeMondayItem(item: MondayItem): EstimateInput {
     },
     site: {
       address: getText(item, cols.siteAddress),
-      siteType: mapLabel(item, cols.siteType, labels.siteType) as any,
+      siteType: mapLabel(item, cols.siteType, labels.siteType) as EstimateInput['site']['siteType'],
       state: getText(item, cols.state),
     },
     parkingEnvironment: {
-      type: mapLabel(item, cols.parkingType, labels.parkingType) as any,
+      type: mapLabel(item, cols.parkingType, labels.parkingType) as EstimateInput['parkingEnvironment']['type'],
       hasPTSlab: getBool(item, cols.hasPTSlab),
-      slabScanRequired: null,
-      coringRequired: null,
+      slabScanRequired: null, // No monday.com column mapped yet — requires board customization
+      coringRequired: null, // No monday.com column mapped yet — requires board customization
       surfaceType: mapLabel(
         item,
         cols.surfaceType,
         labels.surfaceType,
-      ) as any,
+      ) as EstimateInput['parkingEnvironment']['surfaceType'],
       trenchingRequired: getBool(item, cols.trenchingRequired),
       boringRequired: getBool(item, cols.boringRequired),
-      trafficControlRequired: null,
+      trafficControlRequired: null, // No monday.com column mapped yet — requires board customization
       indoorOutdoor: mapLabel(
         item,
         cols.indoorOutdoor,
         { Indoor: 'indoor', Outdoor: 'outdoor', Both: 'both' },
-      ) as any,
-      fireRatedPenetrations: null,
-      accessRestrictions: '',
+      ) as EstimateInput['parkingEnvironment']['indoorOutdoor'],
+      fireRatedPenetrations: null, // No monday.com column mapped yet — requires board customization
+      accessRestrictions: '', // No monday.com column mapped yet — requires board customization
     },
     charger: {
       brand: getText(item, cols.chargerBrand),
       model: getText(item, cols.chargerModel),
       count: getNumber(item, cols.chargerCount) ?? 0,
       pedestalCount: getNumber(item, cols.pedestalCount) ?? 0,
-      portType: null,
+      portType: mapLabel(
+        item,
+        cols.portType,
+        { Single: 'single', Dual: 'dual', Mix: 'mix' },
+      ) as EstimateInput['charger']['portType'],
       mountType: mapLabel(
         item,
         cols.mountType,
         { Pedestal: 'pedestal', Wall: 'wall', Mix: 'mix', Other: 'other' },
-      ) as any,
+      ) as EstimateInput['charger']['mountType'],
       isCustomerSupplied: getBool(item, cols.customerSupplied) ?? false,
       chargingLevel: mapLabel(
         item,
         cols.chargingLevel,
         { 'Level 2': 'l2', 'L2': 'l2', 'Level 3 / DCFC': 'l3_dcfc', 'L3': 'l3_dcfc' },
-      ) as any,
+      ) as EstimateInput['charger']['chargingLevel'],
       ampsPerCharger: getNumber(item, cols.ampsPerCharger),
       volts: getNumber(item, cols.volts),
     },
@@ -135,71 +137,71 @@ export function normalizeMondayItem(item: MondayItem): EstimateInput {
         item,
         cols.serviceType,
         labels.serviceType,
-      ) as any,
-      availableCapacityKnown: false,
-      availableAmps: null,
-      breakerSpaceAvailable: null,
+      ) as EstimateInput['electrical']['serviceType'],
+      availableCapacityKnown: false, // No monday.com column mapped yet — requires board customization
+      availableAmps: null, // No monday.com column mapped yet — requires board customization
+      breakerSpaceAvailable: null, // No monday.com column mapped yet — requires board customization
       panelUpgradeRequired: getBool(item, cols.panelUpgrade),
       transformerRequired: getBool(item, cols.transformerRequired),
-      switchgearRequired: null,
+      switchgearRequired: null, // No monday.com column mapped yet — requires board customization
       distanceToPanel_ft: getNumber(item, cols.distanceToPanel),
-      utilityCoordinationRequired: null,
-      electricalRoomDescription: '',
+      utilityCoordinationRequired: null, // No monday.com column mapped yet — requires board customization
+      electricalRoomDescription: '', // No monday.com column mapped yet — requires board customization
     },
     civil: {
-      installationLocationDescription: '',
+      installationLocationDescription: '', // No monday.com column mapped yet — requires board customization
     },
     permit: {
       responsibility: mapLabel(
         item,
         cols.permitResponsibility,
         labels.responsibility,
-      ) as any,
-      feeAllowance: null,
+      ) as EstimateInput['permit']['responsibility'],
+      feeAllowance: null, // No monday.com column mapped yet — requires board customization
     },
     designEngineering: {
       responsibility: mapLabel(
         item,
         cols.designResponsibility,
         labels.responsibility,
-      ) as any,
-      stampedPlansRequired: null,
+      ) as EstimateInput['designEngineering']['responsibility'],
+      stampedPlansRequired: null, // No monday.com column mapped yet — requires board customization
     },
     network: {
-      type: mapLabel(item, cols.networkType, labels.networkType) as any,
-      wifiInstallResponsibility: null,
+      type: mapLabel(item, cols.networkType, labels.networkType) as EstimateInput['network']['type'],
+      wifiInstallResponsibility: null, // No monday.com column mapped yet — requires board customization
     },
     accessories: {
-      bollardQty: 0,
-      signQty: 0,
-      wheelStopQty: 0,
-      stripingRequired: false,
-      padRequired: false,
-      debrisRemoval: false,
+      bollardQty: 0, // No monday.com column mapped yet — requires board customization
+      signQty: 0, // No monday.com column mapped yet — requires board customization
+      wheelStopQty: 0, // No monday.com column mapped yet — requires board customization
+      stripingRequired: false, // No monday.com column mapped yet — requires board customization
+      padRequired: false, // No monday.com column mapped yet — requires board customization
+      debrisRemoval: false, // No monday.com column mapped yet — requires board customization
     },
     makeReady: {
       responsibility: mapLabel(
         item,
         cols.makeReadyResponsibility,
         labels.responsibility,
-      ) as any,
+      ) as EstimateInput['makeReady']['responsibility'],
     },
     chargerInstall: {
       responsibility: mapLabel(
         item,
         cols.installResponsibility,
         labels.responsibility,
-      ) as any,
+      ) as EstimateInput['chargerInstall']['responsibility'],
     },
     purchasingChargers: {
       responsibility: mapLabel(
         item,
         cols.purchasingResponsibility,
         labels.responsibility,
-      ) as any,
+      ) as EstimateInput['purchasingChargers']['responsibility'],
     },
     signageBollards: {
-      responsibility: null,
+      responsibility: null, // No monday.com column mapped yet — requires board customization
     },
     estimateControls: {
       pricingTier: 'msrp',

@@ -35,7 +35,12 @@ export async function POST(request: Request) {
 
     const prompt = buildPhotoAnalysisPrompt();
     const raw = await analyzeImage(imageBase64, mimeType, prompt);
-    const parsed: PhotoAnalysisResponse = JSON.parse(raw);
+    let parsed: PhotoAnalysisResponse;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return NextResponse.json({ error: 'AI returned invalid response. Please try again.' }, { status: 502 });
+    }
 
     return NextResponse.json(parsed);
   } catch (err: unknown) {

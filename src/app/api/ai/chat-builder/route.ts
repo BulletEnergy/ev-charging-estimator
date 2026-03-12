@@ -29,7 +29,12 @@ export async function POST(request: Request) {
     ];
 
     const raw = await chatCompletion(chatMessages, { jsonMode: true, temperature: 0.3 });
-    const parsed: ChatBuilderResponse = JSON.parse(raw);
+    let parsed: ChatBuilderResponse;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return NextResponse.json({ error: 'AI returned invalid response. Please try again.' }, { status: 502 });
+    }
 
     // Strip any pricing fields
     if (parsed.updatedFields) {

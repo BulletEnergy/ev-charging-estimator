@@ -31,7 +31,12 @@ export async function POST(request: Request) {
       { jsonMode: true, temperature: 0.1 },
     );
 
-    const parsed: SOWParseResponse = JSON.parse(raw);
+    let parsed: SOWParseResponse;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return NextResponse.json({ error: 'AI returned invalid response. Please try again.' }, { status: 502 });
+    }
 
     // Strip any pricing fields the LLM might have hallucinated
     if (parsed.parsedInput?.estimateControls) {

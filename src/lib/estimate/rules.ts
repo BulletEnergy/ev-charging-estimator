@@ -681,7 +681,7 @@ function permitDesignRules(
       items.push(
         pricebookLine(permitItem, 1, {
           ruleName: 'Permit fees',
-          ruleReason: 'Permit fees billed at actual cost + 10%. $0 placeholder — actual cost TBD.',
+          ruleReason: 'Permit fees billed at actual cost + 10% markup. Final amount determined after permit submission.',
           sourceInputs: ['permit.responsibility'],
           confidence: 'high',
         }),

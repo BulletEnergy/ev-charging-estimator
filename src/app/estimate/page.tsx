@@ -111,6 +111,16 @@ export default function EstimatePage() {
   const [activeTab, setActiveTab] = useState<TabName>('Project');
   const [expandedLines, setExpandedLines] = useState<Set<string>>(new Set());
   const [inputMode, setInputMode] = useState<'form' | 'chat'>('form');
+  const [aiStatus, setAiStatus] = useState<{ openai: boolean; gemini: boolean } | null>(null);
+
+  // Check AI availability when Advanced mode is active
+  useEffect(() => {
+    if (!isAdvanced) return;
+    fetch('/api/ai/status')
+      .then((r) => r.json())
+      .then((data) => setAiStatus(data))
+      .catch(() => setAiStatus({ openai: false, gemini: false }));
+  }, [isAdvanced]);
 
   // URL param scenario loading
   useEffect(() => {
@@ -188,6 +198,18 @@ export default function EstimatePage() {
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-6 print:px-0">
+        {/* AI Status Banner */}
+        {isAdvanced && aiStatus && (!aiStatus.openai || !aiStatus.gemini) && (
+          <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 print:hidden">
+            <strong>AI features partially available:</strong>{' '}
+            {!aiStatus.openai && !aiStatus.gemini
+              ? 'No AI API keys configured. SOW Parser, Chat Builder, AI Reviewer, and Photo Analysis require OPENAI_API_KEY and GEMINI_API_KEY.'
+              : !aiStatus.openai
+                ? 'OPENAI_API_KEY not set — SOW Parser, Chat Builder, and AI Reviewer unavailable.'
+                : 'GEMINI_API_KEY not set — Photo Analysis unavailable.'}
+          </div>
+        )}
+
         {/* Scenario Loader */}
         <div className="mb-6 flex flex-wrap items-center gap-4 print:hidden">
           <label className="text-sm font-medium text-gray-700">Load Sample Scenario:</label>

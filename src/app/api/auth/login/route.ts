@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
-const VALID_USERNAME = 'Admin';
-const VALID_PASSWORD = 'Admin';
+const VALID_USERNAME = process.env.ADMIN_USERNAME ?? 'Admin';
+const VALID_PASSWORD = process.env.ADMIN_PASSWORD ?? 'Admin';
 const SESSION_TOKEN = 'bulletev-session-v1';
 
 export async function POST(request: Request) {
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(
-      { success: false, error: 'Invalid email or password' },
+      { success: false, error: 'Invalid username or password' },
       { status: 401 },
     );
   } catch {
