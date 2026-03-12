@@ -5,6 +5,12 @@ import Link from 'next/link';
 import { EstimateInput, EstimateOutput, EstimateLineItem, ManualReviewTrigger } from '@/lib/estimate/types';
 import { generateEstimate } from '@/lib/estimate/engine';
 import { SCENARIOS } from '@/lib/estimate/scenarios';
+import { useViewMode } from '@/lib/viewMode';
+import { ViewModeToggle } from '@/components/ViewModeToggle';
+import { SOWParser } from '@/components/advanced/SOWParser';
+import { ChatBuilder } from '@/components/advanced/ChatBuilder';
+import { AIReviewer } from '@/components/advanced/AIReviewer';
+import { PhotoAnalysis } from '@/components/advanced/PhotoAnalysis';
 
 // ============================================================
 // Helpers
@@ -99,10 +105,12 @@ function SeverityBadge({ severity }: { severity: string }) {
 // ============================================================
 
 export default function EstimatePage() {
+  const { isAdvanced } = useViewMode();
   const [input, setInput] = useState<EstimateInput>(emptyInput());
   const [output, setOutput] = useState<EstimateOutput | null>(null);
   const [activeTab, setActiveTab] = useState<TabName>('Project');
   const [expandedLines, setExpandedLines] = useState<Set<string>>(new Set());
+  const [inputMode, setInputMode] = useState<'form' | 'chat'>('form');
 
   // URL param scenario loading
   useEffect(() => {
@@ -156,6 +164,13 @@ export default function EstimatePage() {
     });
   }, []);
 
+  // Apply multiple flat fields from AI components
+  const applyFlatFields = useCallback((fields: Record<string, unknown>) => {
+    for (const [path, value] of Object.entries(fields)) {
+      updateField(path, value);
+    }
+  }, [updateField]);
+
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -165,7 +180,10 @@ export default function EstimatePage() {
             <h1 className="text-xl font-bold">BulletEV Estimate Generator</h1>
             <p className="text-xs text-blue-300 print:text-gray-500">Prototype v0.1.0</p>
           </div>
-          <Link href="/" className="text-sm text-blue-300 hover:text-white print:hidden">Home</Link>
+          <div className="flex items-center gap-4">
+            <ViewModeToggle />
+            <Link href="/" className="text-sm text-blue-300 hover:text-white print:hidden">Home</Link>
+          </div>
         </div>
       </header>
 
@@ -191,8 +209,53 @@ export default function EstimatePage() {
           </button>
         </div>
 
-        {/* Form */}
-        <div className="mb-8 rounded-lg border border-gray-200 bg-white shadow-sm print:hidden">
+        {/* Advanced: SOW Parser + Photo Analysis */}
+        {isAdvanced && (
+          <div className="mb-6 grid gap-4 md:grid-cols-2 print:hidden">
+            <SOWParser onApplyFields={applyFlatFields} />
+            <PhotoAnalysis onApplyFields={applyFlatFields} />
+          </div>
+        )}
+
+        {/* Advanced: Input Mode Toggle */}
+        {isAdvanced && (
+          <div className="mb-4 flex gap-2 print:hidden">
+            <button
+              onClick={() => setInputMode('form')}
+              className={`rounded px-4 py-2 text-sm font-medium transition ${
+                inputMode === 'form'
+                  ? 'bg-[#2563EB] text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              Form Input
+            </button>
+            <button
+              onClick={() => setInputMode('chat')}
+              className={`rounded px-4 py-2 text-sm font-medium transition ${
+                inputMode === 'chat'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              Chat Builder
+            </button>
+          </div>
+        )}
+
+        {/* Chat Builder (Advanced, chat mode) */}
+        {isAdvanced && inputMode === 'chat' && (
+          <div className="mb-8 print:hidden">
+            <ChatBuilder
+              currentInput={input}
+              onApplyFields={applyFlatFields}
+              onGenerateEstimate={handleGenerate}
+            />
+          </div>
+        )}
+
+        {/* Form (Classic or Advanced form mode) */}
+        <div className={`mb-8 rounded-lg border border-gray-200 bg-white shadow-sm print:hidden ${isAdvanced && inputMode === 'chat' ? 'hidden' : ''}`}>
           {/* Tab Bar */}
           <div className="flex flex-wrap gap-0 border-b border-gray-200 bg-gray-50">
             {TABS.map((tab) => (
@@ -228,7 +291,20 @@ export default function EstimatePage() {
 
         {/* Results */}
         {output && (
-          <EstimateResults output={output} expandedLines={expandedLines} toggleLine={toggleLine} />
+          <>
+            <EstimateResults output={output} expandedLines={expandedLines} toggleLine={toggleLine} />
+
+            {/* Advanced: AI Reviewer */}
+            {isAdvanced && (
+              <div className="mt-6 print:hidden">
+                <AIReviewer
+                  input={input}
+                  output={output}
+                  onApplyChange={(field, value) => updateField(field, value)}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
     </main>
