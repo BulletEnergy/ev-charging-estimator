@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { EstimateInput, EstimateOutput, EstimateLineItem, ManualReviewTrigger } from '@/lib/estimate/types';
 import { generateEstimate } from '@/lib/estimate/engine';
@@ -57,15 +57,91 @@ function fmt(n: number): string {
 }
 
 // ============================================================
-// Tabs
+// Tabs with metadata
 // ============================================================
 
-const TABS = [
-  'Project', 'Customer', 'Site', 'Parking', 'Charger', 'Electrical',
-  'Civil', 'Permit/Design', 'Network', 'Accessories', 'Responsibilities', 'Controls',
-] as const;
+const TAB_META: Record<string, { icon: string; description: string; required: string[] }> = {
+  'Project': { icon: '1', description: 'Basic project info and type of work', required: ['project.name', 'project.projectType'] },
+  'Customer': { icon: '2', description: 'Client contact and billing details', required: ['customer.companyName'] },
+  'Site': { icon: '3', description: 'Physical location and site classification', required: ['site.address', 'site.state'] },
+  'Parking': { icon: '4', description: 'Parking lot conditions and access requirements', required: [] },
+  'Charger': { icon: '5', description: 'EV charger specs — brand, model, quantity, power', required: ['charger.brand', 'charger.count', 'charger.chargingLevel'] },
+  'Electrical': { icon: '6', description: 'Existing electrical infrastructure and upgrade needs', required: [] },
+  'Civil': { icon: '7', description: 'Site work and trenching details', required: [] },
+  'Permit/Design': { icon: '8', description: 'Permitting responsibilities and engineering plans', required: [] },
+  'Network': { icon: '9', description: 'Connectivity for charger management', required: [] },
+  'Accessories': { icon: '10', description: 'Bollards, signs, striping, pads', required: [] },
+  'Responsibilities': { icon: '11', description: 'Who handles what — Bullet vs Client', required: [] },
+  'Controls': { icon: '12', description: 'Pricing tier, tax rate, markup, contingency', required: [] },
+};
+
+const TABS = Object.keys(TAB_META) as (keyof typeof TAB_META)[];
 
 type TabName = (typeof TABS)[number];
+
+// ============================================================
+// Tab completion checker
+// ============================================================
+
+function getFieldValue(input: EstimateInput, path: string): unknown {
+  const parts = path.split('.');
+  let obj: unknown = input;
+  for (const part of parts) {
+    if (obj === null || obj === undefined || typeof obj !== 'object') return undefined;
+    obj = (obj as Record<string, unknown>)[part];
+  }
+  return obj;
+}
+
+function isFieldFilled(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+  if (typeof value === 'string') return value.trim().length > 0;
+  if (typeof value === 'number') return value > 0;
+  return true;
+}
+
+function getTabStatus(tab: string, input: EstimateInput): 'empty' | 'partial' | 'complete' {
+  const meta = TAB_META[tab];
+  if (!meta) return 'empty';
+
+  // Check all fields in the tab section for any content
+  const sectionMap: Record<string, string> = {
+    'Project': 'project', 'Customer': 'customer', 'Site': 'site',
+    'Parking': 'parkingEnvironment', 'Charger': 'charger', 'Electrical': 'electrical',
+    'Civil': 'civil', 'Permit/Design': 'permit', 'Network': 'network',
+    'Accessories': 'accessories', 'Responsibilities': 'makeReady', 'Controls': 'estimateControls',
+  };
+  const section = sectionMap[tab];
+  const sectionData = section ? (input as unknown as Record<string, unknown>)[section] : null;
+
+  let filledCount = 0;
+  let totalCount = 0;
+  if (sectionData && typeof sectionData === 'object') {
+    for (const val of Object.values(sectionData as Record<string, unknown>)) {
+      totalCount++;
+      if (isFieldFilled(val)) filledCount++;
+    }
+  }
+
+  // For required fields check
+  const requiredFilled = meta.required.length === 0 || meta.required.every(
+    (path) => isFieldFilled(getFieldValue(input, path))
+  );
+
+  if (requiredFilled && filledCount > 0 && filledCount >= totalCount * 0.5) return 'complete';
+  if (filledCount > 0) return 'partial';
+  return 'empty';
+}
+
+function getOverallProgress(input: EstimateInput): number {
+  const criticalFields = [
+    'project.name', 'project.projectType', 'customer.companyName',
+    'site.address', 'site.state', 'charger.brand', 'charger.count',
+    'charger.chargingLevel', 'charger.model',
+  ];
+  const filled = criticalFields.filter((f) => isFieldFilled(getFieldValue(input, f))).length;
+  return Math.round((filled / criticalFields.length) * 100);
+}
 
 // ============================================================
 // Badges
@@ -181,6 +257,24 @@ export default function EstimatePage() {
     }
   }, [updateField]);
 
+  const progress = useMemo(() => getOverallProgress(input), [input]);
+  const tabStatuses = useMemo(() => {
+    const result: Record<string, 'empty' | 'partial' | 'complete'> = {};
+    for (const tab of TABS) {
+      result[tab] = getTabStatus(tab, input);
+    }
+    return result;
+  }, [input]);
+  const currentTabIdx = TABS.indexOf(activeTab);
+
+  const goNext = useCallback(() => {
+    if (currentTabIdx < TABS.length - 1) setActiveTab(TABS[currentTabIdx + 1]);
+  }, [currentTabIdx]);
+
+  const goPrev = useCallback(() => {
+    if (currentTabIdx > 0) setActiveTab(TABS[currentTabIdx - 1]);
+  }, [currentTabIdx]);
+
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -197,6 +291,49 @@ export default function EstimatePage() {
         </div>
       </header>
 
+      {/* Progress Bar — fixed below header */}
+      <div className="border-b border-gray-200 bg-white print:hidden">
+        <div className="mx-auto max-w-7xl px-6 py-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-700">Estimate Progress</span>
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                progress >= 80 ? 'bg-green-100 text-green-800' :
+                progress >= 40 ? 'bg-amber-100 text-amber-800' :
+                'bg-gray-100 text-gray-600'
+              }`}>{progress}%</span>
+            </div>
+            <span className="text-xs text-gray-500">
+              Step {currentTabIdx + 1} of {TABS.length}: {activeTab}
+            </span>
+          </div>
+          <div className="flex gap-1">
+            {TABS.map((tab, i) => {
+              const status = tabStatuses[tab];
+              const isCurrent = tab === activeTab;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  title={`${tab}: ${status}`}
+                  className={`h-2 flex-1 rounded-full transition-all ${
+                    isCurrent
+                      ? 'bg-[#2563EB] ring-2 ring-blue-300 ring-offset-1'
+                      : status === 'complete'
+                        ? 'bg-green-400 hover:bg-green-500'
+                        : status === 'partial'
+                          ? 'bg-amber-300 hover:bg-amber-400'
+                          : i <= currentTabIdx
+                            ? 'bg-gray-300 hover:bg-gray-400'
+                            : 'bg-gray-200 hover:bg-gray-300'
+                  }`}
+                />
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
       <div className="mx-auto max-w-7xl px-4 py-6 print:px-0">
         {/* AI Status Banner */}
         {isAdvanced && aiStatus && (!aiStatus.openai || !aiStatus.gemini) && (
@@ -212,13 +349,13 @@ export default function EstimatePage() {
 
         {/* Scenario Loader */}
         <div className="mb-6 flex flex-wrap items-center gap-4 print:hidden">
-          <label className="text-sm font-medium text-gray-700">Load Sample Scenario:</label>
+          <label className="text-sm font-medium text-gray-700">Quick Start:</label>
           <select
             className="rounded border border-gray-300 px-3 py-1.5 text-sm"
             defaultValue=""
             onChange={(e) => { if (e.target.value) loadScenario(e.target.value); }}
           >
-            <option value="">-- Select --</option>
+            <option value="">Load a sample scenario...</option>
             {SCENARIOS.map((s) => (
               <option key={s.id} value={s.id}>{s.name}</option>
             ))}
@@ -229,6 +366,7 @@ export default function EstimatePage() {
           >
             Clear All
           </button>
+          <span className="text-xs text-gray-400">or fill out the form below step by step</span>
         </div>
 
         {/* Advanced: SOW Parser + Photo Analysis */}
@@ -280,19 +418,43 @@ export default function EstimatePage() {
         <div className={`mb-8 rounded-lg border border-gray-200 bg-white shadow-sm print:hidden ${isAdvanced && inputMode === 'chat' ? 'hidden' : ''}`}>
           {/* Tab Bar */}
           <div className="flex flex-wrap gap-0 border-b border-gray-200 bg-gray-50">
-            {TABS.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2.5 text-sm font-medium transition ${
-                  activeTab === tab
-                    ? 'border-b-2 border-[#2563EB] bg-white text-[#2563EB]'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+            {TABS.map((tab) => {
+              const status = tabStatuses[tab];
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`relative flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition ${
+                    activeTab === tab
+                      ? 'border-b-2 border-[#2563EB] bg-white text-[#2563EB]'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  }`}
+                >
+                  {status === 'complete' && (
+                    <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] text-white">&#10003;</span>
+                  )}
+                  {status === 'partial' && (
+                    <span className="inline-block h-2 w-2 rounded-full bg-amber-400" />
+                  )}
+                  {tab}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Section Header */}
+          <div className="border-b border-gray-100 bg-blue-50/50 px-6 py-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-gray-800">{activeTab}</h2>
+                <p className="text-xs text-gray-500 mt-0.5">{TAB_META[activeTab]?.description}</p>
+              </div>
+              {TAB_META[activeTab]?.required.length > 0 && (
+                <span className="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
+                  {TAB_META[activeTab].required.filter(f => isFieldFilled(getFieldValue(input, f))).length}/{TAB_META[activeTab].required.length} required filled
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Tab Content */}
@@ -300,14 +462,45 @@ export default function EstimatePage() {
             <TabContent tab={activeTab} input={input} updateField={updateField} />
           </div>
 
-          {/* Generate Button */}
-          <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
-            <button
-              onClick={handleGenerate}
-              className="rounded-lg bg-[#2563EB] px-8 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
-            >
-              Generate Estimate
-            </button>
+          {/* Navigation Footer */}
+          <div className="border-t border-gray-200 bg-gray-50 px-6 py-4 flex items-center justify-between">
+            <div className="flex gap-2">
+              <button
+                onClick={goPrev}
+                disabled={currentTabIdx === 0}
+                className="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                &#8592; Previous
+              </button>
+              <button
+                onClick={goNext}
+                disabled={currentTabIdx === TABS.length - 1}
+                className="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                Next &#8594;
+              </button>
+            </div>
+            <div className="flex items-center gap-3">
+              {progress < 40 && (
+                <span className="text-xs text-gray-400">Fill in key fields to improve estimate accuracy</span>
+              )}
+              {progress >= 40 && progress < 80 && (
+                <span className="text-xs text-amber-600">Good progress — more detail = better estimate</span>
+              )}
+              {progress >= 80 && (
+                <span className="text-xs text-green-600">Ready to generate a high-confidence estimate</span>
+              )}
+              <button
+                onClick={handleGenerate}
+                className={`rounded-lg px-8 py-2.5 text-sm font-semibold text-white transition ${
+                  progress >= 40
+                    ? 'bg-[#2563EB] hover:bg-blue-700'
+                    : 'bg-gray-400 hover:bg-gray-500'
+                }`}
+              >
+                Generate Estimate
+              </button>
+            </div>
           </div>
         </div>
 
@@ -345,7 +538,10 @@ function TabContent({
   updateField: (path: string, value: unknown) => void;
 }) {
   const cls = 'block w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500';
+  const reqCls = 'block w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 border-l-2 border-l-blue-400';
   const label = 'block text-sm font-medium text-gray-700 mb-1';
+  const reqLabel = 'block text-sm font-medium text-gray-700 mb-1 after:content-["*"] after:ml-0.5 after:text-blue-500';
+  const hint = 'mt-1 text-xs text-gray-400';
   const grid = 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3';
 
   switch (tab) {
@@ -353,24 +549,26 @@ function TabContent({
       return (
         <div className={grid}>
           <div>
-            <label className={label}>Project Name</label>
-            <input className={cls} value={input.project.name} onChange={(e) => updateField('project.name', e.target.value)} />
+            <label className={reqLabel}>Project Name</label>
+            <input className={reqCls} value={input.project.name} onChange={(e) => updateField('project.name', e.target.value)} placeholder="e.g. Hampton Inn Miami - EV Charging" />
+            <p className={hint}>Used as the estimate title</p>
           </div>
           <div>
             <label className={label}>Sales Rep</label>
-            <input className={cls} value={input.project.salesRep} onChange={(e) => updateField('project.salesRep', e.target.value)} />
+            <input className={cls} value={input.project.salesRep} onChange={(e) => updateField('project.salesRep', e.target.value)} placeholder="Name of sales representative" />
           </div>
           <div>
-            <label className={label}>Project Type</label>
-            <select className={cls} value={input.project.projectType} onChange={(e) => updateField('project.projectType', e.target.value)}>
+            <label className={reqLabel}>Project Type</label>
+            <select className={reqCls} value={input.project.projectType} onChange={(e) => updateField('project.projectType', e.target.value)}>
               {['full_turnkey','full_turnkey_connectivity','equipment_install_commission','install_commission','equipment_purchase','remove_replace','commission_only','service_work','supercharger'].map((v) => (
                 <option key={v} value={v}>{v.replace(/_/g, ' ')}</option>
               ))}
             </select>
+            <p className={hint}>Determines which line items are included</p>
           </div>
           <div>
             <label className={label}>Timeline</label>
-            <input className={cls} value={input.project.timeline} onChange={(e) => updateField('project.timeline', e.target.value)} />
+            <input className={cls} value={input.project.timeline} onChange={(e) => updateField('project.timeline', e.target.value)} placeholder="e.g. Q2 2026, ASAP, 6-8 weeks" />
           </div>
           <div>
             <label className={label}>New Construction?</label>
@@ -379,6 +577,7 @@ function TabContent({
               <option value="true">Yes</option>
               <option value="false">No</option>
             </select>
+            <p className={hint}>New construction may reduce civil/trenching costs</p>
           </div>
         </div>
       );
@@ -386,18 +585,18 @@ function TabContent({
     case 'Customer':
       return (
         <div className={grid}>
-          <div><label className={label}>Company Name</label><input className={cls} value={input.customer.companyName} onChange={(e) => updateField('customer.companyName', e.target.value)} /></div>
-          <div><label className={label}>Contact Name</label><input className={cls} value={input.customer.contactName} onChange={(e) => updateField('customer.contactName', e.target.value)} /></div>
-          <div><label className={label}>Email</label><input className={cls} type="email" value={input.customer.contactEmail} onChange={(e) => updateField('customer.contactEmail', e.target.value)} /></div>
-          <div><label className={label}>Phone</label><input className={cls} value={input.customer.contactPhone} onChange={(e) => updateField('customer.contactPhone', e.target.value)} /></div>
-          <div className="sm:col-span-2 lg:col-span-3"><label className={label}>Billing Address</label><input className={cls} value={input.customer.billingAddress} onChange={(e) => updateField('customer.billingAddress', e.target.value)} /></div>
+          <div><label className={reqLabel}>Company Name</label><input className={reqCls} value={input.customer.companyName} onChange={(e) => updateField('customer.companyName', e.target.value)} placeholder="e.g. 396 Property Management LLC" /></div>
+          <div><label className={label}>Contact Name</label><input className={cls} value={input.customer.contactName} onChange={(e) => updateField('customer.contactName', e.target.value)} placeholder="Primary contact for this project" /></div>
+          <div><label className={label}>Email</label><input className={cls} type="email" value={input.customer.contactEmail} onChange={(e) => updateField('customer.contactEmail', e.target.value)} placeholder="contact@company.com" /></div>
+          <div><label className={label}>Phone</label><input className={cls} value={input.customer.contactPhone} onChange={(e) => updateField('customer.contactPhone', e.target.value)} placeholder="(555) 123-4567" /></div>
+          <div className="sm:col-span-2 lg:col-span-3"><label className={label}>Billing Address</label><input className={cls} value={input.customer.billingAddress} onChange={(e) => updateField('customer.billingAddress', e.target.value)} placeholder="Full billing address" /></div>
         </div>
       );
 
     case 'Site':
       return (
         <div className={grid}>
-          <div className="sm:col-span-2 lg:col-span-3"><label className={label}>Site Address</label><input className={cls} value={input.site.address} onChange={(e) => updateField('site.address', e.target.value)} /></div>
+          <div className="sm:col-span-2 lg:col-span-3"><label className={reqLabel}>Site Address</label><input className={reqCls} value={input.site.address} onChange={(e) => updateField('site.address', e.target.value)} placeholder="Full installation address" /><p className={hint}>Where the chargers will be installed</p></div>
           <div>
             <label className={label}>Site Type</label>
             <select className={cls} value={input.site.siteType ?? ''} onChange={(e) => updateField('site.siteType', e.target.value || null)}>
@@ -407,7 +606,7 @@ function TabContent({
               ))}
             </select>
           </div>
-          <div><label className={label}>State</label><input className={cls} value={input.site.state} onChange={(e) => updateField('site.state', e.target.value)} maxLength={2} /></div>
+          <div><label className={reqLabel}>State</label><input className={reqCls} value={input.site.state} onChange={(e) => updateField('site.state', e.target.value.toUpperCase())} maxLength={2} placeholder="FL" /><p className={hint}>2-letter code (affects tax/permit rules)</p></div>
         </div>
       );
 
@@ -455,17 +654,18 @@ function TabContent({
     case 'Charger':
       return (
         <div className={grid}>
-          <div><label className={label}>Brand</label><input className={cls} value={input.charger.brand} onChange={(e) => updateField('charger.brand', e.target.value)} placeholder="e.g. Tesla, ChargePoint, Xeal" /></div>
-          <div><label className={label}>Model</label><input className={cls} value={input.charger.model} onChange={(e) => updateField('charger.model', e.target.value)} placeholder="e.g. Universal Wall Connector, Supercharger, CT4000" /></div>
-          <div><label className={label}>Count</label><input className={cls} type="number" min={0} value={input.charger.count} onChange={(e) => updateField('charger.count', parseInt(e.target.value) || 0)} /></div>
+          <div><label className={reqLabel}>Brand</label><input className={reqCls} value={input.charger.brand} onChange={(e) => updateField('charger.brand', e.target.value)} placeholder="e.g. Tesla, ChargePoint, Xeal" /><p className={hint}>Drives equipment pricing from our pricebook</p></div>
+          <div><label className={label}>Model</label><input className={cls} value={input.charger.model} onChange={(e) => updateField('charger.model', e.target.value)} placeholder="e.g. Universal Wall Connector, Supercharger, CT4000" /><p className={hint}>Specific model for accurate pricing</p></div>
+          <div><label className={reqLabel}>Count</label><input className={reqCls} type="number" min={0} value={input.charger.count} onChange={(e) => updateField('charger.count', parseInt(e.target.value) || 0)} /><p className={hint}>Total number of charger units</p></div>
           <div><label className={label}>Pedestal Count</label><input className={cls} type="number" min={0} value={input.charger.pedestalCount} onChange={(e) => updateField('charger.pedestalCount', parseInt(e.target.value) || 0)} /></div>
           <div>
-            <label className={label}>Charging Level</label>
-            <select className={cls} value={input.charger.chargingLevel ?? ''} onChange={(e) => updateField('charger.chargingLevel', e.target.value || null)}>
+            <label className={reqLabel}>Charging Level</label>
+            <select className={reqCls} value={input.charger.chargingLevel ?? ''} onChange={(e) => updateField('charger.chargingLevel', e.target.value || null)}>
               <option value="">-- Select --</option>
-              <option value="l2">Level 2</option>
-              <option value="l3_dcfc">Level 3 / DCFC</option>
+              <option value="l2">Level 2 (up to 19.2 kW)</option>
+              <option value="l3_dcfc">Level 3 / DCFC (50+ kW)</option>
             </select>
+            <p className={hint}>L2 = residential/workplace, L3 = fast charging</p>
           </div>
           <div>
             <label className={label}>Mount Type</label>
@@ -512,7 +712,7 @@ function TabContent({
               <option value="unknown">Unknown</option>
             </select>
           </div>
-          <div><label className={label}>Distance to Panel (ft)</label><input className={cls} type="number" value={input.electrical.distanceToPanel_ft ?? ''} onChange={(e) => updateField('electrical.distanceToPanel_ft', e.target.value ? parseInt(e.target.value) : null)} /></div>
+          <div><label className={label}>Distance to Panel (ft)</label><input className={cls} type="number" value={input.electrical.distanceToPanel_ft ?? ''} onChange={(e) => updateField('electrical.distanceToPanel_ft', e.target.value ? parseInt(e.target.value) : null)} placeholder="Estimated feet" /><p className={hint}>Drives conduit and wire run costs</p></div>
           <div><label className={label}>Available Amps</label><input className={cls} type="number" value={input.electrical.availableAmps ?? ''} onChange={(e) => updateField('electrical.availableAmps', e.target.value ? parseInt(e.target.value) : null)} /></div>
           <div>
             <label className={label}>Capacity Known?</label>
@@ -534,7 +734,8 @@ function TabContent({
       return (
         <div>
           <label className={label}>Installation Location Description</label>
-          <textarea className={cls + ' h-32'} value={input.civil.installationLocationDescription} onChange={(e) => updateField('civil.installationLocationDescription', e.target.value)} />
+          <textarea className={cls + ' h-32'} value={input.civil.installationLocationDescription} onChange={(e) => updateField('civil.installationLocationDescription', e.target.value)} placeholder="Describe the physical installation area — parking layout, distance from electrical room, any obstacles, surface conditions, etc." />
+          <p className={hint}>The more detail you provide, the more accurate the civil/site work estimate will be</p>
         </div>
       );
 
