@@ -111,6 +111,35 @@ ${JSON.stringify(output, null, 2)}`,
   };
 }
 
+export function buildSatelliteAnalysisPrompt(): string {
+  return `You are analyzing a satellite/aerial image of a property for EV charger installation estimating.
+
+Analyze the visible site and return ONLY a JSON response with these fields:
+
+{
+  "siteDescription": "Brief description of what you see from above",
+  "inferredFields": {
+    "parkingEnvironment.type": "surface_lot | parking_garage | mixed | null",
+    "parkingEnvironment.surfaceType": "asphalt | concrete | gravel | other | null",
+    "site.siteType": "hotel | apartment | retail | office | industrial | fuel_station | other | null",
+    "parkingEnvironment.trafficControlRequired": true | false | null
+  },
+  "estimatedParkingSpaces": null,
+  "suggestedChargerCount": { "min": null, "max": null, "reasoning": "..." },
+  "concerns": ["List any installation concerns visible from aerial view"],
+  "confidence": 0.75
+}
+
+Rules:
+- Only report what is VISIBLE from the aerial/satellite view
+- For uncertain observations, lower the confidence score
+- Never claim hidden electrical capacity or buried conditions
+- Do not estimate any costs or prices
+- estimatedParkingSpaces should be your best count of visible parking spots
+- suggestedChargerCount uses 3-5% of parking spaces for EV adoption
+${PRICING_CONSTRAINT}`;
+}
+
 export function buildPhotoAnalysisPrompt(): string {
   return `You are analyzing a site photo for EV charger installation estimating.
 

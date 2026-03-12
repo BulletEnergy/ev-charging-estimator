@@ -442,8 +442,8 @@ function electricalRules(
   // ── Conduit, Wire, Breakers (ELEC LBR MAT) ──
   const conduitItem = findPricebookItem('eleclbrmat-conduit-wire');
   if (conduitItem) {
-    const distance = electrical.distanceToPanel_ft ?? 50; // default 50ft if unknown
-    const distanceKnown = electrical.distanceToPanel_ft !== null;
+    const distance = input.mapWorkspace?.conduitDistance_ft ?? electrical.distanceToPanel_ft ?? 50; // map > form > default
+    const distanceKnown = (input.mapWorkspace?.conduitDistance_ft != null) || electrical.distanceToPanel_ft !== null;
 
     items.push(
       pricebookLine(conduitItem, distance, {
@@ -535,7 +535,8 @@ function civilRules(
   const items: EstimateLineItem[] = [];
   const reviews: ManualReviewTrigger[] = [];
   const { parkingEnvironment, electrical, charger } = input;
-  const distance = electrical.distanceToPanel_ft ?? 50;
+  const baseDistance = electrical.distanceToPanel_ft ?? 50;
+  const distance = baseDistance; // used for coring qty estimation
 
   // ── MIXED environment → force manual review ──
   if (parkingEnvironment.type === 'mixed') {
@@ -584,7 +585,7 @@ function civilRules(
     // Concrete cutting in garage
     const concreteCutItem = findPricebookItem('civil-concrete-cutting');
     if (concreteCutItem && distance > 0) {
-      const cutDist = Math.min(distance, 100); // cap at reasonable garage distance
+      const cutDist = input.mapWorkspace?.concreteCuttingDistance_ft ?? Math.min(distance, 100);
       items.push(
         pricebookLine(concreteCutItem, cutDist, {
           ruleName: 'Garage concrete cutting',
@@ -602,11 +603,12 @@ function civilRules(
     // Trenching
     if (parkingEnvironment.trenchingRequired !== false) {
       const trenchItem = findPricebookItem('civil-trenching');
-      if (trenchItem && distance > 0) {
+      const trenchDist = input.mapWorkspace?.trenchingDistance_ft ?? distance;
+      if (trenchItem && trenchDist > 0) {
         items.push(
-          pricebookLine(trenchItem, distance, {
+          pricebookLine(trenchItem, trenchDist, {
             ruleName: 'Surface trenching',
-            ruleReason: `${distance} LF trenching in soft/normal soil at $${trenchItem.catalogPrice}/ft`,
+            ruleReason: `${trenchDist} LF trenching in soft/normal soil at $${trenchItem.catalogPrice}/ft`,
             sourceInputs: ['parkingEnvironment.type', 'parkingEnvironment.trenchingRequired', 'electrical.distanceToPanel_ft'],
             manualReviewRequired: parkingEnvironment.type === 'mixed',
             confidence: 'medium',
@@ -619,7 +621,7 @@ function civilRules(
     if (parkingEnvironment.boringRequired === true) {
       const boreItem = findPricebookItem('civil-boring-hand');
       if (boreItem) {
-        const boreDist = Math.min(distance, 50);
+        const boreDist = input.mapWorkspace?.boringDistance_ft ?? Math.min(distance, 50);
         items.push(
           pricebookLine(boreItem, boreDist, {
             ruleName: 'Surface boring',

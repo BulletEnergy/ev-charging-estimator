@@ -1,5 +1,6 @@
 import { EstimateInput, EstimateOutput } from './types';
 import { runAllRules } from './rules';
+import { mapWorkspaceRules } from './map-rules';
 import { selectExclusions } from './exclusions';
 
 // ============================================================
@@ -98,6 +99,11 @@ function determineConfidence(
 export function generateEstimate(input: EstimateInput): EstimateOutput {
   // 1. Run all rules
   const { items, reviews } = runAllRules(input);
+
+  // 1b. Run map workspace supplementary rules
+  const mapResult = mapWorkspaceRules(input);
+  items.push(...mapResult.items);
+  reviews.push(...mapResult.reviews);
 
   // 2. Select exclusions
   const exclusions = selectExclusions(input);

@@ -148,6 +148,15 @@ export interface EstimateInput {
     markupPercent: number;
   };
   notes: string;
+  mapWorkspace?: {
+    conduitDistance_ft: number | null;
+    feederDistance_ft: number | null;
+    trenchingDistance_ft: number | null;
+    boringDistance_ft: number | null;
+    concreteCuttingDistance_ft: number | null;
+    chargerCountFromMap: number | null;
+    siteCoordinates: [number, number] | null;
+  };
   removeReplace?: {
     existingChargerCount: number | null;
     existingBrand: string | null;

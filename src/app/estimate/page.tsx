@@ -4,9 +4,11 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { EstimateInput, EstimateOutput, EstimateLineItem, ManualReviewTrigger } from '@/lib/estimate/types';
 import { generateEstimate } from '@/lib/estimate/engine';
+import { emptyInput } from '@/lib/estimate/emptyInput';
 import { exportEstimatePDF } from '@/lib/estimate/export-pdf';
 import { SCENARIOS } from '@/lib/estimate/scenarios';
 import { useViewMode } from '@/lib/viewMode';
+import { MAP_WORKSPACE_ENABLED } from '@/lib/map/feature-flags';
 import { ViewModeToggle } from '@/components/ViewModeToggle';
 import { SOWParser } from '@/components/advanced/SOWParser';
 import { ChatBuilder } from '@/components/advanced/ChatBuilder';
@@ -16,42 +18,6 @@ import { PhotoAnalysis } from '@/components/advanced/PhotoAnalysis';
 // ============================================================
 // Helpers
 // ============================================================
-
-function emptyInput(): EstimateInput {
-  return {
-    project: { name: '', salesRep: '', projectType: 'full_turnkey', timeline: '', isNewConstruction: null },
-    customer: { companyName: '', contactName: '', contactEmail: '', contactPhone: '', billingAddress: '' },
-    site: { address: '', siteType: null, state: '' },
-    parkingEnvironment: {
-      type: null, hasPTSlab: null, slabScanRequired: null, coringRequired: null,
-      surfaceType: null, trenchingRequired: null, boringRequired: null,
-      trafficControlRequired: null, indoorOutdoor: null, fireRatedPenetrations: null,
-      accessRestrictions: '',
-    },
-    charger: {
-      brand: '', model: '', count: 0, pedestalCount: 0, portType: null,
-      mountType: null, isCustomerSupplied: false, chargingLevel: null,
-      ampsPerCharger: null, volts: null,
-    },
-    electrical: {
-      serviceType: null, availableCapacityKnown: false, availableAmps: null,
-      breakerSpaceAvailable: null, panelUpgradeRequired: null, transformerRequired: null,
-      switchgearRequired: null, distanceToPanel_ft: null, utilityCoordinationRequired: null,
-      electricalRoomDescription: '',
-    },
-    civil: { installationLocationDescription: '' },
-    permit: { responsibility: null, feeAllowance: null },
-    designEngineering: { responsibility: null, stampedPlansRequired: null },
-    network: { type: null, wifiInstallResponsibility: null },
-    accessories: { bollardQty: 0, signQty: 0, wheelStopQty: 0, stripingRequired: false, padRequired: false, debrisRemoval: false },
-    makeReady: { responsibility: null },
-    chargerInstall: { responsibility: null },
-    purchasingChargers: { responsibility: null },
-    signageBollards: { responsibility: null },
-    estimateControls: { pricingTier: 'msrp', taxRate: 7.0, contingencyPercent: 10, markupPercent: 20 },
-    notes: '',
-  };
-}
 
 function fmt(n: number): string {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
@@ -934,6 +900,17 @@ function EstimateResults({
             >
               Download PDF
             </button>
+            {MAP_WORKSPACE_ENABLED && (
+              <button
+                onClick={() => {
+                  sessionStorage.setItem('estimateInput', JSON.stringify(output.input));
+                  window.location.href = '/estimate/map';
+                }}
+                className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 print:hidden"
+              >
+                Open Map Workspace
+              </button>
+            )}
           </div>
         </div>
       </div>
