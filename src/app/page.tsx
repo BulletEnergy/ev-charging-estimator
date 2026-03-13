@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { LogoutButton } from '@/components/LogoutButton';
 import { ViewModeToggle } from '@/components/ViewModeToggle';
 import { useViewMode } from '@/lib/viewMode';
+import { useHealthStatus } from '@/hooks/useHealthStatus';
 import { MAP_WORKSPACE_ENABLED } from '@/lib/map/feature-flags';
 
 const AI_FEATURES = [
@@ -33,8 +34,30 @@ const AI_FEATURES = [
   },
 ];
 
+function StatusBadge({ label, active, loading }: { label: string; active: boolean; loading: boolean }) {
+  if (loading) {
+    return (
+      <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-4 py-1.5 text-sm font-medium text-gray-500">
+        <span className="h-2 w-2 animate-pulse rounded-full bg-gray-400" />
+        {label}
+      </span>
+    );
+  }
+  return (
+    <span className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium ${
+      active
+        ? 'bg-green-100 text-green-800'
+        : 'bg-red-100 text-red-800'
+    }`}>
+      <span className={`h-2 w-2 rounded-full ${active ? 'bg-green-500' : 'bg-red-500'}`} />
+      {label}: {active ? 'Connected' : 'Not Connected'}
+    </span>
+  );
+}
+
 export default function HomePage() {
   const { isAdvanced } = useViewMode();
+  const { services, isLoading } = useHealthStatus();
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -53,24 +76,24 @@ export default function HomePage() {
 
       <div className="mx-auto max-w-6xl px-6 py-12">
         {/* Status Bar */}
-        <div className="mb-10 flex flex-wrap gap-4">
+        <div className="mb-10 flex flex-wrap gap-3">
           <span className="inline-flex items-center gap-2 rounded-full bg-green-100 px-4 py-1.5 text-sm font-medium text-green-800">
             <span className="h-2 w-2 rounded-full bg-green-500" />
-            Offline Mode
+            Catalog Loaded
           </span>
-          <span className="inline-flex items-center gap-2 rounded-full bg-green-100 px-4 py-1.5 text-sm font-medium text-green-800">
-            <span className="h-2 w-2 rounded-full bg-green-500" />
-            Catalog Loaded (9 SC Packages + L2 + ChargePoint)
-          </span>
-          <span className="inline-flex items-center gap-2 rounded-full bg-yellow-100 px-4 py-1.5 text-sm font-medium text-yellow-800">
-            <span className="h-2 w-2 rounded-full bg-yellow-500" />
-            monday.com: Not Connected
-          </span>
+          <StatusBadge label="AI" active={services?.aiReady ?? false} loading={isLoading} />
+          <StatusBadge label="monday.com" active={services?.monday ?? false} loading={isLoading} />
+          <StatusBadge label="Map" active={services?.mapWorkspace ?? false} loading={isLoading} />
           {isAdvanced && (
-            <span className="inline-flex items-center gap-2 rounded-full bg-purple-100 px-4 py-1.5 text-sm font-medium text-purple-800">
-              <span className="h-2 w-2 rounded-full bg-purple-500" />
-              Advanced Mode
-            </span>
+            <>
+              <StatusBadge label="OpenAI" active={services?.openai ?? false} loading={isLoading} />
+              <StatusBadge label="Gemini" active={services?.gemini ?? false} loading={isLoading} />
+              <StatusBadge label="Street View" active={services?.googleMaps ?? false} loading={isLoading} />
+              <span className="inline-flex items-center gap-2 rounded-full bg-purple-100 px-4 py-1.5 text-sm font-medium text-purple-800">
+                <span className="h-2 w-2 rounded-full bg-purple-500" />
+                Advanced Mode
+              </span>
+            </>
           )}
         </div>
 
