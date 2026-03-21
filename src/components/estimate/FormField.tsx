@@ -2,13 +2,11 @@
 
 import type { ReactNode } from 'react';
 
-const baseCls = 'block w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500';
-const requiredCls = `${baseCls} border-l-2 border-l-blue-400`;
-const labelCls = 'block text-sm font-medium text-gray-700 mb-1';
-const requiredLabelCls = `${labelCls} after:content-["*"] after:ml-0.5 after:text-blue-500`;
-const hintCls = 'mt-1 text-xs text-gray-400';
-
-// ── Text / Number / Email inputs ──
+const baseCls = 'block w-full rounded-[var(--radius-sm)] border-0 bg-black/[0.03] px-3.5 py-2.5 text-sm text-gray-900 ring-1 ring-inset ring-black/[0.06] placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[var(--system-blue)] transition-shadow';
+const requiredCls = `${baseCls} ring-[var(--system-blue)]/30`;
+const labelCls = 'block text-[0.8125rem] font-medium text-gray-700 mb-1.5';
+const requiredLabelCls = `${labelCls} after:content-["*"] after:ml-0.5 after:text-[var(--system-blue)]`;
+const hintCls = 'mt-1.5 text-[0.6875rem] text-gray-400';
 
 interface InputFieldProps {
   label: string;
@@ -34,7 +32,7 @@ export function InputField({
     <div className={spanCls}>
       <label className={required ? requiredLabelCls : labelCls}>
         {label}
-        {aiSuggested && <span className="ml-1 text-purple-500" title="AI suggested">&#10024;</span>}
+        {aiSuggested && <span className="ml-1 text-[var(--system-purple)]" title="AI suggested">&#10024;</span>}
       </label>
       <input
         className={required ? requiredCls : baseCls}
@@ -51,8 +49,6 @@ export function InputField({
     </div>
   );
 }
-
-// ── Select dropdown ──
 
 interface SelectFieldProps {
   label: string;
@@ -74,7 +70,7 @@ export function SelectField({
     <div className={spanCls}>
       <label className={required ? requiredLabelCls : labelCls}>
         {label}
-        {aiSuggested && <span className="ml-1 text-purple-500" title="AI suggested">&#10024;</span>}
+        {aiSuggested && <span className="ml-1 text-[var(--system-purple)]" title="AI suggested">&#10024;</span>}
       </label>
       <select
         className={required ? requiredCls : baseCls}
@@ -91,8 +87,6 @@ export function SelectField({
   );
 }
 
-// ── Boolean (Yes/No/Unknown) ──
-
 interface BoolFieldProps {
   label: string;
   value: boolean | null;
@@ -105,7 +99,7 @@ export function BoolField({ label, value, onChange, aiSuggested }: BoolFieldProp
     <div>
       <label className={labelCls}>
         {label}
-        {aiSuggested && <span className="ml-1 text-purple-500" title="AI suggested">&#10024;</span>}
+        {aiSuggested && <span className="ml-1 text-[var(--system-purple)]" title="AI suggested">&#10024;</span>}
       </label>
       <select
         className={baseCls}
@@ -119,8 +113,6 @@ export function BoolField({ label, value, onChange, aiSuggested }: BoolFieldProp
     </div>
   );
 }
-
-// ── Textarea ──
 
 interface TextareaFieldProps {
   label: string;
@@ -149,8 +141,6 @@ export function TextareaField({ label, value, onChange, placeholder, hint, rows 
   );
 }
 
-// ── Checkbox ──
-
 interface CheckboxFieldProps {
   label: string;
   checked: boolean;
@@ -159,14 +149,12 @@ interface CheckboxFieldProps {
 
 export function CheckboxField({ label, checked, onChange }: CheckboxFieldProps) {
   return (
-    <div className="flex items-center gap-2">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      <span className="text-sm text-gray-700">{label}</span>
-    </div>
+    <label className="flex cursor-pointer items-center gap-3 rounded-[var(--radius-sm)] bg-black/[0.02] px-3.5 py-3 ring-1 ring-inset ring-black/[0.04] transition hover:bg-black/[0.04]">
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[var(--system-blue)] focus:ring-[var(--system-blue)]" />
+      <span className="text-[0.8125rem] font-medium text-gray-700">{label}</span>
+    </label>
   );
 }
-
-// ── Grid wrapper ──
 
 export function FormGrid({ children }: { children: ReactNode }) {
   return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{children}</div>;

@@ -23,25 +23,24 @@ export function LiveEstimateSummary({ autoEstimate }: LiveEstimateSummaryProps) 
   const tbdCount = estimate?.lineItems.filter((li) => li.pricingSource === 'tbd').length ?? 0;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 bg-white/95 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] backdrop-blur-sm print:hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-40 print:hidden" style={{ borderTop: '0.5px solid rgba(0,0,0,0.08)', background: 'var(--glass-bg-heavy)', backdropFilter: 'saturate(180%) blur(28px)', WebkitBackdropFilter: 'saturate(180%) blur(28px)', boxShadow: '0 -4px 20px rgba(0,0,0,0.06)' }}>
       <div className="mx-auto max-w-7xl px-4">
-        {/* Collapsed bar */}
         <button
           onClick={() => setExpanded((v) => !v)}
-          className="flex w-full items-center justify-between py-3"
+          className="flex w-full items-center justify-between py-3.5"
         >
           <div className="flex items-center gap-4">
             {isGenerating && (
-              <div className="flex items-center gap-2 text-xs text-blue-600">
-                <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+              <div className="flex items-center gap-2 text-[0.75rem] font-medium" style={{ color: 'var(--system-blue)' }}>
+                <div className="h-3 w-3 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: 'var(--system-blue)', borderTopColor: 'transparent' }} />
                 Updating...
               </div>
             )}
             {!isGenerating && estimate && (
               <>
-                <span className="text-sm text-gray-500">{lineCount} line items</span>
+                <span className="text-[0.8125rem] text-gray-500">{lineCount} line items</span>
                 {tbdCount > 0 && (
-                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                  <span className="lg-pill px-2.5 py-1 text-[0.6875rem] font-medium" style={{ background: 'rgba(255,149,0,0.1)', color: 'var(--system-orange)' }}>
                     {tbdCount} need review
                   </span>
                 )}
@@ -51,7 +50,7 @@ export function LiveEstimateSummary({ autoEstimate }: LiveEstimateSummaryProps) 
 
           <div className="flex items-center gap-3">
             {delta !== null && delta !== 0 && (
-              <span className={`text-sm font-medium ${delta > 0 ? 'text-red-600' : 'text-green-600'}`}>
+              <span className="text-[0.8125rem] font-semibold" style={{ color: delta > 0 ? 'var(--system-red)' : 'var(--system-green)' }}>
                 {delta > 0 ? '+' : ''}{fmt(delta)}
               </span>
             )}
@@ -70,9 +69,8 @@ export function LiveEstimateSummary({ autoEstimate }: LiveEstimateSummaryProps) 
           </div>
         </button>
 
-        {/* Expanded breakdown */}
         {expanded && estimate && (
-          <div className="border-t border-gray-100 pb-4 pt-3">
+          <div className="border-t border-black/[0.06] pb-4 pt-3">
             <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
               {[
                 { label: 'Hardware', value: estimate.summary.hardwareTotal },
@@ -82,13 +80,13 @@ export function LiveEstimateSummary({ autoEstimate }: LiveEstimateSummaryProps) 
                 { label: 'Accessories', value: estimate.summary.accessoriesTotal },
                 { label: 'Service/SW', value: estimate.summary.serviceTotal },
               ].map((item) => (
-                <div key={item.label} className="flex items-center justify-between rounded bg-gray-50 px-3 py-2">
-                  <span className="text-xs text-gray-500">{item.label}</span>
-                  <span className="text-xs font-medium text-gray-900">{fmt(item.value)}</span>
+                <div key={item.label} className="flex items-center justify-between px-3 py-2" style={{ borderRadius: 'var(--radius-sm)', background: 'rgba(0,0,0,0.03)' }}>
+                  <span className="text-[0.6875rem] text-gray-500">{item.label}</span>
+                  <span className="text-[0.6875rem] font-medium text-gray-900">{fmt(item.value)}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-2 flex flex-wrap items-center justify-end gap-2 sm:gap-4 text-xs text-gray-500">
+            <div className="mt-2 flex flex-wrap items-center justify-end gap-2 sm:gap-4 text-[0.75rem] text-gray-500">
               <span>Subtotal: {fmt(estimate.summary.subtotal)}</span>
               <span>Tax: {fmt(estimate.summary.tax)}</span>
               <span>Contingency: {fmt(estimate.summary.contingency)}</span>
