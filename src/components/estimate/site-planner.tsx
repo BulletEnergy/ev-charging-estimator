@@ -388,7 +388,7 @@ export function SitePlanner({
 
   return (
     <div className="grid gap-5 xl:grid-cols-[1.45fr_0.95fr]">
-      <section className="overflow-hidden rounded-[28px] border border-white/20 bg-slate-950/70 shadow-[0_24px_60px_rgba(15,23,42,0.35)] backdrop-blur-xl">
+      <section className="overflow-hidden rounded-[var(--radius-lg)] border border-white/20 bg-slate-950/70 shadow-[0_24px_60px_rgba(15,23,42,0.35)] backdrop-blur-xl">
         <div className="border-b border-white/10 bg-white/5 px-5 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -561,7 +561,7 @@ export function SitePlanner({
       </section>
 
       <aside className="space-y-4">
-        <section className="rounded-[28px] border border-white/15 bg-white/70 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur-xl">
+        <section className="rounded-[var(--radius-lg)] border border-white/15 bg-white/70 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur-xl">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
@@ -688,7 +688,7 @@ export function SitePlanner({
           )}
         </section>
 
-        <section className="rounded-[28px] border border-white/15 bg-white/70 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur-xl">
+        <section className="rounded-[var(--radius-lg)] border border-white/15 bg-white/70 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur-xl">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
             Estimate Impact
           </p>
@@ -743,7 +743,7 @@ export function SitePlanner({
           </div>
         </section>
 
-        <section className="rounded-[28px] border border-white/15 bg-white/70 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur-xl">
+        <section className="rounded-[var(--radius-lg)] border border-white/15 bg-white/70 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur-xl">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">

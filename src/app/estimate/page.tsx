@@ -35,7 +35,7 @@ const SitePlanner = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex min-h-[520px] items-center justify-center rounded-[28px] border border-white/15 bg-white/70 text-sm text-slate-500 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur-xl">
+      <div className="flex min-h-[520px] items-center justify-center rounded-[var(--radius-lg)] border border-white/15 bg-white/70 text-sm text-slate-500 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur-xl">
         Loading interactive map planner...
       </div>
     ),
@@ -271,7 +271,7 @@ export default function EstimatePage() {
       fallback={
         <main className="min-h-screen text-slate-900">
           <div className="page-section mx-auto max-w-7xl px-5 pb-16 pt-6 sm:px-6 lg:px-8">
-            <div className="glass-panel-strong rounded-[28px] p-8 text-center text-slate-600">
+            <div className="lg-panel-heavy rounded-[var(--radius-lg)] p-8 text-center text-slate-600">
               Loading estimate workspace...
             </div>
           </div>
@@ -374,10 +374,10 @@ function EstimatePageClient() {
   return (
     <main className="min-h-screen text-slate-900">
       <div className="page-section mx-auto max-w-7xl px-5 pb-16 pt-6 sm:px-6 lg:px-8">
-        <header className="glass-panel-dark hero-glow liquid-ring rounded-[32px] px-6 py-6 text-white sm:px-8">
+        <header className="lg-panel-dark-heavy hero-canvas lg-ring rounded-[var(--radius-xl)] px-6 py-6 text-white sm:px-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
-              <div className="section-eyebrow text-cyan-100/80">
+              <div className="lg-eyebrow text-cyan-100/80">
                 <MapPinned className="h-4 w-4" />
                 Guided Estimate Workflow
               </div>
@@ -399,7 +399,7 @@ function EstimatePageClient() {
               ].map(([label, value]) => (
                 <div
                   key={label}
-                  className="rounded-[24px] border border-white/12 bg-white/10 px-4 py-4 backdrop-blur-xl"
+                  className="rounded-[var(--radius-lg)] border border-white/12 bg-white/10 px-4 py-4 backdrop-blur-xl"
                 >
                   <p className="text-xs uppercase tracking-[0.22em] text-slate-300">
                     {label}
@@ -413,10 +413,10 @@ function EstimatePageClient() {
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr] print:block">
           <section className="space-y-5 print:hidden">
-            <div className="glass-panel-strong rounded-[28px] p-5">
+            <div className="lg-panel-heavy rounded-[var(--radius-lg)] p-5">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <p className="section-eyebrow">Workflow Sections</p>
+                  <p className="lg-eyebrow">Workflow Sections</p>
                   <h2 className="mt-2 text-2xl font-semibold text-slate-900">
                     Pick a section and keep the map in the loop
                   </h2>
@@ -439,7 +439,7 @@ function EstimatePageClient() {
                     key={tab.name}
                     type="button"
                     onClick={() => setActiveTab(tab.name)}
-                    className={`rounded-[24px] border px-4 py-4 text-left transition ${
+                    className={`rounded-[var(--radius-lg)] border px-4 py-4 text-left transition ${
                       activeTab === tab.name
                         ? 'border-slate-900 bg-slate-900 text-white shadow-[0_16px_30px_rgba(15,23,42,0.22)]'
                         : 'border-slate-200 bg-white/85 text-slate-700 hover:border-slate-300 hover:bg-white'
@@ -470,10 +470,10 @@ function EstimatePageClient() {
               </div>
             </div>
 
-            <div className="glass-panel-strong rounded-[28px] p-5 sm:p-6">
+            <div className="lg-panel-heavy rounded-[var(--radius-lg)] p-5 sm:p-6">
               <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-5">
                 <div>
-                  <p className="section-eyebrow">
+                  <p className="lg-eyebrow">
                     <Layers3 className="h-4 w-4" />
                     Active Section
                   </p>
@@ -485,7 +485,7 @@ function EstimatePageClient() {
                   </p>
                 </div>
                 {activeTab !== 'Map & Layout' && mapAppliedFields.length > 0 && (
-                  <div className="rounded-[22px] border border-cyan-200 bg-cyan-50 px-4 py-3">
+                  <div className="rounded-[var(--radius-md)] border border-cyan-200 bg-cyan-50 px-4 py-3">
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-700">
                       Map Sync Active
                     </p>
@@ -510,8 +510,8 @@ function EstimatePageClient() {
           </section>
 
           <aside className="space-y-5 print:hidden">
-            <div className="glass-panel rounded-[28px] p-5 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur-xl lg:sticky lg:top-6">
-              <p className="section-eyebrow">
+            <div className="lg-panel rounded-[var(--radius-lg)] p-5 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur-xl lg:sticky lg:top-6">
+              <p className="lg-eyebrow">
                 <Sparkles className="h-4 w-4" />
                 Guided Actions
               </p>
@@ -520,7 +520,7 @@ function EstimatePageClient() {
               </h2>
 
               <div className="mt-5 space-y-4">
-                <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4">
+                <div className="rounded-[var(--radius-lg)] border border-slate-200 bg-white px-4 py-4">
                   <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                     Load Sample Scenario
                   </label>
@@ -540,7 +540,7 @@ function EstimatePageClient() {
                   </select>
                 </div>
 
-                <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4">
+                <div className="rounded-[var(--radius-lg)] border border-slate-200 bg-white px-4 py-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                     Map Highlights
                   </p>
@@ -566,7 +566,7 @@ function EstimatePageClient() {
                   </div>
                 </div>
 
-                <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4">
+                <div className="rounded-[var(--radius-lg)] border border-slate-200 bg-white px-4 py-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                     Quote Posting
                   </p>
@@ -594,7 +594,7 @@ function EstimatePageClient() {
                   </div>
                 </div>
 
-                <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4">
+                <div className="rounded-[var(--radius-lg)] border border-slate-200 bg-white px-4 py-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                     Quote Controls
                   </p>
@@ -699,7 +699,7 @@ function TabContent({
     case 'Map & Layout':
       return (
         <div className="space-y-5">
-          <div className="rounded-[24px] border border-cyan-200 bg-cyan-50 px-5 py-4">
+          <div className="rounded-[var(--radius-lg)] border border-cyan-200 bg-cyan-50 px-5 py-4">
             <div className="flex items-start gap-3">
               <span className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-600 text-white">
                 <MapPinned className="h-4 w-4" />
@@ -924,7 +924,7 @@ function TabContent({
               onChange={(event) => updateField('site.state', event.target.value)}
             />
           </div>
-          <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4 sm:col-span-2 xl:col-span-3">
+          <div className="rounded-[var(--radius-lg)] border border-slate-200 bg-slate-50 px-4 py-4 sm:col-span-2 xl:col-span-3">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
               Map Location
             </p>
@@ -1056,7 +1056,7 @@ function TabContent({
             </div>
           </div>
 
-          <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4">
+          <div className="rounded-[var(--radius-lg)] border border-slate-200 bg-white px-4 py-4">
             <label className={labelCls}>Installation Location Description</label>
             <textarea
               className={`${textareaCls} h-32`}
@@ -1483,7 +1483,7 @@ function TabContent({
             {accessoryToggles.map(({ label, path, value }) => (
               <label
                 key={path}
-                className="flex items-center gap-3 rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700"
+                className="flex items-center gap-3 rounded-[var(--radius-lg)] border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700"
               >
                 <input
                   type="checkbox"
@@ -1617,7 +1617,7 @@ function TabContent({
             </div>
           </div>
 
-          <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4">
+          <div className="rounded-[var(--radius-lg)] border border-slate-200 bg-white px-4 py-4">
             <label className={labelCls}>Notes</label>
             <textarea
               className={`${textareaCls} h-32`}
@@ -1751,10 +1751,10 @@ function EstimateResults({
 
   return (
     <div id="estimate-output" className="space-y-6">
-      <div className="glass-panel-strong rounded-[28px] p-6 text-slate-900 shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
+      <div className="lg-panel-heavy rounded-[var(--radius-lg)] p-6 text-slate-900 shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="section-eyebrow">
+            <p className="lg-eyebrow">
               <FileText className="h-4 w-4" />
               Estimate Output
             </p>
@@ -1780,7 +1780,7 @@ function EstimateResults({
             ].map(([label, value]) => (
               <div
                 key={label}
-                className="rounded-[22px] border border-slate-200 bg-white px-4 py-3"
+                className="rounded-[var(--radius-md)] border border-slate-200 bg-white px-4 py-3"
               >
                 <p className="text-xs uppercase tracking-[0.16em] text-slate-500">
                   {label}
@@ -1795,7 +1795,7 @@ function EstimateResults({
       </div>
 
       {metadata.mapFeatureCount > 0 && (
-        <div className="rounded-[24px] border border-cyan-200 bg-cyan-50 px-5 py-4 text-slate-900">
+        <div className="rounded-[var(--radius-lg)] border border-cyan-200 bg-cyan-50 px-5 py-4 text-slate-900">
           <p className="text-sm font-semibold">
             {metadata.mapFeatureCount} mapped feature(s) were included in this
             estimate, and {metadata.mapAppliedLineItems} line item(s) are
@@ -1805,7 +1805,7 @@ function EstimateResults({
       )}
 
       {manualReviewTriggers.length > 0 && (
-        <div className="rounded-[28px] border border-amber-200 bg-amber-50 p-6 print:border-gray-300 print:bg-gray-50">
+        <div className="rounded-[var(--radius-lg)] border border-amber-200 bg-amber-50 p-6 print:border-gray-300 print:bg-gray-50">
           <h3 className="text-lg font-semibold text-amber-900">
             Manual Review Required ({manualReviewTriggers.length})
           </h3>
@@ -1813,7 +1813,7 @@ function EstimateResults({
             {manualReviewTriggers.map((trigger: ManualReviewTrigger) => (
               <div
                 key={trigger.id}
-                className="rounded-[22px] border border-amber-200 bg-white px-4 py-4"
+                className="rounded-[var(--radius-md)] border border-amber-200 bg-white px-4 py-4"
               >
                 <div className="flex flex-wrap items-center gap-3">
                   <SeverityBadge severity={trigger.severity} />
@@ -1833,7 +1833,7 @@ function EstimateResults({
         </div>
       )}
 
-      <div className="glass-panel rounded-[28px] p-6 shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
+      <div className="lg-panel rounded-[var(--radius-lg)] p-6 shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
         <h3 className="text-lg font-semibold text-slate-900">Cost Summary</h3>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {[
@@ -1846,7 +1846,7 @@ function EstimateResults({
           ].map(([label, value]) => (
             <div
               key={label}
-              className="rounded-[22px] border border-slate-200 bg-white px-4 py-3"
+              className="rounded-[var(--radius-md)] border border-slate-200 bg-white px-4 py-3"
             >
               <p className="text-xs uppercase tracking-[0.16em] text-slate-500">
                 {label}
@@ -1885,7 +1885,7 @@ function EstimateResults({
         </div>
       </div>
 
-      <div className="glass-panel rounded-[28px] shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
+      <div className="lg-panel rounded-[var(--radius-lg)] shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
         <div className="border-b border-slate-200 px-6 py-4">
           <h3 className="text-lg font-semibold text-slate-900">
             Line Items ({lineItems.length})
@@ -1921,7 +1921,7 @@ function EstimateResults({
         </div>
       </div>
 
-      <div className="glass-panel rounded-[28px] p-6 shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
+      <div className="lg-panel rounded-[var(--radius-lg)] p-6 shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
         <h3 className="text-lg font-semibold text-slate-900">
           Exclusions ({exclusions.length})
         </h3>
@@ -1929,7 +1929,7 @@ function EstimateResults({
           {exclusions.map((exclusion) => (
             <li
               key={exclusion.id}
-              className="flex items-start gap-3 rounded-[22px] border border-slate-200 bg-white px-4 py-4 text-sm"
+              className="flex items-start gap-3 rounded-[var(--radius-md)] border border-slate-200 bg-white px-4 py-4 text-sm"
             >
               <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium uppercase tracking-[0.16em] text-slate-600">
                 {exclusion.category}
