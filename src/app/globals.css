@@ -1,8 +1,28 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f2f2f7;
+  --foreground: #1c1c1e;
+  --foreground-muted: rgba(60, 60, 67, 0.6);
+  --glass-bg: rgba(255, 255, 255, 0.52);
+  --glass-bg-heavy: rgba(255, 255, 255, 0.72);
+  --glass-bg-dark: rgba(28, 28, 30, 0.62);
+  --glass-bg-dark-heavy: rgba(28, 28, 30, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.45);
+  --glass-border-dark: rgba(255, 255, 255, 0.18);
+  --system-blue: #007aff;
+  --system-green: #34c759;
+  --system-orange: #ff9500;
+  --system-red: #ff3b30;
+  --system-purple: #af52de;
+  --system-cyan: #32ade6;
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --shadow-glass: 0 2px 20px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+  --shadow-glass-elevated: 0 8px 40px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+  --shadow-glass-float: 0 16px 56px rgba(0, 0, 0, 0.16), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
 }
 
 @theme inline {
@@ -12,10 +32,148 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html { scroll-behavior: smooth; }
+
 body {
+  min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+::selection { background: rgba(0, 122, 255, 0.2); }
+
+.lg-panel {
+  background: var(--glass-bg);
+  border: 0.5px solid var(--glass-border);
+  box-shadow: var(--shadow-glass);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-radius: var(--radius-lg);
+}
+
+.lg-panel-heavy {
+  background: var(--glass-bg-heavy);
+  border: 0.5px solid var(--glass-border);
+  box-shadow: var(--shadow-glass-elevated);
+  backdrop-filter: saturate(180%) blur(28px);
+  -webkit-backdrop-filter: saturate(180%) blur(28px);
+  border-radius: var(--radius-lg);
+}
+
+.lg-panel-dark {
+  background: var(--glass-bg-dark-heavy);
+  border: 0.5px solid var(--glass-border-dark);
+  box-shadow: var(--shadow-glass-float);
+  backdrop-filter: saturate(180%) blur(32px);
+  -webkit-backdrop-filter: saturate(180%) blur(32px);
+  border-radius: var(--radius-xl);
+}
+
+.lg-ring {
+  position: relative;
+}
+
+.lg-ring::after {
+  content: "";
+  position: absolute;
+  inset: -0.5px;
+  border-radius: inherit;
+  padding: 0.5px;
+  background: linear-gradient(160deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.2) 30%, rgba(255,255,255,0.05) 60%, rgba(255,255,255,0.3) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.lg-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: var(--glass-bg-heavy);
+  border: 0.5px solid var(--glass-border);
+  box-shadow: var(--shadow-glass);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.lg-pill:hover { box-shadow: var(--shadow-glass-elevated); transform: translateY(-1px); }
+.lg-pill-active { background: var(--system-blue); color: #fff; border-color: transparent; }
+
+.lg-card {
+  background: rgba(255, 255, 255, 0.65);
+  border: 0.5px solid rgba(0, 0, 0, 0.06);
+  border-radius: var(--radius-md);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  backdrop-filter: saturate(120%) blur(12px);
+  -webkit-backdrop-filter: saturate(120%) blur(12px);
+  transition: all 0.22s ease;
+}
+
+.lg-card:hover { box-shadow: var(--shadow-glass); transform: translateY(-1px); }
+
+.hero-canvas {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(165deg, #1c1c1e 0%, #2c2c2e 40%, #1c1c1e 100%);
+}
+
+.hero-canvas::before {
+  content: "";
+  position: absolute;
+  top: -30%;
+  right: -15%;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 122, 255, 0.25), transparent 65%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.hero-canvas::after {
+  content: "";
+  position: absolute;
+  bottom: -20%;
+  left: -10%;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(175, 82, 222, 0.18), transparent 60%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.lg-gradient-text {
+  background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.lg-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ambient-mesh {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(0, 122, 255, 0.06), transparent 50%),
+    radial-gradient(ellipse at 75% 80%, rgba(175, 82, 222, 0.05), transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(50, 173, 230, 0.04), transparent 60%);
 }
 
 /* Toast animation */
