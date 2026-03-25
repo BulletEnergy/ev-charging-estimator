@@ -114,15 +114,20 @@ function SectionRenderer({ tab }: { tab: string }) {
   return <Component />;
 }
 
-/** Reads `?tab=` from the URL (client navigations). Wrapped separately so the page can use Suspense per Next.js. */
-function TabSyncFromUrl({ setActiveTab }: { setActiveTab: (t: TabName) => void }) {
+const QUICK_TABS: TabName[] = ['Project', 'Site', 'Charger', 'Controls'];
+
+/** Reads `?tab=` and `?quick=` from the URL (client navigations). Wrapped separately so the page can use Suspense per Next.js. */
+function TabSyncFromUrl({ setActiveTab, setQuickMode }: { setActiveTab: (t: TabName) => void; setQuickMode: (v: boolean) => void }) {
   const searchParams = useSearchParams();
   useEffect(() => {
     const tabParam = searchParams.get('tab');
     if (tabParam && TABS.includes(tabParam as TabName)) {
       setActiveTab(tabParam as TabName);
     }
-  }, [searchParams, setActiveTab]);
+    if (searchParams.get('quick') === 'true') {
+      setQuickMode(true);
+    }
+  }, [searchParams, setActiveTab, setQuickMode]);
   return null;
 }
 
@@ -138,6 +143,16 @@ export default function EstimatePage() {
   const [inputMode, setInputMode] = useState<'form' | 'chat'>('form');
   const [aiStatus, setAiStatus] = useState<{ openai: boolean; gemini: boolean } | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(true);
+  const [quickMode, setQuickMode] = useState(false);
+
+  // When quickMode activates, skip onboarding and constrain visible tabs
+  useEffect(() => {
+    if (quickMode) {
+      setShowOnboarding(false);
+    }
+  }, [quickMode]);
+
+  const visibleTabs = useMemo(() => quickMode ? QUICK_TABS : TABS, [quickMode]);
 
   const isEstimateEmpty = useMemo(() => {
     return !input.project.name && !input.customer.companyName && !input.site.address && input.charger.count === 0;
@@ -236,36 +251,36 @@ export default function EstimatePage() {
       prevNextTabRef.current = flowAdvice.nextTab;
     }
   }, [flowAdvice.nextTab]);
-  const currentTabIdx = TABS.indexOf(activeTab);
+  const currentTabIdx = visibleTabs.indexOf(activeTab);
 
   const goNext = useCallback(() => {
-    if (currentTabIdx < TABS.length - 1) setActiveTab(TABS[currentTabIdx + 1]);
-  }, [currentTabIdx]);
+    if (currentTabIdx < visibleTabs.length - 1) setActiveTab(visibleTabs[currentTabIdx + 1]);
+  }, [currentTabIdx, visibleTabs]);
   const goPrev = useCallback(() => {
-    if (currentTabIdx > 0) setActiveTab(TABS[currentTabIdx - 1]);
-  }, [currentTabIdx]);
+    if (currentTabIdx > 0) setActiveTab(visibleTabs[currentTabIdx - 1]);
+  }, [currentTabIdx, visibleTabs]);
 
   const handleTabKeyDown = useCallback((e: KeyboardEvent<HTMLButtonElement>, tab: TabName) => {
-    const idx = TABS.indexOf(tab);
+    const idx = visibleTabs.indexOf(tab);
     if (e.key === 'ArrowRight') {
       e.preventDefault();
-      if (idx < TABS.length - 1) setActiveTab(TABS[idx + 1]);
+      if (idx < visibleTabs.length - 1) setActiveTab(visibleTabs[idx + 1]);
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault();
-      if (idx > 0) setActiveTab(TABS[idx - 1]);
+      if (idx > 0) setActiveTab(visibleTabs[idx - 1]);
     } else if (e.key === 'Home') {
       e.preventDefault();
-      setActiveTab(TABS[0]);
+      setActiveTab(visibleTabs[0]);
     } else if (e.key === 'End') {
       e.preventDefault();
-      setActiveTab(TABS[TABS.length - 1]);
+      setActiveTab(visibleTabs[visibleTabs.length - 1]);
     }
-  }, []);
+  }, [visibleTabs]);
 
   return (
     <main className="relative min-h-screen pb-20">
       <Suspense fallback={null}>
-        <TabSyncFromUrl setActiveTab={setActiveTab} />
+        <TabSyncFromUrl setActiveTab={setActiveTab} setQuickMode={setQuickMode} />
       </Suspense>
       <div className="ambient-mesh" />
 
@@ -280,7 +295,7 @@ export default function EstimatePage() {
                 BulletEV Estimate Studio
               </p>
               <h1 className="mt-2 text-xl font-bold tracking-[-0.022em] sm:text-2xl lg:text-3xl">
-                <span className="lg-gradient-text">Guided Estimate</span>
+                <span className="lg-gradient-text">{quickMode ? 'Quick Quote' : 'Guided Estimate'}</span>
               </h1>
             </div>
             <div className="flex flex-shrink-0 items-center gap-2">
@@ -312,11 +327,11 @@ export default function EstimatePage() {
                 )}
               </div>
               <span className="text-[0.75rem] text-gray-400">
-                Step {currentTabIdx + 1}/{TABS.length}: {activeTab}
+                Step {currentTabIdx + 1}/{visibleTabs.length}: {activeTab}
               </span>
             </div>
             <div className="flex gap-1">
-              {TABS.map((tab, i) => {
+              {visibleTabs.map((tab, i) => {
                 const status = tabStatuses[tab];
                 const isCurrent = tab === activeTab;
                 return (
@@ -346,7 +361,7 @@ export default function EstimatePage() {
         </div>
 
         {/* ─── Next Best Action ─────────────────────────────── */}
-        {flowAdvice.nextTab && !advisorDismissed && !isEstimateEmpty && (
+        {flowAdvice.nextTab && !advisorDismissed && !isEstimateEmpty && (!quickMode || QUICK_TABS.includes(flowAdvice.nextTab as TabName)) && (
           <div className="mt-3 print:hidden">
             <div className="lg-panel-heavy flex items-center gap-3 px-4 py-3" style={{ borderRadius: 'var(--radius-lg)', borderLeft: '3px solid var(--system-blue)' }}>
               <span className="text-[0.8125rem] font-medium text-gray-700">
@@ -460,7 +475,7 @@ export default function EstimatePage() {
 
             {/* Tab Bar */}
             <div role="tablist" className="flex gap-0 overflow-x-auto scrollbar-none" style={{ borderBottom: '0.5px solid rgba(0,0,0,0.06)', background: 'rgba(0,0,0,0.02)' }}>
-              {TABS.map((tab) => {
+              {visibleTabs.map((tab) => {
                 const status = tabStatuses[tab];
                 const isSkipped = flowAdvice.skipTabs.includes(tab as FlowTabName);
                 return (
@@ -525,7 +540,7 @@ export default function EstimatePage() {
                 <button onClick={goPrev} disabled={currentTabIdx === 0} className="lg-pill px-4 py-2 text-[0.8125rem] font-medium text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed">
                   &larr; Previous
                 </button>
-                <button onClick={goNext} disabled={currentTabIdx === TABS.length - 1} className="lg-pill px-4 py-2 text-[0.8125rem] font-medium text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed">
+                <button onClick={goNext} disabled={currentTabIdx === visibleTabs.length - 1} className="lg-pill px-4 py-2 text-[0.8125rem] font-medium text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed">
                   Next &rarr;
                 </button>
               </div>
@@ -533,13 +548,28 @@ export default function EstimatePage() {
                 {progress < 40 && <span className="hidden text-[0.75rem] text-gray-400 sm:inline">Fill key fields to improve accuracy</span>}
                 {progress >= 40 && progress < 80 && <span className="hidden text-[0.75rem] sm:inline" style={{ color: 'var(--system-orange)' }}>Good progress — more detail = better estimate</span>}
                 {progress >= 80 && <span className="hidden text-[0.75rem] sm:inline" style={{ color: 'var(--system-green)' }}>Ready for a high-confidence estimate</span>}
-                <button
-                  onClick={handleGenerate}
-                  className="lg-pill lg-pill-active w-full px-6 py-2.5 text-[0.8125rem] font-semibold sm:w-auto"
-                  style={{ background: progress >= 40 ? 'var(--system-blue)' : '#8e8e93' }}
-                >
-                  Generate Estimate
-                </button>
+                {quickMode ? (
+                  <button
+                    onClick={() => {
+                      const result = generateEstimate(input);
+                      setOutput(result);
+                      exportEstimatePDF(result);
+                    }}
+                    className="lg-pill lg-pill-active w-full px-6 py-2.5 text-[0.8125rem] font-semibold sm:w-auto"
+                    style={{ background: 'var(--system-green)' }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline -mt-0.5 mr-1"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                    Generate &amp; Print Quote
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleGenerate}
+                    className="lg-pill lg-pill-active w-full px-6 py-2.5 text-[0.8125rem] font-semibold sm:w-auto"
+                    style={{ background: progress >= 40 ? 'var(--system-blue)' : '#8e8e93' }}
+                  >
+                    Generate Estimate
+                  </button>
+                )}
               </div>
             </div>
           </div>
