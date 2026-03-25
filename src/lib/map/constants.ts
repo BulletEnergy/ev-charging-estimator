@@ -11,6 +11,7 @@ export interface RunTypeConfig {
   readonly color: string;
   readonly shortcut: string;
   readonly description: string;
+  readonly dashArray?: readonly number[];
 }
 
 export const RUN_TYPE_CONFIG: Record<RunType, RunTypeConfig> = {
@@ -44,6 +45,20 @@ export const RUN_TYPE_CONFIG: Record<RunType, RunTypeConfig> = {
     shortcut: 'F',
     description: 'Feeder cable run from utility/transformer',
   },
+  pvc_conduit: {
+    label: 'PVC Conduit',
+    color: '#0EA5E9',
+    shortcut: 'V',
+    description: 'PVC conduit pathway',
+    dashArray: [8, 4],
+  },
+  cable_tray: {
+    label: 'Cable Tray',
+    color: '#64748B',
+    shortcut: 'Y',
+    description: 'Overhead or surface cable tray',
+    dashArray: [12, 6],
+  },
 } as const;
 
 // ── Equipment type visual config ──
@@ -52,6 +67,7 @@ export interface EquipmentTypeConfig {
   readonly label: string;
   readonly icon: string;
   readonly shortcut: string;
+  readonly color?: string;
 }
 
 export const EQUIPMENT_TYPE_CONFIG: Record<EquipmentType, EquipmentTypeConfig> = {
@@ -63,6 +79,12 @@ export const EQUIPMENT_TYPE_CONFIG: Record<EquipmentType, EquipmentTypeConfig> =
   meter_room: { label: 'Meter Room', icon: 'meter_room', shortcut: 'M' },
   junction_box: { label: 'Junction Box', icon: 'junction', shortcut: 'J' },
   bollard: { label: 'Bollard', icon: 'bollard', shortcut: 'O' },
+  panel: { label: 'Electrical Panel', icon: 'panel', shortcut: 'P', color: '#2563EB' },
+  disconnect: { label: 'Disconnect Switch', icon: 'disconnect', shortcut: 'D', color: '#6366F1' },
+  concrete_pad: { label: 'Concrete Pad', icon: 'pad', shortcut: 'A', color: '#78716C' },
+  ev_sign: { label: 'EV Sign', icon: 'sign', shortcut: 'S', color: '#22C55E' },
+  wheel_stop: { label: 'Wheel Stop', icon: 'wheelstop', shortcut: 'W', color: '#A3A3A3' },
+  lighting: { label: 'Parking Light', icon: 'light', shortcut: 'L', color: '#EAB308' },
 } as const;
 
 // ── Field mappings: map features → EstimateInput fields ──
@@ -148,6 +170,45 @@ export const FIELD_MAPPINGS: readonly FieldMapping[] = [
   {
     equipmentType: 'bollard',
     fieldPath: 'accessories.bollardQty',
+    aggregation: 'COUNT',
+  },
+
+  // New run type field mappings
+  {
+    runType: 'pvc_conduit',
+    fieldPath: 'mapWorkspace.pvcConduitDistance_ft',
+    aggregation: 'SUM',
+  },
+  {
+    runType: 'cable_tray',
+    fieldPath: 'mapWorkspace.cableTrayDistance_ft',
+    aggregation: 'SUM',
+  },
+
+  // New equipment field mappings
+  {
+    equipmentType: 'ev_sign',
+    fieldPath: 'accessories.signQty',
+    aggregation: 'COUNT',
+  },
+  {
+    equipmentType: 'wheel_stop',
+    fieldPath: 'accessories.wheelStopQty',
+    aggregation: 'COUNT',
+  },
+  {
+    equipmentType: 'concrete_pad',
+    fieldPath: 'mapWorkspace.concretePadCount',
+    aggregation: 'COUNT',
+  },
+  {
+    equipmentType: 'panel',
+    fieldPath: 'mapWorkspace.hasPanelPlaced',
+    aggregation: 'BOOLEAN',
+  },
+  {
+    equipmentType: 'lighting',
+    fieldPath: 'mapWorkspace.lightingCount',
     aggregation: 'COUNT',
   },
 ] as const;

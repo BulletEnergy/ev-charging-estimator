@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { SiteIntelligence } from '@/lib/ai/site-assessment-types';
+import { getSiteRecommendation, getSimilarProjects } from '@/lib/estimate/site-intelligence';
 
 interface SiteIntelligenceCardProps {
   intelligence: SiteIntelligence;
@@ -372,6 +373,61 @@ export function SiteIntelligenceCard({ intelligence, onSuggestPowerSource, onSug
           </div>
         </div>
       )}
+
+      {/* Project Recommendations from Knowledge Base */}
+      {(() => {
+        const siteTypeInference = intelligence.mergedInferences.find(
+          (m) => m.fieldPath === 'site.siteType',
+        );
+        const inferredSiteType = siteTypeInference?.value as string | undefined;
+        if (!inferredSiteType) return null;
+        const rec = getSiteRecommendation(inferredSiteType);
+        const similar = getSimilarProjects(inferredSiteType);
+        return (
+          <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-3">
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-wider text-blue-600">
+              Recommendation (from 213 projects)
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <span className="font-medium text-gray-500">Chargers:</span>{' '}
+                <span className="text-gray-800">{rec.chargerCount.typical} ({rec.chargerBrand})</span>
+              </div>
+              <div>
+                <span className="font-medium text-gray-500">Mount:</span>{' '}
+                <span className="text-gray-800">{rec.mountType}</span>
+              </div>
+              <div>
+                <span className="font-medium text-gray-500">Conduit:</span>{' '}
+                <span className="text-gray-800">~{rec.typicalConduitFt}ft</span>
+              </div>
+              <div>
+                <span className="font-medium text-gray-500">Cost:</span>{' '}
+                <span className="font-semibold text-gray-800">
+                  ${(rec.costRange.low / 1000).toFixed(0)}K–${(rec.costRange.high / 1000).toFixed(0)}K
+                </span>
+              </div>
+            </div>
+            {rec.notes.length > 0 && (
+              <ul className="mt-2 space-y-0.5">
+                {rec.notes.slice(0, 2).map((note, i) => (
+                  <li key={i} className="text-[10px] leading-relaxed text-blue-700">• {note}</li>
+                ))}
+              </ul>
+            )}
+            {similar.length > 0 && (
+              <div className="mt-2 border-t border-blue-200 pt-2">
+                <div className="mb-1 text-[10px] font-bold uppercase text-blue-500">Similar Projects</div>
+                {similar.slice(0, 2).map((p, i) => (
+                  <div key={i} className="mb-1 text-[10px] text-gray-600">
+                    <span className="font-medium">{p.name}</span> — {p.chargers}, {p.total}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Expandable raw observations */}
       <button

@@ -4,7 +4,7 @@
 
 import type { LineString, Point } from 'geojson';
 
-export type RunType = 'conduit' | 'feeder' | 'trench' | 'bore' | 'concrete_cut';
+export type RunType = 'conduit' | 'feeder' | 'trench' | 'bore' | 'concrete_cut' | 'pvc_conduit' | 'cable_tray';
 
 export type EquipmentType =
   | 'charger_l2'
@@ -14,7 +14,13 @@ export type EquipmentType =
   | 'utility_meter'
   | 'meter_room'
   | 'junction_box'
-  | 'bollard';
+  | 'bollard'
+  | 'panel'
+  | 'disconnect'
+  | 'concrete_pad'
+  | 'ev_sign'
+  | 'wheel_stop'
+  | 'lighting';
 
 export interface RunSegment {
   readonly id: string;

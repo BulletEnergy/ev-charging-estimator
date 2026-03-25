@@ -1,6 +1,7 @@
 'use client';
 
 import { useReducer, useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { EstimateInput, EstimateOutput } from '@/lib/estimate/types';
 import type {
   MapWorkspaceState,
@@ -24,6 +25,7 @@ import { SiteMap } from './SiteMap';
 import { StreetViewPanel } from './StreetViewPanel';
 import { PlanUploadPanel } from './PlanUploadPanel';
 import { DrawingToolbar } from './DrawingToolbar';
+import { MapGuidancePanel } from './MapGuidancePanel';
 import { SiteInfoPanel } from './SiteInfoPanel';
 import { PatchReviewPanel } from './PatchReviewPanel';
 import { EstimateImpactPanel } from './EstimateImpactPanel';
@@ -73,6 +75,7 @@ interface StreetViewAnalysisResult {
 }
 
 export function MapWorkspace({ input, estimate, onInputChange }: MapWorkspaceProps) {
+  const router = useRouter();
   const [mapState, dispatch] = useReducer(mapReducer, undefined, initialMapState);
 
   // Hydrate map from saved drawings when the component mounts.
@@ -373,8 +376,13 @@ export function MapWorkspace({ input, estimate, onInputChange }: MapWorkspacePro
           createdAt: new Date().toISOString(),
         },
       });
+
+      // Smart toast for long conduit runs
+      if ((runType === 'conduit' || runType === 'pvc_conduit') && lengthFt > 100) {
+        showToast('Long conduit run! Consider adding junction boxes [J] at turns.');
+      }
     },
-    [],
+    [showToast],
   );
 
   const handleRunUpdate = useCallback(
@@ -407,8 +415,21 @@ export function MapWorkspace({ input, estimate, onInputChange }: MapWorkspacePro
           properties: {},
         },
       });
+
+      // Smart toast suggestions after placing equipment
+      if (equipmentType === 'charger_l3') {
+        const hasTransformer = mapState.equipment.some((e) => e.equipmentType === 'transformer');
+        if (!hasTransformer) {
+          showToast('Tip: L3 DCFC needs a transformer. Press [R] to place one.');
+        }
+      } else if (equipmentType === 'transformer') {
+        const hasFeeder = mapState.runs.some((r) => r.runType === 'feeder');
+        if (!hasFeeder) {
+          showToast('Draw a feeder cable [F] from utility to the transformer.');
+        }
+      }
     },
-    [mapState.equipment],
+    [mapState.equipment, mapState.runs, showToast],
   );
 
   const handleEquipmentUpdate = useCallback(
@@ -857,19 +878,26 @@ export function MapWorkspace({ input, estimate, onInputChange }: MapWorkspacePro
 
         {centerView === 'satellite' ? (
           <>
-            {/* Floating toolbar — disabled on touch devices */}
-            <div className="absolute left-2 top-12 z-10">
+            {/* Floating toolbar + guidance — disabled on touch devices */}
+            <div className="absolute left-2 top-12 z-10 flex flex-col gap-2">
               {isTouchDevice ? (
                 <div className="rounded-lg bg-white/90 px-3 py-2 text-xs text-gray-500 shadow-md backdrop-blur">
                   Use desktop for drawing tools
                 </div>
               ) : (
-                <DrawingToolbar
-                  selectedTool={mapState.selectedTool}
-                  onSelectTool={handleSelectTool}
-                  onClearAll={handleClearAll}
-                  onUndo={handleUndo}
-                />
+                <>
+                  <DrawingToolbar
+                    selectedTool={mapState.selectedTool}
+                    onSelectTool={handleSelectTool}
+                    onClearAll={handleClearAll}
+                    onUndo={handleUndo}
+                  />
+                  <MapGuidancePanel
+                    mapState={mapState}
+                    input={input}
+                    onNavigateToEstimate={() => router.push('/estimate')}
+                  />
+                </>
               )}
             </div>
 

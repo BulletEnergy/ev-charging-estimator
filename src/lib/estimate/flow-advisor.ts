@@ -36,6 +36,8 @@ export function getFlowAdvice(input: EstimateInput): FlowAdvice {
     skipTabs.push('Civil', 'Electrical', 'Accessories', 'Parking', 'Network', 'Permit/Design');
   } else if (pt === 'service_work') {
     skipTabs.push('Accessories', 'Network');
+  } else if (pt === 'remove_replace') {
+    skipTabs.push('Civil', 'Parking', 'Network', 'Permit/Design');
   }
 
   // Priority-ordered checks for next best action
@@ -118,12 +120,16 @@ export function getFlowAdvice(input: EstimateInput): FlowAdvice {
 
 /** Section-specific pro tips keyed by tab name */
 export const SECTION_TIPS: Partial<Record<TabName, string>> = {
-  'Project': 'Full Turnkey includes all make-ready, installation, and charger procurement. Commission Only is charger activation and testing.',
-  'Charger': 'Most hotels install 8\u201316 L2 chargers. L3 DCFC is for highway stations and fleet depots.',
-  'Electrical': 'If you don\'t know available amps, select "Unknown" \u2014 we\'ll flag for a site survey.',
-  'Parking': 'Post-tensioned slabs require GPR slab scanning ($800\u2013$1,500) before any core drilling.',
-  'Permit/Design': 'Stamped engineering plans are required in most jurisdictions for L3 DCFC installations.',
-  'Network': 'Cellular routers are the most reliable option for remote charging stations.',
-  'Accessories': 'Bollards protect chargers from vehicle damage \u2014 recommended for all surface lot installations.',
-  'Civil': 'Trenching costs vary significantly by surface type: asphalt is cheapest, concrete requires saw-cutting.',
+  'Project': 'Full Turnkey includes all make-ready, installation, and charger procurement ($30K\u2013$100K+). Commission Only is charger activation only ($500\u2013$3K). Install & Commission is labor only ($3K\u2013$15K).',
+  'Charger': 'Tesla UWC Gen 3 at $750/ea is the most popular. ChargePoint CPF50 dual-port pedestal is $5,461 with software. Hotels typically install 4\u20138 chargers.',
+  'Electrical': 'If you don\'t know available amps, select "Unknown" \u2014 we\'ll flag for a site survey ($400\u2013$1,000). EMT conduit runs cost $32/ft, PVC is $20/ft.',
+  'Parking': 'Post-tensioned slabs require GPR slab scanning ($950) before core drilling ($550\u2013$800). Surface lots need trenching ($45/ft) or boring ($85/ft).',
+  'Permit/Design': 'Stamped plans cost $3,500\u2013$4,250. Load calculations are $1,050 for complex projects. Permit coordination is $950 (includes 2 site visits).',
+  'Network': 'Teltonika cellular router is $2,400 \u2014 most reliable for remote sites. WiFi equipment install is $450. Cat6 cable is $8/ft.',
+  'Accessories': 'Bollards: $550/ea. EV signage: $400/ea. Wheel stops: $275 (rubber) or $350 (concrete). Striping: $220/stall.',
+  'Civil': 'Trenching (standard): $45/ft. Wide trenching: $67/ft. Boring: $85/ft. Concrete cutting: $45/ft. Mobilization is always $3,000.',
+  'Customer': 'Complete customer info ensures the generated quote looks professional when shared via URL.',
+  'Site': 'Selecting the correct site type activates intelligent recommendations from 213 real BulletEV projects.',
+  'Responsibilities': 'Full Turnkey = BulletEV handles everything. Install & Commission = client supplies chargers. Equipment Only = BulletEV ships chargers only.',
+  'Controls': 'Markup is typically 15\u201325%. BulletEV standard markup formula: (cost \u00D7 1.0825) / 0.85 = ~23.8% gross margin.',
 };

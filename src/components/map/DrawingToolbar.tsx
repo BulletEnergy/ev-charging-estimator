@@ -14,9 +14,75 @@ interface DrawingToolbarProps {
   onUndo: () => void;
 }
 
+// ── Per-unit cost labels (hardcoded from catalog) ──
+
+const TOOL_COSTS: Record<string, string> = {
+  // Runs (per foot)
+  conduit: '$32/ft',
+  pvc_conduit: '$20/ft',
+  feeder: '$22/ft',
+  trench: '$45/ft',
+  bore: '$85/ft',
+  concrete_cut: '$45/ft',
+  cable_tray: '~$25/ft',
+  // Equipment (per unit)
+  charger_l2: '$750/ea',
+  charger_l3: 'varies',
+  transformer: '~$25K',
+  switchgear: 'varies',
+  panel: '\u2014',
+  disconnect: '\u2014',
+  utility_meter: '\u2014',
+  junction_box: '\u2014',
+  bollard: '$550/ea',
+  ev_sign: '$400/ea',
+  wheel_stop: '$275/ea',
+  concrete_pad: '$600/ea',
+  lighting: '$2,200/ea',
+  meter_room: '\u2014',
+};
+
+// ── Section definitions ──
+
+const PATH_TOOLS: RunType[] = [
+  'conduit',
+  'pvc_conduit',
+  'feeder',
+  'trench',
+  'bore',
+  'concrete_cut',
+  'cable_tray',
+];
+
+const ELECTRICAL_TOOLS: EquipmentType[] = [
+  'charger_l2',
+  'charger_l3',
+  'transformer',
+  'switchgear',
+  'panel',
+  'disconnect',
+  'utility_meter',
+  'junction_box',
+];
+
+const SITE_TOOLS: EquipmentType[] = [
+  'bollard',
+  'ev_sign',
+  'wheel_stop',
+  'concrete_pad',
+  'lighting',
+  'meter_room',
+];
+
+type SectionKey = 'paths' | 'electrical' | 'site';
+
 export function DrawingToolbar({ selectedTool, onSelectTool, onClearAll, onUndo }: DrawingToolbarProps) {
   const [collapsed, setCollapsed] = useState(false);
-  const [expandedSection, setExpandedSection] = useState<'runs' | 'equipment' | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Record<SectionKey, boolean>>({
+    paths: true,
+    electrical: true,
+    site: true,
+  });
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -58,14 +124,21 @@ export function DrawingToolbar({ selectedTool, onSelectTool, onClearAll, onUndo 
   // Auto-expand the section containing the selected tool
   useEffect(() => {
     if (!selectedTool) return;
-    if (Object.keys(RUN_TYPE_CONFIG).includes(selectedTool)) {
-      setExpandedSection('runs');
+    if (PATH_TOOLS.includes(selectedTool as RunType)) {
+      setExpandedSections((prev) => ({ ...prev, paths: true }));
       setCollapsed(false);
-    } else if (Object.keys(EQUIPMENT_TYPE_CONFIG).includes(selectedTool)) {
-      setExpandedSection('equipment');
+    } else if (ELECTRICAL_TOOLS.includes(selectedTool as EquipmentType)) {
+      setExpandedSections((prev) => ({ ...prev, electrical: true }));
+      setCollapsed(false);
+    } else if (SITE_TOOLS.includes(selectedTool as EquipmentType)) {
+      setExpandedSections((prev) => ({ ...prev, site: true }));
       setCollapsed(false);
     }
   }, [selectedTool]);
+
+  const toggleSection = (section: SectionKey) => {
+    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
 
   if (collapsed) {
     return (
@@ -84,12 +157,11 @@ export function DrawingToolbar({ selectedTool, onSelectTool, onClearAll, onUndo 
     );
   }
 
-  const toggleSection = (section: 'runs' | 'equipment') => {
-    setExpandedSection(expandedSection === section ? null : section);
-  };
-
   return (
-    <div className="flex flex-col rounded-lg bg-white/95 shadow-md ring-1 ring-black/5 backdrop-blur-sm" style={{ maxWidth: '200px' }}>
+    <div
+      className="flex flex-col rounded-lg bg-white/95 shadow-md ring-1 ring-black/5 backdrop-blur-sm overflow-y-auto"
+      style={{ maxWidth: '220px', maxHeight: 'calc(100vh - 120px)' }}
+    >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-100 px-2.5 py-1.5">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Tools</span>
@@ -104,28 +176,30 @@ export function DrawingToolbar({ selectedTool, onSelectTool, onClearAll, onUndo 
         </button>
       </div>
 
-      {/* Runs Section */}
+      {/* PATHS Section */}
       <div>
         <button
-          onClick={() => toggleSection('runs')}
+          onClick={() => toggleSection('paths')}
           className="flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left hover:bg-gray-50 transition"
         >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round">
             <path d="M1 8 L5 4 L8 6 L11 2" />
           </svg>
-          <span className="flex-1 text-[11px] font-medium text-gray-600">Runs</span>
+          <span className="flex-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500">Paths</span>
           <svg
             width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#9CA3AF" strokeWidth="1.5"
-            className={`transition-transform ${expandedSection === 'runs' ? 'rotate-180' : ''}`}
+            className={`transition-transform ${expandedSections.paths ? 'rotate-180' : ''}`}
           >
             <path d="M2 4 L5 7 L8 4" />
           </svg>
         </button>
 
-        {expandedSection === 'runs' && (
-          <div className="border-t border-gray-50 px-1 pb-1">
-            {(Object.entries(RUN_TYPE_CONFIG) as [RunType, typeof RUN_TYPE_CONFIG[RunType]][]).map(
-              ([type, config]) => (
+        {expandedSections.paths && (
+          <div className="grid grid-cols-1 gap-0.5 border-t border-gray-50 px-1 pb-1">
+            {PATH_TOOLS.map((type) => {
+              const config = RUN_TYPE_CONFIG[type];
+              const cost = TOOL_COSTS[type];
+              return (
                 <button
                   key={type}
                   onClick={() => onSelectTool(selectedTool === type ? null : type)}
@@ -140,63 +214,125 @@ export function DrawingToolbar({ selectedTool, onSelectTool, onClearAll, onUndo 
                     className="inline-block h-2.5 w-2.5 shrink-0 rounded-sm"
                     style={{ backgroundColor: config.color }}
                   />
-                  <span className="flex-1 truncate text-[11px]">{config.label}</span>
-                  <kbd className="rounded bg-gray-100 px-1 py-px text-[9px] text-gray-400">
-                    {config.shortcut}
-                  </kbd>
+                  <span className="flex-1 min-w-0">
+                    <span className="block truncate text-[11px] leading-tight">
+                      {config.label}{' '}
+                      <kbd className="rounded bg-gray-100 px-0.5 py-px text-[8px] text-gray-400">{config.shortcut}</kbd>
+                    </span>
+                    {cost && (
+                      <span className="block text-[9px] leading-tight text-gray-400">{cost}</span>
+                    )}
+                  </span>
                 </button>
-              ),
-            )}
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Equipment Section */}
+      {/* ELECTRICAL Section */}
       <div className="border-t border-gray-100">
         <button
-          onClick={() => toggleSection('equipment')}
+          onClick={() => toggleSection('electrical')}
           className="flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left hover:bg-gray-50 transition"
         >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round">
             <rect x="2" y="2" width="8" height="8" rx="1" />
             <path d="M6 4 L5 6 L7 6 L6 8" />
           </svg>
-          <span className="flex-1 text-[11px] font-medium text-gray-600">Equipment</span>
+          <span className="flex-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500">Electrical</span>
           <svg
             width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#9CA3AF" strokeWidth="1.5"
-            className={`transition-transform ${expandedSection === 'equipment' ? 'rotate-180' : ''}`}
+            className={`transition-transform ${expandedSections.electrical ? 'rotate-180' : ''}`}
           >
             <path d="M2 4 L5 7 L8 4" />
           </svg>
         </button>
 
-        {expandedSection === 'equipment' && (
-          <div className="border-t border-gray-50 px-1 pb-1">
-            {(
-              Object.entries(EQUIPMENT_TYPE_CONFIG) as [
-                EquipmentType,
-                typeof EQUIPMENT_TYPE_CONFIG[EquipmentType],
-              ][]
-            ).map(([type, config]) => (
-              <button
-                key={type}
-                onClick={() => onSelectTool(selectedTool === type ? null : type)}
-                className={`flex w-full items-center gap-1.5 rounded px-2 py-1 text-left transition-colors ${
-                  selectedTool === type
-                    ? 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-                title={`Place ${config.label} (${config.shortcut})`}
-              >
-                <span className="shrink-0">
-                  <EquipmentIcon type={type} size={18} />
-                </span>
-                <span className="flex-1 truncate text-[11px]">{config.label}</span>
-                <kbd className="rounded bg-gray-100 px-1 py-px text-[9px] text-gray-400">
-                  {config.shortcut}
-                </kbd>
-              </button>
-            ))}
+        {expandedSections.electrical && (
+          <div className="grid grid-cols-1 gap-0.5 border-t border-gray-50 px-1 pb-1">
+            {ELECTRICAL_TOOLS.map((type) => {
+              const config = EQUIPMENT_TYPE_CONFIG[type];
+              const cost = TOOL_COSTS[type];
+              return (
+                <button
+                  key={type}
+                  onClick={() => onSelectTool(selectedTool === type ? null : type)}
+                  className={`flex w-full items-center gap-1.5 rounded px-2 py-1 text-left transition-colors ${
+                    selectedTool === type
+                      ? 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                  title={`Place ${config.label} (${config.shortcut})`}
+                >
+                  <span className="shrink-0">
+                    <EquipmentIcon type={type} size={18} />
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block truncate text-[11px] leading-tight">
+                      {config.label}{' '}
+                      <kbd className="rounded bg-gray-100 px-0.5 py-px text-[8px] text-gray-400">{config.shortcut}</kbd>
+                    </span>
+                    {cost && (
+                      <span className="block text-[9px] leading-tight text-gray-400">{cost}</span>
+                    )}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* SITE Section */}
+      <div className="border-t border-gray-100">
+        <button
+          onClick={() => toggleSection('site')}
+          className="flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left hover:bg-gray-50 transition"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round">
+            <path d="M1 11 L6 1 L11 11 Z" />
+          </svg>
+          <span className="flex-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500">Site</span>
+          <svg
+            width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#9CA3AF" strokeWidth="1.5"
+            className={`transition-transform ${expandedSections.site ? 'rotate-180' : ''}`}
+          >
+            <path d="M2 4 L5 7 L8 4" />
+          </svg>
+        </button>
+
+        {expandedSections.site && (
+          <div className="grid grid-cols-1 gap-0.5 border-t border-gray-50 px-1 pb-1">
+            {SITE_TOOLS.map((type) => {
+              const config = EQUIPMENT_TYPE_CONFIG[type];
+              const cost = TOOL_COSTS[type];
+              return (
+                <button
+                  key={type}
+                  onClick={() => onSelectTool(selectedTool === type ? null : type)}
+                  className={`flex w-full items-center gap-1.5 rounded px-2 py-1 text-left transition-colors ${
+                    selectedTool === type
+                      ? 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                  title={`Place ${config.label} (${config.shortcut})`}
+                >
+                  <span className="shrink-0">
+                    <EquipmentIcon type={type} size={18} />
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block truncate text-[11px] leading-tight">
+                      {config.label}{' '}
+                      <kbd className="rounded bg-gray-100 px-0.5 py-px text-[8px] text-gray-400">{config.shortcut}</kbd>
+                    </span>
+                    {cost && (
+                      <span className="block text-[9px] leading-tight text-gray-400">{cost}</span>
+                    )}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
