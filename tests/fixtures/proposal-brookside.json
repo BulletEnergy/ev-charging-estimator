@@ -1,0 +1,130 @@
+{
+  "proposalName": "Brookside at Fields Residential Association",
+  "sourceFile": "Brookside at Fields Residential Association.xlsx",
+  "totalFromProposal": 29215,
+
+  "estimateInput": {
+    "project": {
+      "name": "Brookside at Fields EV Charging",
+      "salesRep": "",
+      "projectType": "full_turnkey",
+      "timeline": "",
+      "isNewConstruction": false
+    },
+    "customer": {
+      "companyName": "Brookside at Fields Residential Association",
+      "contactName": "",
+      "contactEmail": "",
+      "contactPhone": "",
+      "billingAddress": ""
+    },
+    "site": {
+      "address": "",
+      "siteType": "apartment",
+      "state": "TX"
+    },
+    "parkingEnvironment": {
+      "type": "surface_lot",
+      "hasPTSlab": null,
+      "slabScanRequired": null,
+      "coringRequired": null,
+      "surfaceType": "concrete",
+      "trenchingRequired": true,
+      "boringRequired": false,
+      "trafficControlRequired": false,
+      "indoorOutdoor": "outdoor",
+      "fireRatedPenetrations": null,
+      "accessRestrictions": ""
+    },
+    "charger": {
+      "brand": "Tesla",
+      "model": "Universal Wall Connector Gen 3",
+      "count": 2,
+      "pedestalCount": 1,
+      "portType": "dual",
+      "mountType": "pedestal",
+      "isCustomerSupplied": false,
+      "chargingLevel": "l2",
+      "ampsPerCharger": null,
+      "volts": null
+    },
+    "electrical": {
+      "serviceType": "208v",
+      "availableCapacityKnown": false,
+      "availableAmps": null,
+      "breakerSpaceAvailable": null,
+      "panelUpgradeRequired": false,
+      "transformerRequired": false,
+      "switchgearRequired": false,
+      "distanceToPanel_ft": 100,
+      "utilityCoordinationRequired": true,
+      "meterRoomRequired": null,
+      "junctionBoxCount": null,
+      "electricalRoomDescription": ""
+    },
+    "civil": {
+      "installationLocationDescription": "Residential parking lot, concrete surface, pedestal with concrete pad"
+    },
+    "permit": {
+      "responsibility": "bullet",
+      "feeAllowance": 0
+    },
+    "designEngineering": {
+      "responsibility": "bullet",
+      "stampedPlansRequired": true
+    },
+    "network": {
+      "type": "none",
+      "wifiInstallResponsibility": "na"
+    },
+    "accessories": {
+      "bollardQty": 0,
+      "signQty": 2,
+      "wheelStopQty": 0,
+      "stripingRequired": false,
+      "padRequired": true,
+      "debrisRemoval": false
+    },
+    "makeReady": {
+      "responsibility": "bullet"
+    },
+    "chargerInstall": {
+      "responsibility": "bullet"
+    },
+    "purchasingChargers": {
+      "responsibility": "bullet"
+    },
+    "signageBollards": {
+      "responsibility": "signage"
+    },
+    "estimateControls": {
+      "pricingTier": "msrp",
+      "taxRate": 0,
+      "contingencyPercent": 0,
+      "markupPercent": 0
+    },
+    "notes": "Tesla chargers require a reliable Wi-Fi connection to operate and enable full functionality."
+  },
+
+  "expectedLineItems": [
+    { "category": "CHARGER", "description": "Tesla Universal Wall Connector (Gen 3) – Model 1734412‑02", "qty": 2, "unitPrice": 750, "amount": 1500 },
+    { "category": "PEDESTAL", "description": "Tesla Wall Connector Pedestal (Includes Mounting Kit)", "qty": 1, "unitPrice": 550, "amount": 550 },
+    { "category": "DESIGN/ENGINEERING", "description": "Site Visit", "qty": 1, "unitPrice": 1000, "amount": 1000 },
+    { "category": "DESIGN/ENGINEERING", "description": "Base Design/Eng-3-4 sheet, site plan, riser, 1-line, CD50-CD100", "qty": 1, "unitPrice": 4250, "amount": 4250 },
+    { "category": "DESIGN/ENGINEERING", "description": "Load Study/Load Calcs", "qty": 1, "unitPrice": 1050, "amount": 1050 },
+    { "category": "DESIGN/ENGINEERING", "description": "Permit Coordination and Filing-Up to 2 visits in person", "qty": 1, "unitPrice": 950, "amount": 950 },
+    { "category": "DESIGN/ENGINEERING", "description": "Utility Coordination-Up to 2 visits in person", "qty": 1, "unitPrice": 950, "amount": 950 },
+    { "category": "DESIGN/ENGINEERING", "description": "Permit Fees- Cost + 10%", "qty": 1, "unitPrice": 0, "amount": 0 },
+    { "category": "TRENCHING", "description": "Utility Mark-out", "qty": 1, "unitPrice": 2000, "amount": 2000 },
+    { "category": "CIVIL", "description": "Concrete Removal", "qty": 4, "unitPrice": 725, "amount": 2900 },
+    { "category": "CIVIL", "description": "Concrete Restoration", "qty": 4, "unitPrice": 600, "amount": 2400 },
+    { "category": "TRENCHING", "description": "Trenching (No Conduit)-Up to 36\" W and no more than 4' D", "qty": 50, "unitPrice": 45, "amount": 2250 },
+    { "category": "ELECTRICAL", "description": "Installation of Conductors-Up to #4", "qty": 100, "unitPrice": 30, "amount": 3000 },
+    { "category": "ELECTRICAL", "description": "Furnish & Install 3\" Conduit (PVC Schedule 40)", "qty": 100, "unitPrice": 15, "amount": 1500 },
+    { "category": "OTHER", "description": "Equipment Rental", "qty": 1, "unitPrice": 1500, "amount": 1500 },
+    { "category": "CIVIL", "description": "Concrete Pads for Pedestals", "qty": 1, "unitPrice": 600, "amount": 600 },
+    { "category": "EQUIPMENT", "description": "Install Signage and Stencils", "qty": 2, "unitPrice": 400, "amount": 800 },
+    { "category": "EQUIPMENT", "description": "Misc. Mounting Hardware & BOS (Materials Only)", "qty": 1, "unitPrice": 165, "amount": 165 },
+    { "category": "ELECTRICAL", "description": "Installation & Commissioning Of Pedestal-Mounted Charger - Dual Port", "qty": 1, "unitPrice": 1850, "amount": 1850 }
+  ]
+}

@@ -32,6 +32,7 @@ import { EstimateImpactPanel } from './EstimateImpactPanel';
 import { SiteAssessmentFlow } from './SiteAssessmentFlow';
 import { SiteIntelligenceCard } from './SiteIntelligenceCard';
 import { SmartQuestionnaire } from './SmartQuestionnaire';
+import { useSmartEstimate } from '@/hooks/useSmartEstimate';
 import type { LineString, Point } from 'geojson';
 import type mapboxgl from 'mapbox-gl';
 
@@ -163,6 +164,10 @@ export function MapWorkspace({ input, estimate, onInputChange }: MapWorkspacePro
       // Canvas capture may fail in some environments (e.g., WebGL context lost)
     }
   }, [onInputChange]);
+
+  // Smart Estimate — auto-infer everything from charger + panel placement
+  const { isReady: smartReady, smartResult, isProcessing: smartProcessing, applySmartEstimate } =
+    useSmartEstimate({ input, onInputChange });
 
   const [patchBatch, setPatchBatch] = useState<PatchBatch | null>(null);
   const [leftPanelOpen, setLeftPanelOpen] = useState(true);
@@ -875,6 +880,36 @@ export function MapWorkspace({ input, estimate, onInputChange }: MapWorkspacePro
             {rightPanelOpen ? '>' : '<'}
           </button>
         </div>
+
+        {/* Smart Estimate Banner */}
+        {smartResult && (
+          <div className="mx-4 mt-2 rounded-xl border border-green-200 bg-green-50 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm font-semibold text-green-800">
+                  Smart Estimate Ready
+                </div>
+                <div className="mt-1 text-xs text-green-600">
+                  {smartResult.input.charger.count} chargers &middot; ~{smartResult.input.mapWorkspace?.conduitDistance_ft ?? 0}ft conduit &middot;{' '}
+                  Confidence {Math.round(smartResult.confidence * 100)}%
+                </div>
+                {smartResult.humanReviewItems.length > 0 && (
+                  <div className="mt-1 text-xs text-amber-600">
+                    {smartResult.humanReviewItems.length} item(s) need verification
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={applySmartEstimate}
+                  className="rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700"
+                >
+                  Apply &amp; Generate
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {centerView === 'satellite' ? (
           <>
