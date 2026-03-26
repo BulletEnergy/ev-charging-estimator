@@ -64,11 +64,22 @@ export interface ReviewEstimateResponse {
   suggestedChanges: SuggestedChange[];
 }
 
-// ── Photo Analysis ──────────────────────────────────────────
+// ── Photo / Document Analysis (multi-file, GPT-5.4) ────────
 
+export interface AnalysisFile {
+  base64: string;
+  mimeType: string;
+  fileName?: string;
+}
+
+/** @deprecated kept for backward compat — use MultiFileAnalysisRequest */
 export interface PhotoAnalysisRequest {
   imageBase64: string;
   mimeType: string;
+}
+
+export interface MultiFileAnalysisRequest {
+  files: AnalysisFile[];
 }
 
 export interface PhotoAnalysisResponse {
@@ -76,6 +87,8 @@ export interface PhotoAnalysisResponse {
   inferredFields: Partial<EstimateInput>;
   concerns: string[];
   confidence: number;
+  /** Per-file observations when multiple files are uploaded */
+  fileNotes?: Array<{ fileName: string; note: string }>;
 }
 
 // ── AI Status ───────────────────────────────────────────────

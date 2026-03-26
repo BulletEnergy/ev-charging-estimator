@@ -345,25 +345,37 @@ Rules:
 - Never output prices, ampacity, or guaranteed code compliance — this is for placement hints only.`;
 }
 
-export function buildPhotoAnalysisPrompt(): string {
-  return `You are analyzing a site photo for EV charger installation estimating.
+export function buildPhotoAnalysisPrompt(fileCount: number = 1): string {
+  const multiNote = fileCount > 1
+    ? `You are analyzing ${fileCount} site photos and/or documents for a single EV charger installation project. Synthesize observations across ALL files into one unified assessment. If a file is a PDF (site plan, proposal, electrical drawing, etc.), extract relevant scope details.`
+    : 'You are analyzing a site photo or document for EV charger installation estimating.';
 
-Return ONLY observations visible or strongly inferable from the image. Use confidence scores.
+  const fileNotesField = fileCount > 1
+    ? `"fileNotes": [{ "fileName": "photo1.jpg", "note": "Brief observation specific to this file" }],`
+    : '';
 
-Analyze and return JSON:
+  return `${multiNote}
+
+Return ONLY valid JSON (no markdown fences). Combine all observations into a single response.
+
 {
-  "siteDescription": "Brief description of what you see",
+  "siteDescription": "Comprehensive description synthesized from all provided files",
   "inferredFields": {
     "parkingEnvironment": { "type": "surface_lot|parking_garage|mixed|null", "surfaceType": "asphalt|concrete|gravel|other|null", "indoorOutdoor": "indoor|outdoor|both|null" },
-    "charger": { "mountType": "pedestal|wall|null" }
+    "charger": { "mountType": "pedestal|wall|null" },
+    "electrical": { "panelUpgradeRequired": true|false|null, "transformerRequired": true|false|null, "switchgearRequired": true|false|null },
+    "site": { "siteType": "hotel|apartment|retail|office|industrial|fuel_station|restaurant|other|null" }
   },
-  "concerns": ["List any installation concerns visible in the photo"],
+  ${fileNotesField}
+  "concerns": ["List any installation concerns visible across all files"],
   "confidence": 0.75
 }
 
 Rules:
-- Only report what is VISIBLE or strongly implied
+- Only report what is VISIBLE or strongly implied from the provided files
 - For uncertain observations, lower the confidence
 - Never claim hidden electrical capacity or buried conditions
-- Do not estimate any costs or prices`;
+- If a PDF contains scope/line items, note relevant details in siteDescription but do not output prices
+- For multiple photos, identify different angles/areas and combine into one coherent site picture
+${PRICING_CONSTRAINT}`;
 }
