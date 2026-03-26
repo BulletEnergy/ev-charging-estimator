@@ -1,4 +1,19 @@
 // ============================================================
+// Tabular SOW import (from parse-sow / pasted proposals)
+// ============================================================
+
+export interface SOWLineItem {
+  description: string;
+  quantity: number;
+  unit: string;
+  unitPrice: number;
+  amount: number;
+  category?: string;
+  /** Matched pricebook item id when parser could align to catalog */
+  catalogMatch?: string;
+}
+
+// ============================================================
 // Normalized SOW Input
 // ============================================================
 
@@ -99,9 +114,21 @@ export interface EstimateInput {
     /** Disconnect switch required (from map placement) */
     disconnectRequired: boolean | null;
     electricalRoomDescription: string;
+    /** Optional feeder breakdown (tabular SOW / advanced entry) */
+    pvcConduit4in_ft?: number | null;
+    pvcConduit3in_ft?: number | null;
+    pvcConduit1in_ft?: number | null;
+    wire500mcm_ft?: number | null;
   };
   civil: {
     installationLocationDescription: string;
+    /** From tabular SOW / site walk */
+    asphaltRemoval_sf?: number | null;
+    asphaltRestore_sf?: number | null;
+    encasement_CY?: number | null;
+    postFoundation_CY?: number | null;
+    cabinetPad_CY?: number | null;
+    groundPrepCabinet?: boolean | null;
   };
   permit: {
     responsibility: 'bullet' | 'client' | 'tbd' | null;
@@ -186,6 +213,8 @@ export interface EstimateInput {
     existingMountStyle: string | null;
     ampsPerCharger: string | null;
   };
+  /** When present (tabular SOW), engine may build line items from pasted pricing */
+  rawLineItems?: SOWLineItem[];
 }
 
 // ============================================================
@@ -228,7 +257,8 @@ export interface EstimateLineItem {
     | 'allowance'
     | 'manual_override'
     | 'tbd'
-    | 'industry_standard';
+    | 'industry_standard'
+    | 'sow_import';
   ruleName: string;
   ruleReason: string;
   sourceInputs: string[];

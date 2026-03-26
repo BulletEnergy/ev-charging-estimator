@@ -1,7 +1,13 @@
-import { EstimateInput, EstimateOutput } from './types';
+import type {
+  EstimateInput,
+  EstimateLineItem,
+  EstimateOutput,
+  ManualReviewTrigger,
+} from './types';
 import { runAllRules } from './rules';
 import { mapWorkspaceRules } from './map-rules';
 import { selectExclusions } from './exclusions';
+import { buildLineItemsFromSowImport, sowImportInfoReview } from './sow-import';
 
 // ============================================================
 // Input Completeness Scoring
@@ -97,13 +103,23 @@ function determineConfidence(
 // ============================================================
 
 export function generateEstimate(input: EstimateInput): EstimateOutput {
-  // 1. Run all rules
-  const { items, reviews } = runAllRules(input);
+  const useSowImport =
+    Array.isArray(input.rawLineItems) && input.rawLineItems.length > 0;
 
-  // 1b. Run map workspace supplementary rules
-  const mapResult = mapWorkspaceRules(input);
-  items.push(...mapResult.items);
-  reviews.push(...mapResult.reviews);
+  let items: EstimateLineItem[];
+  let reviews: ManualReviewTrigger[];
+
+  if (useSowImport) {
+    items = buildLineItemsFromSowImport(input.rawLineItems!);
+    reviews = [sowImportInfoReview()];
+  } else {
+    const rulesResult = runAllRules(input);
+    items = rulesResult.items;
+    reviews = rulesResult.reviews;
+    const mapResult = mapWorkspaceRules(input);
+    items.push(...mapResult.items);
+    reviews.push(...mapResult.reviews);
+  }
 
   // 2. Select exclusions
   const exclusions = selectExclusions(input);
@@ -177,10 +193,11 @@ export function generateEstimate(input: EstimateInput): EstimateOutput {
     },
     metadata: {
       generatedAt: new Date().toISOString(),
-      engineVersion: '0.1.0-prototype',
+      engineVersion: useSowImport ? '0.2.0-sow-import' : '0.1.0-prototype',
       inputCompleteness: completeness,
-      automationConfidence: confidence,
-      requiresManualReview: reviews.some((r) => r.severity === 'critical'),
+      automationConfidence: useSowImport ? 'medium' : confidence,
+      requiresManualReview:
+        useSowImport || reviews.some((r) => r.severity === 'critical' || r.severity === 'warning'),
     },
   };
 }

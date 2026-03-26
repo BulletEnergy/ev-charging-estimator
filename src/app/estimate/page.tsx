@@ -610,6 +610,7 @@ function PricingBadge({ source }: { source: string }) {
     allowance: { bg: 'rgba(0,122,255,0.08)', color: 'var(--system-blue)' },
     industry_standard: { bg: 'rgba(255,149,0,0.1)', color: 'var(--system-orange)' },
     manual_override: { bg: 'rgba(175,82,222,0.1)', color: 'var(--system-purple)' },
+    sow_import: { bg: 'rgba(88,86,214,0.12)', color: '#4338ca' },
     tbd: { bg: 'rgba(255,59,48,0.1)', color: 'var(--system-red)' },
   };
   const s = styles[source] ?? { bg: 'rgba(0,0,0,0.04)', color: '#636366' };

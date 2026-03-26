@@ -11,8 +11,8 @@ The EstimateInput has these sections:
 - site: { address, siteType (airport|apartment|event_venue|fleet_dealer|hospital|hotel|industrial|mixed_use|fuel_station|municipal|office|parking_structure|police_gov|recreational|campground|restaurant|retail|school|other), state }
 - parkingEnvironment: { type (surface_lot|parking_garage|mixed), hasPTSlab, slabScanRequired, coringRequired, surfaceType (asphalt|concrete|gravel|other), trenchingRequired, boringRequired, trafficControlRequired, indoorOutdoor (indoor|outdoor|both), fireRatedPenetrations, accessRestrictions }
 - charger: { brand, model, count, pedestalCount, portType (single|dual|mix), mountType (pedestal|wall|mix|other), isCustomerSupplied, chargingLevel (l2|l3_dcfc), ampsPerCharger, volts }
-- electrical: { serviceType (120v|208v|240v|480v_3phase|unknown), availableCapacityKnown, availableAmps, breakerSpaceAvailable, panelUpgradeRequired, transformerRequired, switchgearRequired, distanceToPanel_ft, utilityCoordinationRequired, electricalRoomDescription }
-- civil: { installationLocationDescription }
+- electrical: { serviceType (120v|208v|240v|480v_3phase|unknown), availableCapacityKnown, availableAmps, breakerSpaceAvailable, panelUpgradeRequired, transformerRequired, switchgearRequired, distanceToPanel_ft, utilityCoordinationRequired, meterRoomRequired, electricalRoomDescription, pvcConduit4in_ft, pvcConduit3in_ft, pvcConduit1in_ft, wire500mcm_ft }
+- civil: { installationLocationDescription, asphaltRemoval_sf, asphaltRestore_sf, encasement_CY, postFoundation_CY, cabinetPad_CY, groundPrepCabinet }
 - permit: { responsibility (bullet|client|tbd) }
 - designEngineering: { responsibility (bullet|client|tbd), stampedPlansRequired }
 - network: { type (none|customer_lan|wifi_bridge|cellular_router|included_in_package), wifiInstallResponsibility }
@@ -24,6 +24,16 @@ The EstimateInput has these sections:
 - notes: string
 `;
 
+const NARRATIVE_SOW_EXTRACTION_RULES = `
+Narrative / non-tabular scope extraction (no dollar amounts in output):
+- If the text mentions Tesla Supercharger, V3/V4 Supercharger, or DC fast charging fleet install, set project.projectType to "supercharger" when appropriate, charger.chargingLevel to "l3_dcfc", and charger.brand/model accordingly.
+- If equipment is "BY OTHERS", "owner furnished", or "customer supplied", set charger.isCustomerSupplied to true and purchasingChargers.responsibility to "client" when stated.
+- If switchgear, EV Lite switchgear, or line items mention switchgear, set electrical.switchgearRequired to true.
+- If meter pad, meter housing, or submeter appears, set electrical.meterRoomRequired to true when scope implies our work on meter infrastructure.
+- Infer electrical.distanceToPanel_ft from the longest single conduit or wire run in LF when clearly stated (e.g. "500 LF 4\\" conduit" → 500).
+- If asphalt removal/restoration appears, set parkingEnvironment.surfaceType to "asphalt" and parkingEnvironment.type to "surface_lot" unless garage is stated.
+`;
+
 export function buildSOWParserPrompt(rawText: string): { system: string; user: string } {
   return {
     system: `You are an expert EV charging infrastructure estimator. You extract project scope from natural-language descriptions into a structured JSON object.
@@ -31,11 +41,13 @@ export function buildSOWParserPrompt(rawText: string): { system: string; user: s
 Rules:
 - Return ONLY valid JSON matching the EstimateInput schema below.
 - Do not invent facts. If a field is not stated or implied, set it to null.
+- Include "sowFormat": "narrative".
 - Include an "assumptions" array with any inferences you made.
 - Include a "confidence" number from 0 to 1 for overall extraction quality.
 - Include a "missingFields" array listing critical fields not found in the text.
 - Normalize charger brands to: Tesla, ChargePoint, Blink, SWTCH, EV Connect, Xeal, or the exact brand name.
 - Normalize site types to the enum values listed in the schema.
+${NARRATIVE_SOW_EXTRACTION_RULES}
 ${PRICING_CONSTRAINT}
 
 ${ESTIMATE_INPUT_SCHEMA}
@@ -43,12 +55,60 @@ ${ESTIMATE_INPUT_SCHEMA}
 Return JSON with this shape:
 {
   "parsedInput": { ...partial EstimateInput fields... },
+  "sowFormat": "narrative",
   "confidence": 0.85,
   "missingFields": ["field1", "field2"],
   "assumptions": ["Assumed X because Y"]
 }`,
     user: `Parse this project scope of work:\n\n${rawText}`,
   };
+}
+
+const TABULAR_SOW_PRICING_RULES = `
+TABULAR / PROPOSAL MODE — you MAY extract dollar amounts, quantities, and unit prices EXACTLY as printed in the document.
+- For each priced line item, set quantity, unit (LF, EA, CY, SF, PKG, LS, etc.), unitPrice, and amount (extended line total). Use 0 for TBD rows with no price.
+- Skip pure headers, blank rows, and "Subtotal/Total" summary rows as line items (do not duplicate subtotal as a line).
+- Include a "rawLineItems" array. Each item: { "description": string, "quantity": number, "unit": string, "unitPrice": number, "amount": number, "category": optional string (CIVIL|ELEC|ELEC LBR|ELEC LBR MAT|ELEC MAT|SITE WORK|DES/ENG|PERMIT|MISC|CHARGER|PEDESTAL|NETWORK|SAFETY|SOFTWARE|MATERIAL), "catalogMatch": optional string }
+- Do not invent line items not present in the text. Do not recalculate math; copy numbers from the document when possible.
+`;
+
+export function buildTabularSOWParserPrompt(rawText: string): { system: string; user: string } {
+  return {
+    system: `You are an expert EV charging infrastructure estimator. The user pasted a tabular proposal, bid, or scope with line items and pricing.
+
+Extract BOTH:
+1) Structured project fields (parsedInput) for EstimateInput — same schema as narrative mode, including supercharger/BY OTHERS/switchgear/meter rules below.
+2) Every priced scope line as rawLineItems with exact numbers from the document.
+
+${TABULAR_SOW_PRICING_RULES}
+
+${NARRATIVE_SOW_EXTRACTION_RULES}
+
+${ESTIMATE_INPUT_SCHEMA}
+
+Return JSON with this shape:
+{
+  "parsedInput": { ...partial EstimateInput fields... },
+  "rawLineItems": [ { "description": "...", "quantity": 1, "unit": "EA", "unitPrice": 100, "amount": 100, "category": "CIVIL" } ],
+  "sowFormat": "tabular",
+  "confidence": 0.85,
+  "missingFields": [],
+  "assumptions": []
+}`,
+    user: `Parse this tabular proposal / scope of work:\n\n${rawText}`,
+  };
+}
+
+/** Heuristic: tabular proposals with many priced lines vs narrative email */
+export function detectTabularSOW(rawText: string): boolean {
+  const dollarMatches = rawText.match(/\$[\d,]+\.?\d{0,2}/g) ?? [];
+  const hasUnits = /\b(LF|EA|CY|SF|PKG|LS|MI)\b/i.test(rawText);
+  const hasSubtotal = /\bsubtotal\b/i.test(rawText);
+  const hasQtyColumn = /\b(QTY|QUANTITY)\b/i.test(rawText) || /\d+\s+(CIVIL|ELEC|MISC)\s+/i.test(rawText);
+  if (dollarMatches.length >= 8 && hasUnits) return true;
+  if (hasSubtotal && hasUnits && dollarMatches.length >= 5) return true;
+  if (hasQtyColumn && dollarMatches.length >= 6 && hasUnits) return true;
+  return false;
 }
 
 export function buildChatBuilderSystemPrompt(currentInput: Partial<EstimateInput>): string {

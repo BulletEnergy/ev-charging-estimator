@@ -9,6 +9,13 @@ const DEBOUNCE_MS = 500;
 const MIN_COMPLETENESS = 30;
 
 function getInputCompleteness(input: EstimateInput): number {
+  if (input.rawLineItems && input.rawLineItems.length >= 3) {
+    return Math.max(85, getInputCompletenessFields(input));
+  }
+  return getInputCompletenessFields(input);
+}
+
+function getInputCompletenessFields(input: EstimateInput): number {
   const criticalFields = [
     input.project.name, input.project.projectType, input.customer.companyName,
     input.site.address, input.site.state, input.charger.brand,
@@ -25,6 +32,7 @@ function getInputCompleteness(input: EstimateInput): number {
   }
   return Math.round((filled / total) * 100);
 }
+
 
 export interface AutoEstimateResult {
   readonly estimate: EstimateOutput | null;

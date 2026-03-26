@@ -1,0 +1,111 @@
+{
+  "proposalName": "Crazy Cajun — Tesla V4 Supercharger (tabular SOW import)",
+  "sourceFile": "HOU-CEV-02310 pasted scope",
+  "totalFromProposal": 130679.6,
+  "estimateInput": {
+    "project": {
+      "name": "CRAZY CAJUN",
+      "salesRep": "",
+      "projectType": "supercharger",
+      "timeline": "",
+      "isNewConstruction": false
+    },
+    "customer": {
+      "companyName": "CRAZY CAJUN",
+      "contactName": "JON MCDANIEL",
+      "contactEmail": "",
+      "contactPhone": "337-458-0615",
+      "billingAddress": ""
+    },
+    "site": {
+      "address": "2310 N 11TH ST",
+      "siteType": "restaurant",
+      "state": "TX"
+    },
+    "parkingEnvironment": {
+      "type": "surface_lot",
+      "hasPTSlab": null,
+      "slabScanRequired": null,
+      "coringRequired": null,
+      "surfaceType": "asphalt",
+      "trenchingRequired": true,
+      "boringRequired": false,
+      "trafficControlRequired": true,
+      "indoorOutdoor": "outdoor",
+      "fireRatedPenetrations": null,
+      "accessRestrictions": ""
+    },
+    "charger": {
+      "brand": "Tesla",
+      "model": "V4 Supercharger",
+      "count": 4,
+      "pedestalCount": 4,
+      "portType": "single",
+      "mountType": "pedestal",
+      "isCustomerSupplied": true,
+      "chargingLevel": "l3_dcfc",
+      "ampsPerCharger": null,
+      "volts": null
+    },
+    "electrical": {
+      "serviceType": "480v_3phase",
+      "availableCapacityKnown": false,
+      "availableAmps": null,
+      "breakerSpaceAvailable": null,
+      "panelUpgradeRequired": null,
+      "transformerRequired": null,
+      "switchgearRequired": true,
+      "distanceToPanel_ft": 500,
+      "utilityCoordinationRequired": true,
+      "meterRoomRequired": true,
+      "junctionBoxCount": null,
+      "disconnectRequired": null,
+      "electricalRoomDescription": "",
+      "pvcConduit4in_ft": 500,
+      "pvcConduit3in_ft": 60,
+      "pvcConduit1in_ft": 120,
+      "wire500mcm_ft": 1280
+    },
+    "civil": {
+      "installationLocationDescription": "Surface lot, asphalt",
+      "asphaltRemoval_sf": 200,
+      "asphaltRestore_sf": 160,
+      "encasement_CY": 17,
+      "postFoundation_CY": 7,
+      "cabinetPad_CY": 6,
+      "groundPrepCabinet": true
+    },
+    "permit": { "responsibility": "tbd", "feeAllowance": null },
+    "designEngineering": { "responsibility": "tbd", "stampedPlansRequired": null },
+    "network": { "type": "wifi_bridge", "wifiInstallResponsibility": "bullet" },
+    "accessories": { "bollardQty": 10, "signQty": 0, "wheelStopQty": 0, "stripingRequired": false, "padRequired": false, "debrisRemoval": false },
+    "makeReady": { "responsibility": "bullet" },
+    "chargerInstall": { "responsibility": "bullet" },
+    "purchasingChargers": { "responsibility": "client" },
+    "signageBollards": { "responsibility": "bollards" },
+    "estimateControls": { "pricingTier": "bulk_discount", "taxRate": 0, "contingencyPercent": 0, "markupPercent": 0 },
+    "notes": "Fixture: tabular line import totals",
+    "rawLineItems": [
+      { "description": "CIVIL TRENCHING", "quantity": 100, "unit": "LF", "unitPrice": 44, "amount": 4400, "category": "CIVIL" },
+      { "description": "CIVIL GROUND PREP FOR CABINET", "quantity": 1, "unit": "EA", "unitPrice": 3000, "amount": 3000, "category": "CIVIL" },
+      { "description": "ELEC MAT EV LITE SWITCHGEAR/LINCOLN-TBD", "quantity": 1, "unit": "EA", "unitPrice": 10000, "amount": 10000, "category": "ELEC" },
+      { "description": "CIVIL EQUIPMENT-POST PADS-FORM/STEEL-MONOLITHIC", "quantity": 7, "unit": "CY", "unitPrice": 690, "amount": 4830, "category": "CIVIL" },
+      { "description": "CIVIL EQUIPMENT PAD-CABINETS/SWITCHGEAR", "quantity": 6, "unit": "CY", "unitPrice": 450, "amount": 2700, "category": "CIVIL" },
+      { "description": "CIVIL ASPHALT REMOVAL", "quantity": 200, "unit": "SF", "unitPrice": 7.95, "amount": 1590, "category": "CIVIL" },
+      { "description": "CIVIL ASPHALT RESTORATION", "quantity": 160, "unit": "SF", "unitPrice": 32.85, "amount": 5256, "category": "CIVIL" },
+      { "description": "CIVIL INSTALL BOLLARDS-ENCASED IN CONCRETE", "quantity": 10, "unit": "EA", "unitPrice": 550, "amount": 5500, "category": "CIVIL" },
+      { "description": "CIVIL ENCASEMENT OF CONDUITS/COMPACTION", "quantity": 17, "unit": "CY", "unitPrice": 400, "amount": 6800, "category": "CIVIL" },
+      { "description": "CIVIL INSTALL WI-FI EQUIPMENT-FURNISHED BY OWNER", "quantity": 1, "unit": "EA", "unitPrice": 350, "amount": 350, "category": "NETWORK" },
+      { "description": "ELEC MTL 4\" CONDUIT PVC SCH 40", "quantity": 500, "unit": "LF", "unitPrice": 22, "amount": 11000, "category": "ELEC LBR MAT" },
+      { "description": "ELEC MTL 3\" CONDUIT PVC SCH 40/80", "quantity": 60, "unit": "LF", "unitPrice": 20, "amount": 1200, "category": "ELEC LBR MAT" },
+      { "description": "ELEC MTL 1\" CONDUIT PVC SCH 40", "quantity": 120, "unit": "LF", "unitPrice": 15, "amount": 1800, "category": "ELEC LBR MAT" },
+      { "description": "ELEC MTL 500/600MCM/COMM WIRE", "quantity": 1280, "unit": "LF", "unitPrice": 7.62, "amount": 9753.6, "category": "ELEC LBR MAT" },
+      { "description": "ELEC MAT ADDITIONAL BOS", "quantity": 1, "unit": "EA", "unitPrice": 6000, "amount": 6000, "category": "ELEC" },
+      { "description": "ELEC MAT METER PAD/HOUSING/METER", "quantity": 1, "unit": "EA", "unitPrice": 7500, "amount": 7500, "category": "ELEC" },
+      { "description": "ELEC LBR INSTALL 1 SG/CAB/4 POSTS/PULL CONDUCTORS/WIRE/COMMISSION", "quantity": 4, "unit": "EA", "unitPrice": 9000, "amount": 36000, "category": "ELEC LBR" },
+      { "description": "MISC CONSTRUCTION FENCE/ROLL OFF/PORTOCAN", "quantity": 1, "unit": "EA", "unitPrice": 6000, "amount": 6000, "category": "MISC" },
+      { "description": "MISC EQUIPMENT RENTAL", "quantity": 2, "unit": "EA", "unitPrice": 3500, "amount": 7000, "category": "MISC" }
+    ]
+  },
+  "expectedLineItems": []
+}

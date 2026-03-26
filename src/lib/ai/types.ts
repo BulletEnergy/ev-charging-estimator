@@ -1,4 +1,6 @@
-import { EstimateInput, EstimateOutput } from '@/lib/estimate/types';
+import { EstimateInput, EstimateOutput, SOWLineItem } from '@/lib/estimate/types';
+
+export type { SOWLineItem };
 
 // ── SOW Parser ──────────────────────────────────────────────
 
@@ -8,6 +10,9 @@ export interface SOWParseRequest {
 
 export interface SOWParseResponse {
   parsedInput: Partial<EstimateInput>;
+  /** Tabular proposals: extracted rows with qty, unit price, amount from the document */
+  rawLineItems?: SOWLineItem[];
+  sowFormat: 'tabular' | 'narrative';
   confidence: number;
   missingFields: string[];
   assumptions: string[];

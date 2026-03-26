@@ -63,10 +63,21 @@ function ensureDefaults(body: Record<string, unknown>): EstimateInput {
       utilityCoordinationRequired: input.electrical?.utilityCoordinationRequired ?? null,
       meterRoomRequired: input.electrical?.meterRoomRequired ?? null,
       junctionBoxCount: input.electrical?.junctionBoxCount ?? null,
-      disconnectRequired: null, electricalRoomDescription: input.electrical?.electricalRoomDescription ?? '',
+      disconnectRequired: input.electrical?.disconnectRequired ?? null,
+      electricalRoomDescription: input.electrical?.electricalRoomDescription ?? '',
+      pvcConduit4in_ft: input.electrical?.pvcConduit4in_ft ?? null,
+      pvcConduit3in_ft: input.electrical?.pvcConduit3in_ft ?? null,
+      pvcConduit1in_ft: input.electrical?.pvcConduit1in_ft ?? null,
+      wire500mcm_ft: input.electrical?.wire500mcm_ft ?? null,
     },
     civil: {
       installationLocationDescription: input.civil?.installationLocationDescription ?? '',
+      asphaltRemoval_sf: input.civil?.asphaltRemoval_sf ?? null,
+      asphaltRestore_sf: input.civil?.asphaltRestore_sf ?? null,
+      encasement_CY: input.civil?.encasement_CY ?? null,
+      postFoundation_CY: input.civil?.postFoundation_CY ?? null,
+      cabinetPad_CY: input.civil?.cabinetPad_CY ?? null,
+      groundPrepCabinet: input.civil?.groundPrepCabinet ?? null,
     },
     permit: {
       responsibility: input.permit?.responsibility ?? null,
@@ -108,6 +119,8 @@ function ensureDefaults(body: Record<string, unknown>): EstimateInput {
     },
     notes: input.notes ?? '',
     removeReplace: input.removeReplace,
+    mapWorkspace: input.mapWorkspace,
+    rawLineItems: input.rawLineItems,
   };
 }
 

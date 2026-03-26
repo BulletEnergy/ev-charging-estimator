@@ -9,7 +9,6 @@ import {
   findSuperchargerPackage,
   resolvePrice,
   KNOWN_OVERRIDES,
-  TESLA_SUPERCHARGER_PACKAGES,
   SERVICE_FEES,
   PricebookItem,
 } from './catalog';
@@ -352,11 +351,35 @@ function installLaborRules(
   const reviews: ManualReviewTrigger[] = [];
   const { charger, chargerInstall } = input;
 
-  // Skip if Supercharger (install handled differently)
-  if (
+  const isSupercharger =
     charger.brand.toLowerCase().includes('tesla') &&
-    (charger.model.toLowerCase().includes('supercharger') || charger.chargingLevel === 'l3_dcfc')
-  ) {
+    (charger.model.toLowerCase().includes('supercharger') || charger.chargingLevel === 'l3_dcfc');
+
+  if (isSupercharger) {
+    if (chargerInstall.responsibility === 'client') {
+      reviews.push(
+        review({
+          field: 'chargerInstall.responsibility',
+          condition: 'Client installs chargers',
+          severity: 'info',
+          message: 'Supercharger installation labor excluded — client responsibility.',
+        }),
+      );
+      return { items, reviews };
+    }
+    const scInstall = findPricebookItem('eleclbr-install-supercharger');
+    if (scInstall && charger.count > 0) {
+      items.push(
+        pricebookLine(scInstall, charger.count, {
+          ruleName: 'Supercharger install & commission',
+          ruleReason: `${charger.count}x Supercharger site labor bundle (SG/cabinet/posts/pull/commission) at $${scInstall.catalogPrice}/ea`,
+          sourceInputs: ['charger.brand', 'charger.model', 'charger.count', 'charger.chargingLevel'],
+          manualReviewRequired: true,
+          manualReviewReason: 'Verify bundle matches utility and Tesla scope (posts vs full package)',
+          confidence: 'medium',
+        }),
+      );
+    }
     return { items, reviews };
   }
 
@@ -439,36 +462,117 @@ function electricalRules(
     return { items, reviews };
   }
 
-  // ── Conduit, Wire, Breakers (ELEC LBR MAT) ──
-  const conduitItem = findPricebookItem('eleclbrmat-conduit-wire');
-  if (conduitItem) {
-    const distance = input.mapWorkspace?.conduitDistance_ft ?? electrical.distanceToPanel_ft ?? 50; // map > form > default
-    const distanceKnown = (input.mapWorkspace?.conduitDistance_ft != null) || electrical.distanceToPanel_ft !== null;
-
-    // Only apply override pricing for complex routing (>100ft or fire-rated penetrations)
-    const useConduitOverride = distance > 100 || input.parkingEnvironment.fireRatedPenetrations === true;
-    items.push(
-      pricebookLine(conduitItem, distance, {
-        ruleName: 'Conduit/wire/breakers',
-        ruleReason: `${distance} LF of EMT conduit, wire, breakers at $${resolvePrice(conduitItem, useConduitOverride).price}/ft. ${input.mapWorkspace?.conduitDistance_ft != null ? 'Distance from map measurement.' : distanceKnown ? 'Distance from SOW.' : 'Distance estimated at 50ft — verify at site walk.'}`,
-        sourceInputs: [input.mapWorkspace?.conduitDistance_ft != null ? 'mapWorkspace.conduitDistance_ft' : 'electrical.distanceToPanel_ft', 'charger.count'],
-        manualReviewRequired: !distanceKnown,
-        manualReviewReason: !distanceKnown
-          ? 'Electrical distance not specified — using 50ft estimate'
-          : undefined,
-        confidence: distanceKnown ? 'high' : 'medium',
-      }),
-    );
-
-    if (!distanceKnown) {
-      reviews.push(
-        review({
-          field: 'electrical.distanceToPanel_ft',
-          condition: 'Distance unknown',
-          severity: 'warning',
-          message: 'Electrical distance not specified. Using 50ft default. Verify at site walk.',
+  // ── Switchgear & meter infrastructure (explicit SOW flags) ──
+  if (electrical.switchgearRequired === true) {
+    const sg = findPricebookItem('elec-switchgear');
+    if (sg) {
+      items.push(
+        pricebookLine(sg, 1, {
+          ruleName: 'Switchgear',
+          ruleReason: 'Switchgear / EV Lite switchgear included per scope',
+          sourceInputs: ['electrical.switchgearRequired'],
+          manualReviewRequired: true,
+          confidence: 'medium',
         }),
       );
+    }
+  }
+  if (electrical.meterRoomRequired === true) {
+    const mp = findPricebookItem('elec-meter-pad');
+    if (mp) {
+      items.push(
+        pricebookLine(mp, 1, {
+          ruleName: 'Meter pad / housing',
+          ruleReason: 'Meter pad, housing, or service entrance scope per SOW',
+          sourceInputs: ['electrical.meterRoomRequired'],
+          manualReviewRequired: true,
+          confidence: 'medium',
+        }),
+      );
+    }
+  }
+
+  const pvc4 = electrical.pvcConduit4in_ft;
+  const pvc3 = electrical.pvcConduit3in_ft;
+  const pvc1 = electrical.pvcConduit1in_ft;
+  const wireFt = electrical.wire500mcm_ft;
+  const hasFeederBreakdown =
+    (pvc4 != null && pvc4 > 0) ||
+    (pvc3 != null && pvc3 > 0) ||
+    (pvc1 != null && pvc1 > 0) ||
+    (wireFt != null && wireFt > 0);
+
+  if (hasFeederBreakdown) {
+    const addLf = (id: string, qty: number | null | undefined, label: string) => {
+      if (qty == null || qty <= 0) return;
+      const pb = findPricebookItem(id);
+      if (pb) {
+        items.push(
+          pricebookLine(pb, qty, {
+            ruleName: label,
+            ruleReason: `${qty} LF — ${pb.description}`,
+            sourceInputs: ['electrical feeder breakdown'],
+            confidence: 'high',
+          }),
+        );
+      }
+    };
+    addLf('eleclbrmat-pvc-4in', pvc4, 'PVC 4" conduit');
+    addLf('eleclbrmat-pvc-3in', pvc3, 'PVC 3" conduit');
+    addLf('eleclbrmat-pvc-1in', pvc1, 'PVC 1" conduit');
+    if (wireFt != null && wireFt > 0) {
+      const w = findPricebookItem('eleclbrmat-wire-500mcm');
+      if (w) {
+        items.push(
+          pricebookLine(w, wireFt, {
+            ruleName: 'Large feeder wire',
+            ruleReason: `${wireFt} LF large conductor run`,
+            sourceInputs: ['electrical.wire500mcm_ft'],
+            manualReviewRequired: true,
+            manualReviewReason: 'Verify conductor size and terminations vs engineering',
+            confidence: 'medium',
+          }),
+        );
+      }
+    }
+  } else {
+    // ── Conduit, Wire, Breakers (ELEC LBR MAT) — composite line when no feeder breakdown ──
+    const conduitItem = findPricebookItem('eleclbrmat-conduit-wire');
+    if (conduitItem) {
+      const distance = input.mapWorkspace?.conduitDistance_ft ?? electrical.distanceToPanel_ft ?? 50;
+      const distanceKnown =
+        input.mapWorkspace?.conduitDistance_ft != null || electrical.distanceToPanel_ft !== null;
+
+      const useConduitOverride =
+        distance > 100 || input.parkingEnvironment.fireRatedPenetrations === true;
+      items.push(
+        pricebookLine(conduitItem, distance, {
+          ruleName: 'Conduit/wire/breakers',
+          ruleReason: `${distance} LF of EMT conduit, wire, breakers at $${resolvePrice(conduitItem, useConduitOverride).price}/ft. ${input.mapWorkspace?.conduitDistance_ft != null ? 'Distance from map measurement.' : distanceKnown ? 'Distance from SOW.' : 'Distance estimated at 50ft — verify at site walk.'}`,
+          sourceInputs: [
+            input.mapWorkspace?.conduitDistance_ft != null
+              ? 'mapWorkspace.conduitDistance_ft'
+              : 'electrical.distanceToPanel_ft',
+            'charger.count',
+          ],
+          manualReviewRequired: !distanceKnown,
+          manualReviewReason: !distanceKnown
+            ? 'Electrical distance not specified — using 50ft estimate'
+            : undefined,
+          confidence: distanceKnown ? 'high' : 'medium',
+        }),
+      );
+
+      if (!distanceKnown) {
+        reviews.push(
+          review({
+            field: 'electrical.distanceToPanel_ft',
+            condition: 'Distance unknown',
+            severity: 'warning',
+            message: 'Electrical distance not specified. Using 50ft default. Verify at site walk.',
+          }),
+        );
+      }
     }
   }
 
@@ -536,7 +640,7 @@ function civilRules(
 ): { items: EstimateLineItem[]; reviews: ManualReviewTrigger[] } {
   const items: EstimateLineItem[] = [];
   const reviews: ManualReviewTrigger[] = [];
-  const { parkingEnvironment, electrical, charger } = input;
+  const { parkingEnvironment, electrical, charger, civil } = input;
   const baseDistance = electrical.distanceToPanel_ft ?? 50;
   const distance = baseDistance; // used for coring qty estimation
 
@@ -723,6 +827,86 @@ function civilRules(
     }
   }
 
+  // ── Explicit civil quantities (tabular SOW / manual entry) ──
+  if (civil.asphaltRemoval_sf != null && civil.asphaltRemoval_sf > 0) {
+    const ar = findPricebookItem('civil-asphalt-removal');
+    if (ar) {
+      items.push(
+        pricebookLine(ar, civil.asphaltRemoval_sf, {
+          ruleName: 'Asphalt removal',
+          ruleReason: `${civil.asphaltRemoval_sf} SF asphalt removal per SOW`,
+          sourceInputs: ['civil.asphaltRemoval_sf'],
+          confidence: 'high',
+        }),
+      );
+    }
+  }
+  if (civil.asphaltRestore_sf != null && civil.asphaltRestore_sf > 0) {
+    const ars = findPricebookItem('civil-asphalt-restore');
+    if (ars) {
+      items.push(
+        pricebookLine(ars, civil.asphaltRestore_sf, {
+          ruleName: 'Asphalt restoration',
+          ruleReason: `${civil.asphaltRestore_sf} SF asphalt restoration per SOW`,
+          sourceInputs: ['civil.asphaltRestore_sf'],
+          confidence: 'high',
+        }),
+      );
+    }
+  }
+  if (civil.encasement_CY != null && civil.encasement_CY > 0) {
+    const enc = findPricebookItem('civil-encasement');
+    if (enc) {
+      items.push(
+        pricebookLine(enc, civil.encasement_CY, {
+          ruleName: 'Conduit encasement',
+          ruleReason: `${civil.encasement_CY} CY encasement of conduits / compaction per SOW`,
+          sourceInputs: ['civil.encasement_CY'],
+          confidence: 'high',
+        }),
+      );
+    }
+  }
+  if (civil.postFoundation_CY != null && civil.postFoundation_CY > 0) {
+    const pf = findPricebookItem('civil-post-foundation-monolithic');
+    if (pf) {
+      items.push(
+        pricebookLine(pf, civil.postFoundation_CY, {
+          ruleName: 'Post foundations',
+          ruleReason: `${civil.postFoundation_CY} CY post pad / monolithic concrete per SOW`,
+          sourceInputs: ['civil.postFoundation_CY'],
+          confidence: 'high',
+        }),
+      );
+    }
+  }
+  if (civil.cabinetPad_CY != null && civil.cabinetPad_CY > 0) {
+    const cp = findPricebookItem('civil-cabinet-pad');
+    if (cp) {
+      items.push(
+        pricebookLine(cp, civil.cabinetPad_CY, {
+          ruleName: 'Cabinet / switchgear pads',
+          ruleReason: `${civil.cabinetPad_CY} CY equipment pad for cabinets per SOW`,
+          sourceInputs: ['civil.cabinetPad_CY'],
+          confidence: 'high',
+        }),
+      );
+    }
+  }
+  if (civil.groundPrepCabinet === true) {
+    const gp = findPricebookItem('civil-ground-prep-cabinet');
+    if (gp) {
+      items.push(
+        pricebookLine(gp, 1, {
+          ruleName: 'Ground prep — cabinet',
+          ruleReason: 'Civil ground prep for cabinet / switchgear pad per SOW',
+          sourceInputs: ['civil.groundPrepCabinet'],
+          confidence: 'high',
+        }),
+      );
+    }
+  }
+
   // ── No parking environment specified ──
   if (parkingEnvironment.type === null) {
     reviews.push(
@@ -733,6 +917,50 @@ function civilRules(
         message: 'Parking environment not specified. Civil work scope cannot be accurately determined. Defaulting to minimal civil items.',
       }),
     );
+  }
+
+  return { items, reviews };
+}
+
+// ── 5b. Construction support (Supercharger / large sites) ────────
+
+function constructionSupportRules(
+  input: EstimateInput,
+): { items: EstimateLineItem[]; reviews: ManualReviewTrigger[] } {
+  const items: EstimateLineItem[] = [];
+  const reviews: ManualReviewTrigger[] = [];
+
+  const isSupercharger =
+    input.project.projectType === 'supercharger' ||
+    (input.charger.brand.toLowerCase().includes('tesla') &&
+      (input.charger.model.toLowerCase().includes('supercharger') ||
+        input.charger.chargingLevel === 'l3_dcfc'));
+
+  if (isSupercharger && input.charger.count >= 4) {
+    const bundle = findPricebookItem('misc-construction-support');
+    if (bundle) {
+      items.push(
+        pricebookLine(bundle, 1, {
+          ruleName: 'Construction support bundle',
+          ruleReason: 'Fence / roll-off / sanitation typical for multi-stall Supercharger sites',
+          sourceInputs: ['project.projectType', 'charger.count'],
+          manualReviewRequired: true,
+          confidence: 'medium',
+        }),
+      );
+    }
+    const rental = findPricebookItem('misc-equipment-rental');
+    if (rental) {
+      items.push(
+        pricebookLine(rental, 2, {
+          ruleName: 'Equipment rental',
+          ruleReason: 'Equipment rental periods — verify duration with GC',
+          sourceInputs: ['project.projectType', 'charger.count'],
+          manualReviewRequired: true,
+          confidence: 'medium',
+        }),
+      );
+    }
   }
 
   return { items, reviews };
@@ -1149,6 +1377,7 @@ export function runAllRules(
     installLaborRules,
     electricalRules,
     civilRules,
+    constructionSupportRules,
     permitDesignRules,
     networkRules,
     accessoryRules,

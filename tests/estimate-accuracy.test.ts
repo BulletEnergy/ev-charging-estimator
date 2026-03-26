@@ -6,6 +6,7 @@ import type { EstimateInput } from '@/lib/estimate/types';
 import hamptonInn from './fixtures/proposal-hampton-inn.json';
 import transpecosBanks from './fixtures/proposal-transpecos-banks.json';
 import brookside from './fixtures/proposal-brookside.json';
+import crazyCajun from './fixtures/proposal-crazy-cajun.json';
 
 interface ProposalFixture {
   proposalName: string;
@@ -131,6 +132,16 @@ function logReport(report: AccuracyReport): void {
 // ============================================================
 // Tests
 // ============================================================
+
+describe('Crazy Cajun — tabular SOW import', () => {
+  it('totals match pasted proposal subtotal when markup/tax are zero', () => {
+    const output = generateEstimate(crazyCajun.estimateInput as unknown as EstimateInput);
+    expect(output.lineItems.length).toBeGreaterThanOrEqual(15);
+    expect(output.lineItems.every((li) => li.pricingSource === 'sow_import')).toBe(true);
+    expect(output.summary.subtotal).toBeCloseTo(130679.6, 0);
+    expect(output.summary.total).toBeCloseTo(130679.6, 0);
+  });
+});
 
 describe('Estimate Accuracy — Regression Suite', () => {
   // ----------------------------------------------------------

@@ -43,7 +43,11 @@ export function SOWParser({ onApplyFields }: SOWParserProps) {
 
   function handleApply() {
     if (!result?.parsedInput) return;
-    onApplyFields(flattenInput(result.parsedInput));
+    const flat = flattenInput(result.parsedInput);
+    if (result.rawLineItems && result.rawLineItems.length > 0) {
+      flat.rawLineItems = result.rawLineItems;
+    }
+    onApplyFields(flat);
     setCollapsed(true);
   }
 
@@ -109,6 +113,39 @@ export function SOWParser({ onApplyFields }: SOWParserProps) {
               <pre className="max-h-60 overflow-auto rounded bg-gray-900 p-3 text-xs text-green-400">
                 {JSON.stringify(result.parsedInput, null, 2)}
               </pre>
+
+              {result.rawLineItems && result.rawLineItems.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-gray-700">
+                    Imported line items ({result.rawLineItems.length})
+                    {result.sowFormat ? ` — ${result.sowFormat}` : ''}
+                  </p>
+                  <div className="max-h-48 overflow-auto rounded border border-gray-200 bg-gray-50 text-xs">
+                    <table className="w-full border-collapse text-left">
+                      <thead>
+                        <tr className="border-b border-gray-200 text-gray-500">
+                          <th className="px-2 py-1">Qty</th>
+                          <th className="px-2 py-1">Unit</th>
+                          <th className="px-2 py-1">$</th>
+                          <th className="px-2 py-1">Amount</th>
+                          <th className="px-2 py-1">Description</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {result.rawLineItems.map((row, i) => (
+                          <tr key={i} className="border-b border-gray-100">
+                            <td className="px-2 py-1 tabular-nums">{row.quantity}</td>
+                            <td className="px-2 py-1">{row.unit}</td>
+                            <td className="px-2 py-1 tabular-nums">${row.unitPrice.toLocaleString()}</td>
+                            <td className="px-2 py-1 tabular-nums font-medium">${row.amount.toLocaleString()}</td>
+                            <td className="px-2 py-1 text-gray-700">{row.description}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
 
               {result.assumptions.length > 0 && (
                 <div className="rounded border border-amber-200 bg-amber-50 px-3 py-2">
