@@ -448,7 +448,7 @@ export function SiteMap({
       el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.15)'; });
       el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)'; });
 
-      const marker = new mapboxgl.Marker({ element: el })
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'center', offset: [0, 0] })
         .setLngLat(eq.geometry.coordinates as [number, number])
         .addTo(map);
 
@@ -519,7 +519,7 @@ export function SiteMap({
       el.textContent = '\u26A1';
       el.title = 'Power Source';
 
-      powerSourceMarkerRef.current = new mapboxgl.Marker({ element: el })
+      powerSourceMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: 'center', offset: [0, 0] })
         .setLngLat(powerSourceLocation)
         .addTo(map);
     }
@@ -550,7 +550,7 @@ export function SiteMap({
       el.textContent = String(i + 1);
       el.title = `Charger Zone ${i + 1}`;
 
-      const marker = new mapboxgl.Marker({ element: el })
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'center', offset: [0, 0] })
         .setLngLat(coord)
         .addTo(map);
 
