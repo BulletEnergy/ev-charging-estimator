@@ -1,0 +1,243 @@
+{
+  "proposalName": "Achieve Investment Group (tabular import)",
+  "sourceFile": "Achieve Investment Group.xlsx",
+  "totalFromProposal": 50040,
+  "estimateInput": {
+    "project": {
+      "name": "Achieve Investment Group",
+      "salesRep": "",
+      "projectType": "full_turnkey",
+      "timeline": "",
+      "isNewConstruction": false
+    },
+    "customer": {
+      "companyName": "Achieve Investment Group",
+      "contactName": "",
+      "contactEmail": "",
+      "contactPhone": "",
+      "billingAddress": ""
+    },
+    "site": {
+      "address": "",
+      "siteType": "office",
+      "state": "TX"
+    },
+    "parkingEnvironment": {
+      "type": "surface_lot",
+      "hasPTSlab": null,
+      "slabScanRequired": null,
+      "coringRequired": null,
+      "surfaceType": "concrete",
+      "trenchingRequired": true,
+      "boringRequired": false,
+      "trafficControlRequired": false,
+      "indoorOutdoor": "outdoor",
+      "fireRatedPenetrations": null,
+      "accessRestrictions": ""
+    },
+    "charger": {
+      "brand": "Tesla",
+      "model": "Universal Wall Connector Gen 3",
+      "count": 2,
+      "pedestalCount": 1,
+      "portType": "dual",
+      "mountType": "pedestal",
+      "isCustomerSupplied": false,
+      "chargingLevel": "l2",
+      "ampsPerCharger": null,
+      "volts": null
+    },
+    "electrical": {
+      "serviceType": "208v",
+      "availableCapacityKnown": false,
+      "availableAmps": null,
+      "breakerSpaceAvailable": null,
+      "panelUpgradeRequired": false,
+      "transformerRequired": false,
+      "switchgearRequired": false,
+      "distanceToPanel_ft": 100,
+      "utilityCoordinationRequired": false,
+      "meterRoomRequired": null,
+      "junctionBoxCount": null,
+      "disconnectRequired": null,
+      "electricalRoomDescription": "",
+      "pvcConduit4in_ft": null,
+      "pvcConduit3in_ft": null,
+      "pvcConduit1in_ft": null,
+      "wire500mcm_ft": null
+    },
+    "civil": {
+      "installationLocationDescription": "Imported tabular proposal fixture",
+      "trenchDistance_ft": null,
+      "asphaltRemoval_sf": null,
+      "asphaltRestore_sf": null,
+      "encasement_CY": null,
+      "postFoundation_CY": null,
+      "cabinetPad_CY": null,
+      "groundPrepCabinet": null
+    },
+    "permit": {
+      "responsibility": "bullet",
+      "feeAllowance": 0
+    },
+    "designEngineering": {
+      "responsibility": "bullet",
+      "stampedPlansRequired": false
+    },
+    "network": {
+      "type": "none",
+      "wifiInstallResponsibility": "na"
+    },
+    "accessories": {
+      "bollardQty": 0,
+      "signQty": 0,
+      "wheelStopQty": 0,
+      "stripingRequired": false,
+      "padRequired": false,
+      "debrisRemoval": false
+    },
+    "makeReady": {
+      "responsibility": "bullet"
+    },
+    "chargerInstall": {
+      "responsibility": "bullet"
+    },
+    "purchasingChargers": {
+      "responsibility": "bullet"
+    },
+    "signageBollards": {
+      "responsibility": "signage"
+    },
+    "estimateControls": {
+      "pricingTier": "msrp",
+      "taxRate": 0,
+      "contingencyPercent": 0,
+      "markupPercent": 0
+    },
+    "notes": "",
+    "mapWorkspace": {
+      "conduitDistance_ft": null,
+      "feederDistance_ft": null,
+      "trenchingDistance_ft": null,
+      "boringDistance_ft": null,
+      "concreteCuttingDistance_ft": null,
+      "chargerCountFromMap": null,
+      "siteCoordinates": null,
+      "pvcConduitDistance_ft": null,
+      "cableTrayDistance_ft": null,
+      "concretePadCount": null,
+      "hasPanelPlaced": null,
+      "lightingCount": null,
+      "drawings": null
+    },
+    "rawLineItems": [
+      {
+        "description": "Tesla Universal Wall Connector (Gen 3) – Model 1734412‑02",
+        "quantity": 16,
+        "unit": "EA",
+        "unitPrice": 750,
+        "amount": 12000,
+        "category": "CHARGER"
+      },
+      {
+        "description": "Tesla Wall Connector Pedestal (Includes Mounting Kit)",
+        "quantity": 8,
+        "unit": "EA",
+        "unitPrice": 550,
+        "amount": 4400,
+        "category": "PEDESTAL"
+      },
+      {
+        "description": "Install Provided Bolt-Down Bollard",
+        "quantity": 16,
+        "unit": "EA",
+        "unitPrice": 550,
+        "amount": 8800,
+        "category": "EQUIPMENT"
+      },
+      {
+        "description": "Install Signage and Stencils",
+        "quantity": 16,
+        "unit": "EA",
+        "unitPrice": 400,
+        "amount": 6400,
+        "category": "EQUIPMENT"
+      },
+      {
+        "description": "Installation & Commissioning Of Pedestal-Mounted Charger - Dual Port",
+        "quantity": 8,
+        "unit": "EA",
+        "unitPrice": 1850,
+        "amount": 14800,
+        "category": "ELECTRICAL"
+      },
+      {
+        "description": "Misc. Mounting Hardware & BOS (Materials Only)",
+        "quantity": 16,
+        "unit": "EA",
+        "unitPrice": 165,
+        "amount": 2640,
+        "category": "EQUIPMENT"
+      },
+      {
+        "description": "Site Visit",
+        "quantity": 1,
+        "unit": "EA",
+        "unitPrice": 1000,
+        "amount": 1000,
+        "category": "DESIGN/ENGINEERING"
+      }
+    ]
+  },
+  "expectedLineItems": [
+    {
+      "category": "CHARGER",
+      "description": "Tesla Universal Wall Connector (Gen 3) – Model 1734412‑02",
+      "qty": 16,
+      "unitPrice": 750,
+      "amount": 12000
+    },
+    {
+      "category": "PEDESTAL",
+      "description": "Tesla Wall Connector Pedestal (Includes Mounting Kit)",
+      "qty": 8,
+      "unitPrice": 550,
+      "amount": 4400
+    },
+    {
+      "category": "EQUIPMENT",
+      "description": "Install Provided Bolt-Down Bollard",
+      "qty": 16,
+      "unitPrice": 550,
+      "amount": 8800
+    },
+    {
+      "category": "EQUIPMENT",
+      "description": "Install Signage and Stencils",
+      "qty": 16,
+      "unitPrice": 400,
+      "amount": 6400
+    },
+    {
+      "category": "ELECTRICAL",
+      "description": "Installation & Commissioning Of Pedestal-Mounted Charger - Dual Port",
+      "qty": 8,
+      "unitPrice": 1850,
+      "amount": 14800
+    },
+    {
+      "category": "EQUIPMENT",
+      "description": "Misc. Mounting Hardware & BOS (Materials Only)",
+      "qty": 16,
+      "unitPrice": 165,
+      "amount": 2640
+    },
+    {
+      "category": "DESIGN/ENGINEERING",
+      "description": "Site Visit",
+      "qty": 1,
+      "unitPrice": 1000,
+      "amount": 1000
+    }
+  ]
+}

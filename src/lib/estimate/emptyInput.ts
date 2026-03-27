@@ -31,6 +31,7 @@ export function emptyInput(): EstimateInput {
     },
     civil: {
       installationLocationDescription: '',
+      trenchDistance_ft: null,
       asphaltRemoval_sf: null,
       asphaltRestore_sf: null,
       encasement_CY: null,

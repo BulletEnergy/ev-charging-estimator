@@ -72,6 +72,7 @@ function ensureDefaults(body: Record<string, unknown>): EstimateInput {
     },
     civil: {
       installationLocationDescription: input.civil?.installationLocationDescription ?? '',
+      trenchDistance_ft: input.civil?.trenchDistance_ft ?? null,
       asphaltRemoval_sf: input.civil?.asphaltRemoval_sf ?? null,
       asphaltRestore_sf: input.civil?.asphaltRestore_sf ?? null,
       encasement_CY: input.civil?.encasement_CY ?? null,

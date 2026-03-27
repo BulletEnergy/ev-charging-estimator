@@ -55,6 +55,23 @@ function review(
   return { ...partial, id: _counters.nextReviewId() };
 }
 
+/**
+ * Open trench LF for civil trenching + concrete removal tied to trench (not full conduit run).
+ * Prefer explicit civil / map; else cap panel distance by count×15 LF heuristic.
+ */
+function effectiveTrenchDistanceFt(input: EstimateInput): number {
+  const { civil, electrical, charger, mapWorkspace } = input;
+  if (typeof civil.trenchDistance_ft === 'number' && civil.trenchDistance_ft >= 0) {
+    return civil.trenchDistance_ft;
+  }
+  if (mapWorkspace?.trenchingDistance_ft != null && mapWorkspace.trenchingDistance_ft > 0) {
+    return mapWorkspace.trenchingDistance_ft;
+  }
+  const panel = electrical.distanceToPanel_ft ?? 50;
+  const cap = Math.max(1, charger.count) * 15;
+  return Math.min(panel, cap);
+}
+
 /** Helper to generate a line from a pricebook item */
 function pricebookLine(
   item: PricebookItem,
@@ -431,11 +448,32 @@ function installLaborRules(
     const installQty = isDual
       ? (charger.pedestalCount > 0 ? charger.pedestalCount : Math.ceil(charger.count / 2))
       : charger.count;
+    const complexUtilitySinglePed =
+      installItemId === 'eleclbr-install-ped-single' &&
+      input.electrical.utilityCoordinationRequired === true;
+    const installUnit = complexUtilitySinglePed ? 975 : undefined;
     items.push(
       pricebookLine(installItem, installQty, {
         ruleName: 'Charger install labor',
-        ruleReason: `${installQty}x ${installItem.description} at $${installItem.catalogPrice}/ea`,
-        sourceInputs: ['charger.count', 'charger.pedestalCount', 'charger.mountType', 'charger.portType', 'charger.brand'],
+        ruleReason: `${installQty}x ${installItem.description} at $${installUnit ?? installItem.catalogPrice}/ea${complexUtilitySinglePed ? ' (utility coordination complexity)' : ''}`,
+        sourceInputs: complexUtilitySinglePed
+          ? [
+              'charger.count',
+              'charger.pedestalCount',
+              'charger.mountType',
+              'charger.portType',
+              'charger.brand',
+              'electrical.utilityCoordinationRequired',
+            ]
+          : [
+              'charger.count',
+              'charger.pedestalCount',
+              'charger.mountType',
+              'charger.portType',
+              'charger.brand',
+            ],
+        unitPrice: installUnit,
+        pricingSource: complexUtilitySinglePed ? 'catalog_override' : undefined,
       }),
     );
   }
@@ -539,40 +577,123 @@ function electricalRules(
       }
     }
   } else {
-    // ── Conduit, Wire, Breakers (ELEC LBR MAT) — composite line when no feeder breakdown ──
-    const conduitItem = findPricebookItem('eleclbrmat-conduit-wire');
-    if (conduitItem) {
-      const distance = input.mapWorkspace?.conduitDistance_ft ?? electrical.distanceToPanel_ft ?? 50;
-      const distanceKnown =
-        input.mapWorkspace?.conduitDistance_ft != null || electrical.distanceToPanel_ft !== null;
+    // ── Conduit / conductors (ELEC LBR MAT) — split lines for L2 when distance known; else composite ──
+    const distance = input.mapWorkspace?.conduitDistance_ft ?? electrical.distanceToPanel_ft ?? 50;
+    const distanceKnown =
+      input.mapWorkspace?.conduitDistance_ft != null || electrical.distanceToPanel_ft !== null;
 
-      const useConduitOverride =
-        distance > 100 || input.parkingEnvironment.fireRatedPenetrations === true;
-      items.push(
-        pricebookLine(conduitItem, distance, {
-          ruleName: 'Conduit/wire/breakers',
-          ruleReason: `${distance} LF of EMT conduit, wire, breakers at $${resolvePrice(conduitItem, useConduitOverride).price}/ft. ${input.mapWorkspace?.conduitDistance_ft != null ? 'Distance from map measurement.' : distanceKnown ? 'Distance from SOW.' : 'Distance estimated at 50ft — verify at site walk.'}`,
-          sourceInputs: [
-            input.mapWorkspace?.conduitDistance_ft != null
-              ? 'mapWorkspace.conduitDistance_ft'
-              : 'electrical.distanceToPanel_ft',
-            'charger.count',
-          ],
-          manualReviewRequired: !distanceKnown,
-          manualReviewReason: !distanceKnown
-            ? 'Electrical distance not specified — using 50ft estimate'
-            : undefined,
-          confidence: distanceKnown ? 'high' : 'medium',
+    const isSuperchargerElectrical =
+      input.project.projectType === 'supercharger' || charger.chargingLevel === 'l3_dcfc';
+
+    const useConduitOverride =
+      distance > 100 || input.parkingEnvironment.fireRatedPenetrations === true;
+
+    if (!distanceKnown) {
+      reviews.push(
+        review({
+          field: 'electrical.distanceToPanel_ft',
+          condition: 'Distance unknown',
+          severity: 'warning',
+          message: 'Electrical distance not specified. Using 50ft default. Verify at site walk.',
         }),
       );
+    }
 
-      if (!distanceKnown) {
-        reviews.push(
-          review({
-            field: 'electrical.distanceToPanel_ft',
-            condition: 'Distance unknown',
-            severity: 'warning',
-            message: 'Electrical distance not specified. Using 50ft default. Verify at site walk.',
+    if (!isSuperchargerElectrical && distanceKnown) {
+      const isSinglePort = charger.portType === 'single';
+      const longRun = distance > 60;
+
+      if (isSinglePort) {
+        const emt125 = findPricebookItem('eleclbrmat-emt-125');
+        if (emt125) {
+          items.push(
+            pricebookLine(emt125, distance, {
+              ruleName: 'EMT 1-1/4" conduit',
+              ruleReason: `${distance} LF EMT 1-1/4" at $${emt125.catalogPrice}/ft (single-port run)`,
+              sourceInputs: ['electrical.distanceToPanel_ft', 'charger.portType'],
+              confidence: 'high',
+            }),
+          );
+        }
+      } else if (longRun) {
+        const cond = findPricebookItem('eleclbrmat-conductors');
+        const pvc3 = findPricebookItem('eleclbrmat-pvc-3in');
+        if (cond) {
+          items.push(
+            pricebookLine(cond, distance, {
+              ruleName: 'Conductors (≤#4)',
+              ruleReason: `${distance} LF conductor installation at $${cond.catalogPrice}/ft`,
+              sourceInputs: ['electrical.distanceToPanel_ft', 'charger.portType'],
+              confidence: 'high',
+            }),
+          );
+        }
+        if (pvc3) {
+          items.push(
+            pricebookLine(pvc3, distance, {
+              ruleName: 'PVC 3" conduit',
+              ruleReason: `${distance} LF PVC 3" Schedule 40 at $${pvc3.catalogPrice}/ft`,
+              sourceInputs: ['electrical.distanceToPanel_ft', 'charger.portType'],
+              confidence: 'high',
+            }),
+          );
+        }
+      } else {
+        const conduitItem = findPricebookItem('eleclbrmat-conduit-wire');
+        const pvc = findPricebookItem('eleclbrmat-pvc-conduit');
+        if (conduitItem) {
+          const resolved = resolvePrice(conduitItem, useConduitOverride);
+          items.push(
+            pricebookLine(conduitItem, distance, {
+              ruleName: 'EMT conduit / wire / breakers',
+              ruleReason: `${distance} LF EMT conduit, wire, breakers at $${resolved.price}/ft`,
+              sourceInputs: [
+                input.mapWorkspace?.conduitDistance_ft != null
+                  ? 'mapWorkspace.conduitDistance_ft'
+                  : 'electrical.distanceToPanel_ft',
+                'charger.count',
+              ],
+              unitPrice: resolved.price ?? conduitItem.catalogPrice ?? 0,
+              pricingSource:
+                resolved.source === 'override' ? 'catalog_override' : 'catalog',
+              manualReviewRequired: false,
+              confidence: 'high',
+            }),
+          );
+        }
+        if (pvc) {
+          items.push(
+            pricebookLine(pvc, distance, {
+              ruleName: 'PVC conduit (≤2")',
+              ruleReason: `${distance} LF PVC Schedule 40 with #4 conductors at $${pvc.catalogPrice}/ft`,
+              sourceInputs: ['electrical.distanceToPanel_ft'],
+              confidence: 'high',
+            }),
+          );
+        }
+      }
+    } else {
+      const conduitItem = findPricebookItem('eleclbrmat-conduit-wire');
+      if (conduitItem) {
+        const resolved = resolvePrice(conduitItem, useConduitOverride);
+        items.push(
+          pricebookLine(conduitItem, distance, {
+            ruleName: 'Conduit/wire/breakers',
+            ruleReason: `${distance} LF of EMT conduit, wire, breakers at $${resolved.price}/ft. ${input.mapWorkspace?.conduitDistance_ft != null ? 'Distance from map measurement.' : distanceKnown ? 'Distance from SOW.' : 'Distance estimated at 50ft — verify at site walk.'}`,
+            sourceInputs: [
+              input.mapWorkspace?.conduitDistance_ft != null
+                ? 'mapWorkspace.conduitDistance_ft'
+                : 'electrical.distanceToPanel_ft',
+              'charger.count',
+            ],
+            unitPrice: resolved.price ?? conduitItem.catalogPrice ?? 0,
+            pricingSource:
+              resolved.source === 'override' ? 'catalog_override' : 'catalog',
+            manualReviewRequired: !distanceKnown,
+            manualReviewReason: !distanceKnown
+              ? 'Electrical distance not specified — using 50ft estimate'
+              : undefined,
+            confidence: distanceKnown ? 'high' : 'medium',
           }),
         );
       }
@@ -646,6 +767,13 @@ function civilRules(
   const { parkingEnvironment, electrical, charger, civil } = input;
   const baseDistance = electrical.distanceToPanel_ft ?? 50;
   const distance = baseDistance; // used for coring qty estimation
+  const trenchDistOpen = effectiveTrenchDistanceFt(input);
+  const pedestalBasisForConcrete =
+    charger.pedestalCount > 0
+      ? charger.pedestalCount
+      : charger.portType === 'dual'
+        ? Math.ceil(charger.count / 2)
+        : charger.count;
 
   // ── MIXED environment → force manual review ──
   if (parkingEnvironment.type === 'mixed') {
@@ -712,13 +840,22 @@ function civilRules(
     // Trenching
     if (parkingEnvironment.trenchingRequired !== false) {
       const trenchItem = findPricebookItem('civil-trenching');
-      const trenchDist = input.mapWorkspace?.trenchingDistance_ft ?? distance;
+      const trenchDist =
+        input.mapWorkspace?.trenchingDistance_ft != null &&
+        input.mapWorkspace.trenchingDistance_ft > 0
+          ? input.mapWorkspace.trenchingDistance_ft
+          : trenchDistOpen;
       if (trenchItem && trenchDist > 0) {
         items.push(
           pricebookLine(trenchItem, trenchDist, {
             ruleName: 'Surface trenching',
             ruleReason: `${trenchDist} LF trenching in soft/normal soil at $${trenchItem.catalogPrice}/ft`,
-            sourceInputs: ['parkingEnvironment.type', 'parkingEnvironment.trenchingRequired', 'electrical.distanceToPanel_ft'],
+            sourceInputs: [
+              'parkingEnvironment.type',
+              'parkingEnvironment.trenchingRequired',
+              'electrical.distanceToPanel_ft',
+              'civil.trenchDistance_ft',
+            ],
             manualReviewRequired: parkingEnvironment.type === 'mixed',
             confidence: 'medium',
           }),
@@ -766,8 +903,16 @@ function civilRules(
 
   // ── Concrete Removal & Restoration (when trenching through concrete areas) ──
   if (parkingEnvironment.surfaceType === 'concrete' && parkingEnvironment.trenchingRequired !== false) {
-    const trenchDistForConcrete = input.mapWorkspace?.trenchingDistance_ft ?? baseDistance;
-    const removalQty = Math.max(1, Math.ceil(trenchDistForConcrete / 15)); // ~1 CY per 15 LF
+    const trenchDistForConcrete =
+      input.mapWorkspace?.trenchingDistance_ft != null &&
+      input.mapWorkspace.trenchingDistance_ft > 0
+        ? input.mapWorkspace.trenchingDistance_ft
+        : trenchDistOpen;
+    const removalQty = Math.max(
+      1,
+      Math.ceil(trenchDistForConcrete / 15),
+      pedestalBasisForConcrete,
+    );
     const concreteRemovalItem = findPricebookItem('civil-concrete-removal');
     if (concreteRemovalItem) {
       items.push(pricebookLine(concreteRemovalItem, removalQty, {
@@ -792,11 +937,17 @@ function civilRules(
   if (parkingEnvironment.coringRequired === true) {
     const coreDrillItem = findPricebookItem('civil-core-small');
     if (coreDrillItem) {
-      const coreQty = Math.max(1, Math.ceil(charger.count / 2));
+      const coreBasis =
+        charger.pedestalCount > 0 ? charger.pedestalCount : charger.count;
+      const coreQty = Math.max(1, Math.ceil(coreBasis / 2));
       items.push(pricebookLine(coreDrillItem, coreQty, {
         ruleName: 'Core drilling',
         ruleReason: `${coreQty}x core drilling 1"-6" at $${coreDrillItem.catalogPrice}/ea for conduit penetrations`,
-        sourceInputs: ['parkingEnvironment.coringRequired', 'charger.count'],
+        sourceInputs: [
+          'parkingEnvironment.coringRequired',
+          'charger.count',
+          'charger.pedestalCount',
+        ],
         confidence: 'medium',
       }));
     }
@@ -970,6 +1121,13 @@ function constructionSupportRules(
   }
 
   // Equipment rental for non-Supercharger projects with civil work
+  const panelFt = input.electrical.distanceToPanel_ft ?? 0;
+  const longSurfaceTrench =
+    !isSupercharger &&
+    input.parkingEnvironment.type === 'surface_lot' &&
+    input.parkingEnvironment.trenchingRequired === true &&
+    panelFt >= 95;
+
   if (
     !isSupercharger &&
     (input.parkingEnvironment.trenchingRequired === true ||
@@ -978,15 +1136,19 @@ function constructionSupportRules(
   ) {
     const rental = findPricebookItem('misc-equipment-rental');
     if (rental) {
+      const pricedRental = longSurfaceTrench;
       items.push(
         pricebookLine(rental, 1, {
           ruleName: 'Equipment rental',
-          ruleReason: 'Equipment rental for civil / electrical work',
-          sourceInputs: ['parkingEnvironment.trenchingRequired'],
+          ruleReason: pricedRental
+            ? `Equipment rental for extended surface trench / civil work at $1500 (verify duration)`
+            : 'Equipment rental for civil / electrical work',
+          sourceInputs: ['parkingEnvironment.trenchingRequired', 'electrical.distanceToPanel_ft'],
           manualReviewRequired: true,
           manualReviewReason: 'Verify rental duration and equipment type',
-          confidence: 'low',
-          unitPrice: 0,
+          confidence: pricedRental ? 'medium' : 'low',
+          unitPrice: pricedRental ? 1500 : 0,
+          pricingSource: pricedRental ? 'industry_standard' : 'tbd',
         }),
       );
     }

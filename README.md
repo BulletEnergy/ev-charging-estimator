@@ -43,6 +43,15 @@ npm run dev
 
 Open http://localhost:3000
 
+## Estimate accuracy regression tests
+
+- `npm run test:accuracy` — Hampton / Transpecos / Brookside / Crazy Cajun (rules + tabular import).
+- `npm run test:accuracy:bulk` — all JSON fixtures under `tests/fixtures/` (logs a markdown-style summary table).
+- `npm run test:accuracy-report` — same as bulk with verbose reporter (set `WRITE_ACCURACY_REPORT=1` in the shell to also write `accuracy-report.md`).
+- `node scripts/extract-proposal-fixtures.mjs` — refresh `import-*.json` fixtures from `src/lib/estimate/knowledge/proposals-v2.json`.
+
+Rules-engine output is checked against `pricebook-v2.json` observed ranges (`metadata.priceValidation` on `generateEstimate` when prices fall outside historical min/max). Median auto-replacement is available in code via `applyMedianWhenOutOfRange` but left off by default so catalog rules stay stable.
+
 ## Pages
 
 | Route | Purpose |

@@ -63,7 +63,8 @@
       "electricalRoomDescription": ""
     },
     "civil": {
-      "installationLocationDescription": "Residential parking lot, concrete surface, pedestal with concrete pad"
+      "installationLocationDescription": "Residential parking lot, concrete surface, pedestal with concrete pad",
+      "trenchDistance_ft": 50
     },
     "permit": {
       "responsibility": "bullet",

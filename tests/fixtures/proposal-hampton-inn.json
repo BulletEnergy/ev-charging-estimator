@@ -63,7 +63,8 @@
       "electricalRoomDescription": ""
     },
     "civil": {
-      "installationLocationDescription": "Hotel parking lot with concrete surface, core drilling and scan required"
+      "installationLocationDescription": "Hotel parking lot with concrete surface, core drilling and scan required",
+      "trenchDistance_ft": 5
     },
     "permit": {
       "responsibility": "bullet",

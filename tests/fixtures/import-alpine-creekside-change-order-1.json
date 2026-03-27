@@ -1,0 +1,183 @@
+{
+  "proposalName": "Alpine Creekside - Change Order 1 (tabular import)",
+  "sourceFile": "Alpine Creekside - Change Order 1.xlsx",
+  "totalFromProposal": 1790,
+  "estimateInput": {
+    "project": {
+      "name": "Alpine Creekside - Change Order 1",
+      "salesRep": "",
+      "projectType": "full_turnkey",
+      "timeline": "",
+      "isNewConstruction": false
+    },
+    "customer": {
+      "companyName": "Alpine Creekside - Change Order 1",
+      "contactName": "",
+      "contactEmail": "",
+      "contactPhone": "",
+      "billingAddress": ""
+    },
+    "site": {
+      "address": "",
+      "siteType": "office",
+      "state": "TX"
+    },
+    "parkingEnvironment": {
+      "type": "surface_lot",
+      "hasPTSlab": null,
+      "slabScanRequired": null,
+      "coringRequired": null,
+      "surfaceType": "concrete",
+      "trenchingRequired": true,
+      "boringRequired": false,
+      "trafficControlRequired": false,
+      "indoorOutdoor": "outdoor",
+      "fireRatedPenetrations": null,
+      "accessRestrictions": ""
+    },
+    "charger": {
+      "brand": "Tesla",
+      "model": "Universal Wall Connector Gen 3",
+      "count": 2,
+      "pedestalCount": 1,
+      "portType": "dual",
+      "mountType": "pedestal",
+      "isCustomerSupplied": false,
+      "chargingLevel": "l2",
+      "ampsPerCharger": null,
+      "volts": null
+    },
+    "electrical": {
+      "serviceType": "208v",
+      "availableCapacityKnown": false,
+      "availableAmps": null,
+      "breakerSpaceAvailable": null,
+      "panelUpgradeRequired": false,
+      "transformerRequired": false,
+      "switchgearRequired": false,
+      "distanceToPanel_ft": 100,
+      "utilityCoordinationRequired": false,
+      "meterRoomRequired": null,
+      "junctionBoxCount": null,
+      "disconnectRequired": null,
+      "electricalRoomDescription": "",
+      "pvcConduit4in_ft": null,
+      "pvcConduit3in_ft": null,
+      "pvcConduit1in_ft": null,
+      "wire500mcm_ft": null
+    },
+    "civil": {
+      "installationLocationDescription": "Imported tabular proposal fixture",
+      "trenchDistance_ft": null,
+      "asphaltRemoval_sf": null,
+      "asphaltRestore_sf": null,
+      "encasement_CY": null,
+      "postFoundation_CY": null,
+      "cabinetPad_CY": null,
+      "groundPrepCabinet": null
+    },
+    "permit": {
+      "responsibility": "bullet",
+      "feeAllowance": 0
+    },
+    "designEngineering": {
+      "responsibility": "bullet",
+      "stampedPlansRequired": false
+    },
+    "network": {
+      "type": "none",
+      "wifiInstallResponsibility": "na"
+    },
+    "accessories": {
+      "bollardQty": 0,
+      "signQty": 0,
+      "wheelStopQty": 0,
+      "stripingRequired": false,
+      "padRequired": false,
+      "debrisRemoval": false
+    },
+    "makeReady": {
+      "responsibility": "bullet"
+    },
+    "chargerInstall": {
+      "responsibility": "bullet"
+    },
+    "purchasingChargers": {
+      "responsibility": "bullet"
+    },
+    "signageBollards": {
+      "responsibility": "signage"
+    },
+    "estimateControls": {
+      "pricingTier": "msrp",
+      "taxRate": 0,
+      "contingencyPercent": 0,
+      "markupPercent": 0
+    },
+    "notes": "",
+    "mapWorkspace": {
+      "conduitDistance_ft": null,
+      "feederDistance_ft": null,
+      "trenchingDistance_ft": null,
+      "boringDistance_ft": null,
+      "concreteCuttingDistance_ft": null,
+      "chargerCountFromMap": null,
+      "siteCoordinates": null,
+      "pvcConduitDistance_ft": null,
+      "cableTrayDistance_ft": null,
+      "concretePadCount": null,
+      "hasPanelPlaced": null,
+      "lightingCount": null,
+      "drawings": null
+    },
+    "rawLineItems": [
+      {
+        "description": "Install Striping-Per stall",
+        "quantity": 2,
+        "unit": "EA",
+        "unitPrice": 220,
+        "amount": 440,
+        "category": "EQUIPMENT"
+      },
+      {
+        "description": "Install Signage and Stencils",
+        "quantity": 2,
+        "unit": "EA",
+        "unitPrice": 400,
+        "amount": 800,
+        "category": "EQUIPMENT"
+      },
+      {
+        "description": "Furnish and Install Rubber Wheelstops",
+        "quantity": 2,
+        "unit": "EA",
+        "unitPrice": 275,
+        "amount": 550,
+        "category": "EQUIPMENT"
+      }
+    ]
+  },
+  "expectedLineItems": [
+    {
+      "category": "EQUIPMENT",
+      "description": "Install Striping-Per stall",
+      "qty": 2,
+      "unitPrice": 220,
+      "amount": 440
+    },
+    {
+      "category": "EQUIPMENT",
+      "description": "Install Signage and Stencils",
+      "qty": 2,
+      "unitPrice": 400,
+      "amount": 800
+    },
+    {
+      "category": "EQUIPMENT",
+      "description": "Furnish and Install Rubber Wheelstops",
+      "qty": 2,
+      "unitPrice": 275,
+      "amount": 550
+    }
+  ]
+}

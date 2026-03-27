@@ -3,11 +3,13 @@ import type {
   EstimateLineItem,
   EstimateOutput,
   ManualReviewTrigger,
+  PriceValidationIssue,
 } from './types';
 import { runAllRules } from './rules';
 import { mapWorkspaceRules } from './map-rules';
 import { selectExclusions } from './exclusions';
 import { buildLineItemsFromSowImport, sowImportInfoReview } from './sow-import';
+import { validateAndCalibratePrices } from './price-validation';
 
 // ============================================================
 // Input Completeness Scoring
@@ -108,6 +110,7 @@ export function generateEstimate(input: EstimateInput): EstimateOutput {
 
   let items: EstimateLineItem[];
   let reviews: ManualReviewTrigger[];
+  let priceValidation: PriceValidationIssue[] = [];
 
   if (useSowImport) {
     items = buildLineItemsFromSowImport(input.rawLineItems!);
@@ -119,6 +122,14 @@ export function generateEstimate(input: EstimateInput): EstimateOutput {
     const mapResult = mapWorkspaceRules(input);
     items.push(...mapResult.items);
     reviews.push(...mapResult.reviews);
+
+    // Observed-range validation + median calibration when outside real proposal stats (pricebook-v2)
+    const calibrated = validateAndCalibratePrices(items, {
+      // D1: always record out-of-range flags. D2 median swap is opt-in — it can skew totals vs. catalog rules.
+      applyMedianWhenOutOfRange: false,
+    });
+    items = calibrated.items;
+    priceValidation = calibrated.issues;
   }
 
   // 2. Select exclusions
@@ -198,6 +209,7 @@ export function generateEstimate(input: EstimateInput): EstimateOutput {
       automationConfidence: useSowImport ? 'medium' : confidence,
       requiresManualReview:
         useSowImport || reviews.some((r) => r.severity === 'critical' || r.severity === 'warning'),
+      ...(priceValidation.length > 0 ? { priceValidation } : {}),
     },
   };
 }

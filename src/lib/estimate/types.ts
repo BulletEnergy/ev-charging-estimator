@@ -122,6 +122,8 @@ export interface EstimateInput {
   };
   civil: {
     installationLocationDescription: string;
+    /** Open trench LF (often shorter than full conduit run to panel); SOW / site walk */
+    trenchDistance_ft?: number | null;
     /** From tabular SOW / site walk */
     asphaltRemoval_sf?: number | null;
     asphaltRestore_sf?: number | null;
@@ -283,6 +285,19 @@ export interface ManualReviewTrigger {
   message: string;
 }
 
+/** Observed price range check from pricebook-v2.json (real proposals). */
+export interface PriceValidationIssue {
+  lineItemId: string;
+  description: string;
+  unitPrice: number;
+  observedMin: number;
+  observedMax: number;
+  observedMedian: number;
+  status: 'in_range' | 'below_observed' | 'above_observed';
+  /** True when unit price was adjusted to observed median (D2 calibration). */
+  adjustedToMedian?: boolean;
+}
+
 export interface EstimateOutput {
   input: EstimateInput;
   lineItems: EstimateLineItem[];
@@ -306,5 +321,7 @@ export interface EstimateOutput {
     inputCompleteness: number;
     automationConfidence: 'high' | 'medium' | 'low';
     requiresManualReview: boolean;
+    /** Per-line checks against observed proposal price ranges (non-sow_import). */
+    priceValidation?: PriceValidationIssue[];
   };
 }

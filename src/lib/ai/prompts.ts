@@ -12,7 +12,7 @@ The EstimateInput has these sections:
 - parkingEnvironment: { type (surface_lot|parking_garage|mixed), hasPTSlab, slabScanRequired, coringRequired, surfaceType (asphalt|concrete|gravel|other), trenchingRequired, boringRequired, trafficControlRequired, indoorOutdoor (indoor|outdoor|both), fireRatedPenetrations, accessRestrictions }
 - charger: { brand, model, count, pedestalCount, portType (single|dual|mix), mountType (pedestal|wall|mix|other), isCustomerSupplied, chargingLevel (l2|l3_dcfc), ampsPerCharger, volts }
 - electrical: { serviceType (120v|208v|240v|480v_3phase|unknown), availableCapacityKnown, availableAmps, breakerSpaceAvailable, panelUpgradeRequired, transformerRequired, switchgearRequired, distanceToPanel_ft, utilityCoordinationRequired, meterRoomRequired, electricalRoomDescription, pvcConduit4in_ft, pvcConduit3in_ft, pvcConduit1in_ft, wire500mcm_ft }
-- civil: { installationLocationDescription, asphaltRemoval_sf, asphaltRestore_sf, encasement_CY, postFoundation_CY, cabinetPad_CY, groundPrepCabinet }
+- civil: { installationLocationDescription, trenchDistance_ft (open trench LF if different from full conduit run), asphaltRemoval_sf, asphaltRestore_sf, encasement_CY, postFoundation_CY, cabinetPad_CY, groundPrepCabinet }
 - permit: { responsibility (bullet|client|tbd) }
 - designEngineering: { responsibility (bullet|client|tbd), stampedPlansRequired }
 - network: { type (none|customer_lan|wifi_bridge|cellular_router|included_in_package), wifiInstallResponsibility }
@@ -31,6 +31,7 @@ Narrative / non-tabular scope extraction (no dollar amounts in output):
 - If switchgear, EV Lite switchgear, or line items mention switchgear, set electrical.switchgearRequired to true.
 - If meter pad, meter housing, or submeter appears, set electrical.meterRoomRequired to true when scope implies our work on meter infrastructure.
 - Infer electrical.distanceToPanel_ft from the longest single conduit or wire run in LF when clearly stated (e.g. "500 LF 4\\" conduit" → 500).
+- If trenching LF is stated separately from the conduit run (e.g. "5 LF trench" vs "30 LF conduit"), set civil.trenchDistance_ft to the open-trench length only.
 - If asphalt removal/restoration appears, set parkingEnvironment.surfaceType to "asphalt" and parkingEnvironment.type to "surface_lot" unless garage is stated.
 `;
 

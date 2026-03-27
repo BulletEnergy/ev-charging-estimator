@@ -241,7 +241,7 @@ export const PRICEBOOK: readonly PricebookItem[] = [
     id: 'civil-concrete-pad',
     category: 'CIVIL',
     description: 'Install 3000 Psi Concrete Pads',
-    catalogPrice: 650,
+    catalogPrice: 600,
     unit: 'EA',
     notes: 'per pedestal location; second visit; minimum order 2',
     status: 'priced',

@@ -218,6 +218,7 @@ export const DESCRIPTION_ALIASES: ReadonlyArray<{
   {
     patterns: [
       'furnish and install rubber wheelstops',
+      'furnish install rubber wheelstops',
     ],
     canonical: 'wheelstops',
   },

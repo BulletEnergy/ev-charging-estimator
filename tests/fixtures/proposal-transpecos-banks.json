@@ -63,7 +63,8 @@
       "electricalRoomDescription": ""
     },
     "civil": {
-      "installationLocationDescription": "Bank parking lot, concrete surface, pedestals with concrete pads"
+      "installationLocationDescription": "Bank parking lot, concrete surface, pedestals with concrete pads",
+      "trenchDistance_ft": 65
     },
     "permit": {
       "responsibility": "bullet",
