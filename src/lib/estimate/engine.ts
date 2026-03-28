@@ -1,6 +1,15 @@
-import { EstimateInput, EstimateOutput } from './types';
+import type {
+  EstimateInput,
+  EstimateLineItem,
+  EstimateOutput,
+  ManualReviewTrigger,
+  PriceValidationIssue,
+} from './types';
 import { runAllRules } from './rules';
+import { mapWorkspaceRules } from './map-rules';
 import { selectExclusions } from './exclusions';
+import { buildLineItemsFromSowImport, sowImportInfoReview } from './sow-import';
+import { validateAndCalibratePrices } from './price-validation';
 
 // ============================================================
 // Input Completeness Scoring
@@ -12,7 +21,7 @@ function scoreInputCompleteness(input: EstimateInput): number {
 
   const check = (value: unknown, weight: number = 1): void => {
     total += weight;
-    if (value !== null && value !== undefined && value !== '' && value !== 'unknown') {
+    if (value !== null && value !== undefined && value !== '' && value !== 'unknown' && value !== 0) {
       filled += weight;
     }
   };
@@ -75,7 +84,7 @@ function scoreInputCompleteness(input: EstimateInput): number {
     check(input.parkingEnvironment.fireRatedPenetrations);
   }
 
-  return Math.round((filled / total) * 100);
+  return total === 0 ? 0 : Math.round((filled / total) * 100);
 }
 
 // ============================================================
@@ -95,29 +104,45 @@ function determineConfidence(
 // Main Engine
 // ============================================================
 
-export function generateEstimate(input: EstimateInput): EstimateOutput {
-  // 1. Run all rules
-  const { items, reviews } = runAllRules(input);
-  const appliedFieldSources = input.site.mapPlan?.appliedFields ?? {};
-  const lineItems = items.map((item) => {
-    const matchedMapFields = item.sourceInputs
-      .map((path) => appliedFieldSources[path])
-      .filter(Boolean);
+function safeNum(value: unknown): number {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
 
-    if (matchedMapFields.length === 0) {
-      return item;
+export function generateEstimate(input: EstimateInput): EstimateOutput {
+  if (!input || typeof input !== 'object') {
+    throw new Error('generateEstimate: invalid input');
+  }
+
+  const useSowImport =
+    Array.isArray(input.rawLineItems) && input.rawLineItems.length > 0;
+
+  let items: EstimateLineItem[];
+  let reviews: ManualReviewTrigger[];
+  let priceValidation: PriceValidationIssue[] = [];
+
+  if (useSowImport) {
+    items = buildLineItemsFromSowImport(input.rawLineItems!);
+    reviews = [sowImportInfoReview()];
+  } else {
+    const rulesResult = runAllRules(input);
+    items = rulesResult.items;
+    reviews = rulesResult.reviews;
+
+    if (input.charger?.count > 0) {
+      const mapResult = mapWorkspaceRules(input);
+      items.push(...mapResult.items);
+      reviews.push(...mapResult.reviews);
     }
 
-    return {
-      ...item,
-      derivedFromMap: true,
-      mapFeatureTypes: Array.from(
-        new Set(
-          matchedMapFields.flatMap((field) => field.featureTypes),
-        ),
-      ),
-    };
-  });
+    // Observed-range validation + median calibration when outside real proposal stats (pricebook-v2)
+    const calibrated = validateAndCalibratePrices(items, {
+      // D1: always record out-of-range flags. D2 median swap is opt-in — it can skew totals vs. catalog rules.
+      applyMedianWhenOutOfRange: false,
+    });
+    items = calibrated.items;
+    priceValidation = calibrated.issues;
+  }
 
   // 2. Select exclusions
   const exclusions = selectExclusions(input);
@@ -126,18 +151,20 @@ export function generateEstimate(input: EstimateInput): EstimateOutput {
   const hardwareCategories = new Set(['CHARGER', 'PEDESTAL']);
   const installCategories = new Set([
     'CIVIL',
-    'ELEC_LBR',
-    'ELEC_MAT',
-    'SITE_WORK',
+    'ELEC',
+    'ELEC LBR',
+    'ELEC LBR MAT',
+    'ELEC MAT',
+    'SITE WORK',
     'SAFETY',
   ]);
   const permitDesignCategories = new Set(['PERMIT', 'DES/ENG']);
   const networkCategories = new Set(['NETWORK']);
-  const accessoryCategories = new Set(['MATERIAL']);
+  const accessoryCategories = new Set(['MATERIAL', 'MISC']);
   const serviceCategories = new Set(['SERVICE_FEE', 'SOFTWARE']);
 
   const sumByGroup = (cats: Set<string>): number =>
-    lineItems
+    items
       .filter((li) => cats.has(li.category))
       .reduce((sum, li) => sum + li.extendedPrice, 0);
 
@@ -156,14 +183,29 @@ export function generateEstimate(input: EstimateInput): EstimateOutput {
     accessoriesTotal +
     serviceTotal;
 
-  // Apply markup
-  const markedUpSubtotal =
-    subtotal * (1 + input.estimateControls.markupPercent / 100);
+  // Apply markup (NaN-safe — defensive against malformed estimateControls)
+  const markupPct = safeNum(input.estimateControls?.markupPercent);
+  const taxPct = safeNum(input.estimateControls?.taxRate);
+  const contingencyPct = safeNum(input.estimateControls?.contingencyPercent);
 
-  const tax = markedUpSubtotal * (input.estimateControls.taxRate / 100);
-  const contingency =
-    markedUpSubtotal * (input.estimateControls.contingencyPercent / 100);
+  const markedUpSubtotal = subtotal * (1 + markupPct / 100);
+  const tax = markedUpSubtotal * (taxPct / 100);
+  const contingency = markedUpSubtotal * (contingencyPct / 100);
   const total = markedUpSubtotal + tax + contingency;
+
+  // Warn about zero-priced items that should have real pricing
+  const zeroPriceItems = items.filter(
+    (li) => li.unitPrice === 0 && li.pricingSource !== 'catalog' && li.quantity > 0,
+  );
+  if (zeroPriceItems.length > 0) {
+    reviews.push({
+      id: `MR-ZERO-PRICE`,
+      field: 'lineItems',
+      condition: 'Items with $0 pricing',
+      severity: 'warning',
+      message: `${zeroPriceItems.length} line item(s) have $0 pricing and are not included in the total: ${zeroPriceItems.map((li) => li.description).join(', ')}`,
+    });
+  }
 
   // 4. Metadata
   const completeness = scoreInputCompleteness(input);
@@ -172,11 +214,12 @@ export function generateEstimate(input: EstimateInput): EstimateOutput {
 
   return {
     input,
-    lineItems,
+    lineItems: items,
     exclusions,
     manualReviewTriggers: reviews,
     summary: {
       subtotal: Math.round(markedUpSubtotal * 100) / 100,
+      lineItemTotal: Math.round(subtotal * 100) / 100,
       tax: Math.round(tax * 100) / 100,
       contingency: Math.round(contingency * 100) / 100,
       total: Math.round(total * 100) / 100,
@@ -189,13 +232,12 @@ export function generateEstimate(input: EstimateInput): EstimateOutput {
     },
     metadata: {
       generatedAt: new Date().toISOString(),
-      engineVersion: '0.1.0-prototype',
+      engineVersion: useSowImport ? '0.2.0-sow-import' : '0.1.0-prototype',
       inputCompleteness: completeness,
-      automationConfidence: confidence,
-      requiresManualReview: reviews.some((r) => r.severity === 'critical'),
-      mapAppliedLineItems: lineItems.filter((item) => item.derivedFromMap)
-        .length,
-      mapFeatureCount: input.site.mapPlan?.features.length ?? 0,
+      automationConfidence: useSowImport ? 'medium' : confidence,
+      requiresManualReview:
+        useSowImport || reviews.some((r) => r.severity === 'critical' || r.severity === 'warning'),
+      ...(priceValidation.length > 0 ? { priceValidation } : {}),
     },
   };
 }

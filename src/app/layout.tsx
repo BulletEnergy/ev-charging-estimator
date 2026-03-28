@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "leaflet/dist/leaflet.css";
+import { Providers } from "@/components/Providers";
+import { SiteChat } from "@/components/SiteChat";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,9 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BulletEV Smart Estimate Studio",
-  description:
-    "Map-first EV charging estimate experience with intelligent quote generation, construction planning, and transparent line-item pricing.",
+  title: "BulletEV Estimate Generator",
+  description: "Prototype SOW-to-estimate pipeline for Bullet Energy commercial EV charging installations",
 };
 
 export default function RootLayout({
@@ -25,11 +25,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
+    <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} app-shell antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <Providers>
+          {children}
+          <SiteChat />
+        </Providers>
       </body>
     </html>
   );

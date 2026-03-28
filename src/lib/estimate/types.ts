@@ -1,80 +1,21 @@
 // ============================================================
-// Normalized SOW Input
+// Tabular SOW import (from parse-sow / pasted proposals)
 // ============================================================
 
-export interface MapCoordinate {
-  lat: number;
-  lng: number;
+export interface SOWLineItem {
+  description: string;
+  quantity: number;
+  unit: string;
+  unitPrice: number;
+  amount: number;
+  category?: string;
+  /** Matched pricebook item id when parser could align to catalog */
+  catalogMatch?: string;
 }
 
-export type MapFeatureType =
-  | 'charger'
-  | 'electrical_panel'
-  | 'mechanical_room'
-  | 'bollard'
-  | 'pad'
-  | 'trench'
-  | 'conduit'
-  | 'restricted_zone'
-  | 'parking_zone';
-
-interface SiteMapFeatureBase {
-  id: string;
-  type: MapFeatureType;
-  label: string;
-  notes?: string;
-  createdAt: string;
-}
-
-export interface SiteMapPointFeature extends SiteMapFeatureBase {
-  geometryType: 'Point';
-  coordinates: MapCoordinate;
-}
-
-export interface SiteMapLineFeature extends SiteMapFeatureBase {
-  geometryType: 'LineString';
-  coordinates: MapCoordinate[];
-  lengthFt: number;
-}
-
-export interface SiteMapPolygonFeature extends SiteMapFeatureBase {
-  geometryType: 'Polygon';
-  coordinates: MapCoordinate[];
-  areaSqFt: number;
-}
-
-export type SiteMapFeature =
-  | SiteMapPointFeature
-  | SiteMapLineFeature
-  | SiteMapPolygonFeature;
-
-export interface SiteMapSummary {
-  chargerCount: number;
-  panelCount: number;
-  mechanicalRoomCount: number;
-  bollardCount: number;
-  padCount: number;
-  trenchLengthFt: number;
-  conduitLengthFt: number;
-  restrictedZoneCount: number;
-  parkingZoneCount: number;
-}
-
-export interface MapAppliedField {
-  value: number | string | boolean | null;
-  featureIds: string[];
-  featureTypes: MapFeatureType[];
-  reasoning: string;
-}
-
-export interface SiteMapPlan {
-  center: MapCoordinate | null;
-  zoom: number;
-  features: SiteMapFeature[];
-  summary: SiteMapSummary;
-  appliedFields: Record<string, MapAppliedField>;
-  lastAppliedAt: string | null;
-}
+// ============================================================
+// Normalized SOW Input
+// ============================================================
 
 export interface EstimateInput {
   project: {
@@ -124,8 +65,6 @@ export interface EstimateInput {
       | 'other'
       | null;
     state: string;
-    location?: MapCoordinate | null;
-    mapPlan?: SiteMapPlan | null;
   };
   parkingEnvironment: {
     type: 'surface_lot' | 'parking_garage' | 'mixed' | null;
@@ -168,10 +107,30 @@ export interface EstimateInput {
     switchgearRequired: boolean | null;
     distanceToPanel_ft: number | null;
     utilityCoordinationRequired: boolean | null;
+    /** Map / plan placement of a dedicated meter room / service entrance building */
+    meterRoomRequired: boolean | null;
+    /** Count of pull/junction boxes suggested from map markers */
+    junctionBoxCount: number | null;
+    /** Disconnect switch required (from map placement) */
+    disconnectRequired: boolean | null;
     electricalRoomDescription: string;
+    /** Optional feeder breakdown (tabular SOW / advanced entry) */
+    pvcConduit4in_ft?: number | null;
+    pvcConduit3in_ft?: number | null;
+    pvcConduit1in_ft?: number | null;
+    wire500mcm_ft?: number | null;
   };
   civil: {
     installationLocationDescription: string;
+    /** Open trench LF (often shorter than full conduit run to panel); SOW / site walk */
+    trenchDistance_ft?: number | null;
+    /** From tabular SOW / site walk */
+    asphaltRemoval_sf?: number | null;
+    asphaltRestore_sf?: number | null;
+    encasement_CY?: number | null;
+    postFoundation_CY?: number | null;
+    cabinetPad_CY?: number | null;
+    groundPrepCabinet?: boolean | null;
   };
   permit: {
     responsibility: 'bullet' | 'client' | 'tbd' | null;
@@ -224,6 +183,31 @@ export interface EstimateInput {
     markupPercent: number;
   };
   notes: string;
+  mapWorkspace?: {
+    conduitDistance_ft: number | null;
+    feederDistance_ft: number | null;
+    trenchingDistance_ft: number | null;
+    boringDistance_ft: number | null;
+    concreteCuttingDistance_ft: number | null;
+    chargerCountFromMap: number | null;
+    siteCoordinates: [number, number] | null;
+    /** PVC conduit distance from map */
+    pvcConduitDistance_ft: number | null;
+    /** Cable tray distance from map */
+    cableTrayDistance_ft: number | null;
+    /** Number of concrete pads placed on map */
+    concretePadCount: number | null;
+    /** Whether electrical panel marker was placed on map */
+    hasPanelPlaced: boolean | null;
+    /** Number of lighting fixtures placed on map */
+    lightingCount: number | null;
+    /** Captured Mapbox canvas screenshot for PDF export */
+    mapSnapshotDataUrl?: string;
+    drawings?: {
+      runs: Array<{ id: string; runType: string; geometry: { type: string; coordinates: number[][] }; lengthFt: number; label: string; createdAt?: string }>;
+      equipment: Array<{ id: string; equipmentType: string; geometry: { type: string; coordinates: number[] }; label: string }>;
+    } | null;
+  };
   removeReplace?: {
     existingChargerCount: number | null;
     existingBrand: string | null;
@@ -231,6 +215,8 @@ export interface EstimateInput {
     existingMountStyle: string | null;
     ampsPerCharger: string | null;
   };
+  /** When present (tabular SOW), engine may build line items from pasted pricing */
+  rawLineItems?: SOWLineItem[];
 }
 
 // ============================================================
@@ -242,13 +228,16 @@ export type EstimateCategory =
   | 'PEDESTAL'
   | 'CIVIL'
   | 'DES/ENG'
-  | 'ELEC_LBR'
-  | 'ELEC_MAT'
+  | 'ELEC'
+  | 'ELEC LBR'
+  | 'ELEC LBR MAT'
+  | 'ELEC MAT'
   | 'MATERIAL'
+  | 'MISC'
   | 'NETWORK'
   | 'PERMIT'
   | 'SAFETY'
-  | 'SITE_WORK'
+  | 'SITE WORK'
   | 'SOFTWARE'
   | 'SERVICE_FEE'
   | 'EXCLUSION';
@@ -262,21 +251,22 @@ export interface EstimateLineItem {
   unitPrice: number;
   extendedPrice: number;
   pricingSource:
+    | 'catalog'
     | 'catalog_bulk'
     | 'catalog_msrp'
+    | 'catalog_override'
     | 'calculated'
     | 'allowance'
     | 'manual_override'
     | 'tbd'
-    | 'industry_standard';
+    | 'industry_standard'
+    | 'sow_import';
   ruleName: string;
   ruleReason: string;
   sourceInputs: string[];
   manualReviewRequired: boolean;
   manualReviewReason?: string;
   confidence: 'high' | 'medium' | 'low';
-  derivedFromMap?: boolean;
-  mapFeatureTypes?: MapFeatureType[];
 }
 
 export interface EstimateExclusion {
@@ -295,13 +285,29 @@ export interface ManualReviewTrigger {
   message: string;
 }
 
+/** Observed price range check from pricebook-v2.json (real proposals). */
+export interface PriceValidationIssue {
+  lineItemId: string;
+  description: string;
+  unitPrice: number;
+  observedMin: number;
+  observedMax: number;
+  observedMedian: number;
+  status: 'in_range' | 'below_observed' | 'above_observed';
+  /** True when unit price was adjusted to observed median (D2 calibration). */
+  adjustedToMedian?: boolean;
+}
+
 export interface EstimateOutput {
   input: EstimateInput;
   lineItems: EstimateLineItem[];
   exclusions: EstimateExclusion[];
   manualReviewTriggers: ManualReviewTrigger[];
   summary: {
+    /** Post-markup subtotal (lineItemTotal * (1 + markupPercent/100)) */
     subtotal: number;
+    /** Pre-markup sum of all line item extendedPrice values */
+    lineItemTotal: number;
     tax: number;
     contingency: number;
     total: number;
@@ -318,7 +324,7 @@ export interface EstimateOutput {
     inputCompleteness: number;
     automationConfidence: 'high' | 'medium' | 'low';
     requiresManualReview: boolean;
-    mapAppliedLineItems: number;
-    mapFeatureCount: number;
+    /** Per-line checks against observed proposal price ranges (non-sow_import). */
+    priceValidation?: PriceValidationIssue[];
   };
 }

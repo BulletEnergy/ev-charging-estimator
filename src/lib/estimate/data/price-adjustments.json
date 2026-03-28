@@ -1,0 +1,186 @@
+{
+  "version": "2026-03-25",
+  "description": "Items with pricing variance > 10% across 89 real BulletEV proposals. These items require human review on every estimate.",
+  "adjustments": [
+    {
+      "description": "Misc. Mounting Hardware & BOS (Materials Only)",
+      "category": "EQUIPMENT",
+      "basePrice": 165,
+      "lowPrice": 50,
+      "highPrice": 430,
+      "variancePct": 230.3,
+      "observedCount": 55,
+      "humanReviewReason": "High variance (230.3%) — price depends heavily on site conditions"
+    },
+    {
+      "description": "Installation & Commissioning Of Pedestal-Mounted Charger - Dual Port",
+      "category": "ELECTRICAL",
+      "basePrice": 1850,
+      "lowPrice": 1600,
+      "highPrice": 2300,
+      "variancePct": 37.8,
+      "observedCount": 46,
+      "humanReviewReason": "Moderate variance (37.8%) — verify pricing for this project"
+    },
+    {
+      "description": "Site Visit",
+      "category": "DESIGN/ENGINEERING",
+      "basePrice": 1000,
+      "lowPrice": 350,
+      "highPrice": 1200,
+      "variancePct": 85,
+      "observedCount": 30,
+      "humanReviewReason": "High variance (85%) — price depends heavily on site conditions"
+    },
+    {
+      "description": "Utility Mark-out",
+      "category": "TRENCHING",
+      "basePrice": 2000,
+      "lowPrice": 600,
+      "highPrice": 2000,
+      "variancePct": 70,
+      "observedCount": 22,
+      "humanReviewReason": "High variance (70%) — price depends heavily on site conditions"
+    },
+    {
+      "description": "Removal And Disposal Of Existing Ev Charger",
+      "category": "ELECTRICAL",
+      "basePrice": 400,
+      "lowPrice": 100,
+      "highPrice": 400,
+      "variancePct": 75,
+      "observedCount": 18,
+      "humanReviewReason": "High variance (75%) — price depends heavily on site conditions"
+    },
+    {
+      "description": "Furnish & Install EMT Conduit-Up to 2\" w/ up to #4 Conductors",
+      "category": "ELECTRICAL",
+      "basePrice": 32,
+      "lowPrice": 18,
+      "highPrice": 32,
+      "variancePct": 43.8,
+      "observedCount": 15,
+      "humanReviewReason": "Moderate variance (43.8%) — verify pricing for this project"
+    },
+    {
+      "description": "Concrete Restoration",
+      "category": "CIVIL",
+      "basePrice": 600,
+      "lowPrice": 600,
+      "highPrice": 2300,
+      "variancePct": 283.3,
+      "observedCount": 15,
+      "humanReviewReason": "High variance (283.3%) — price depends heavily on site conditions"
+    },
+    {
+      "description": "Concrete Removal",
+      "category": "CIVIL",
+      "basePrice": 725,
+      "lowPrice": 725,
+      "highPrice": 1570,
+      "variancePct": 116.6,
+      "observedCount": 14,
+      "humanReviewReason": "High variance (116.6%) — price depends heavily on site conditions"
+    },
+    {
+      "description": "Equipment Rental",
+      "category": "EQUIPMENT",
+      "basePrice": 1500,
+      "lowPrice": 1000,
+      "highPrice": 5500,
+      "variancePct": 300,
+      "observedCount": 13,
+      "humanReviewReason": "High variance (300%) — price depends heavily on site conditions"
+    },
+    {
+      "description": "Furnish & Install PVC Schedule 40-Up to 2\" w/ #4 Conductors",
+      "category": "ELECTRICAL",
+      "basePrice": 20,
+      "lowPrice": 20,
+      "highPrice": 32,
+      "variancePct": 60,
+      "observedCount": 12,
+      "humanReviewReason": "High variance (60%) — price depends heavily on site conditions"
+    },
+    {
+      "description": "Installation & Commissioning Of Wall-Mounted Charger - Single Port",
+      "category": "ELECTRICAL",
+      "basePrice": 850,
+      "lowPrice": 800,
+      "highPrice": 1000,
+      "variancePct": 23.5,
+      "observedCount": 11,
+      "humanReviewReason": "Moderate variance (23.5%) — verify pricing for this project"
+    },
+    {
+      "description": "Construction Fence",
+      "category": "OTHER",
+      "basePrice": 13,
+      "lowPrice": 13,
+      "highPrice": 15.56,
+      "variancePct": 19.7,
+      "observedCount": 11,
+      "humanReviewReason": "Moderate variance (19.7%) — verify pricing for this project"
+    },
+    {
+      "description": "Install Striping-Per stall",
+      "category": "EQUIPMENT",
+      "basePrice": 220,
+      "lowPrice": 220,
+      "highPrice": 375,
+      "variancePct": 70.5,
+      "observedCount": 9,
+      "humanReviewReason": "High variance (70.5%) — price depends heavily on site conditions"
+    },
+    {
+      "description": "Installation & Commissioning Of Pedestal-Mounted Charger - Single Port",
+      "category": "ELECTRICAL",
+      "basePrice": 975,
+      "lowPrice": 850,
+      "highPrice": 1400,
+      "variancePct": 56.4,
+      "observedCount": 8,
+      "humanReviewReason": "High variance (56.4%) — price depends heavily on site conditions"
+    },
+    {
+      "description": "Install Owner Provided Wi-Fi Equipment",
+      "category": "OTHER",
+      "basePrice": 450,
+      "lowPrice": 350,
+      "highPrice": 450,
+      "variancePct": 22.2,
+      "observedCount": 5,
+      "humanReviewReason": "Moderate variance (22.2%) — verify pricing for this project"
+    },
+    {
+      "description": "Furnish & Install 3\" Conduit (PVC Schedule 40)",
+      "category": "ELECTRICAL",
+      "basePrice": 20,
+      "lowPrice": 15,
+      "highPrice": 20,
+      "variancePct": 25,
+      "observedCount": 4,
+      "humanReviewReason": "Moderate variance (25%) — verify pricing for this project"
+    },
+    {
+      "description": "Ground Prep for Utility Provided Transformer Pad",
+      "category": "EQUIPMENT PADS",
+      "basePrice": 1800,
+      "lowPrice": 1500,
+      "highPrice": 1800,
+      "variancePct": 16.7,
+      "observedCount": 3,
+      "humanReviewReason": "Moderate variance (16.7%) — verify pricing for this project"
+    },
+    {
+      "description": "Furnish & Install 1\" EMT Conduit",
+      "category": "ELECTRICAL",
+      "basePrice": 20,
+      "lowPrice": 12,
+      "highPrice": 20,
+      "variancePct": 40,
+      "observedCount": 3,
+      "humanReviewReason": "Moderate variance (40%) — verify pricing for this project"
+    }
+  ]
+}

@@ -1,1940 +1,800 @@
 'use client';
 
-import { Suspense, useCallback, useMemo, useState } from 'react';
-import dynamic from 'next/dynamic';
+import { Suspense, useState, useCallback, useEffect, useMemo, useRef, type KeyboardEvent } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import {
-  ArrowRight,
-  Check,
-  FileText,
-  Layers3,
-  MapPinned,
-  Sparkles,
-} from 'lucide-react';
-import {
-  EstimateInput,
-  EstimateLineItem,
-  EstimateOutput,
-  ManualReviewTrigger,
-  SiteMapPlan,
-} from '@/lib/estimate/types';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { EstimateInput, EstimateOutput, EstimateLineItem, ManualReviewTrigger } from '@/lib/estimate/types';
 import { generateEstimate } from '@/lib/estimate/engine';
+import { exportEstimatePDF, exportEstimatePDFWithPreviews } from '@/lib/estimate/export-pdf';
+import { buildPreviewAssetsFromOutput } from '@/lib/map/static-preview-urls';
 import { SCENARIOS } from '@/lib/estimate/scenarios';
+import { useViewMode } from '@/lib/viewMode';
+import { useEstimate } from '@/contexts/EstimateContext';
+import { MAP_WORKSPACE_ENABLED } from '@/lib/map/feature-flags';
+import { ViewModeToggle } from '@/components/ViewModeToggle';
+import { SOWParser } from '@/components/advanced/SOWParser';
+import { ChatBuilder } from '@/components/advanced/ChatBuilder';
+import { AIReviewer } from '@/components/advanced/AIReviewer';
+import { PhotoAnalysis } from '@/components/advanced/PhotoAnalysis';
 import {
-  applyMapPlanToInput,
-  clearMapAppliedField,
-  createEmptySiteMapPlan,
-} from '@/lib/estimate/map-plan';
-
-const SitePlanner = dynamic(
-  () =>
-    import('@/components/estimate/site-planner').then((module) => ({
-      default: module.SitePlanner,
-    })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex min-h-[520px] items-center justify-center rounded-[var(--radius-lg)] border border-white/15 bg-white/70 text-sm text-slate-500 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur-xl">
-        Loading interactive map planner...
-      </div>
-    ),
-  },
-);
-
-type TabName =
-  | 'Map & Layout'
-  | 'Project'
-  | 'Customer'
-  | 'Site'
-  | 'Parking & Civil'
-  | 'Charger'
-  | 'Electrical'
-  | 'Permits & Network'
-  | 'Accessories & Scope'
-  | 'Pricing & Notes';
-
-const TABS: Array<{
-  name: TabName;
-  title: string;
-  description: string;
-}> = [
-  {
-    name: 'Map & Layout',
-    title: 'Map & Layout',
-    description: 'Start visually or add the map later in the flow.',
-  },
-  {
-    name: 'Project',
-    title: 'Project',
-    description: 'Define the job type, owner, and timing.',
-  },
-  {
-    name: 'Customer',
-    title: 'Customer',
-    description: 'Capture the client contact and billing context.',
-  },
-  {
-    name: 'Site',
-    title: 'Site',
-    description: 'Anchor the address and high-level location details.',
-  },
-  {
-    name: 'Parking & Civil',
-    title: 'Parking & Civil',
-    description: 'Describe the parking environment and construction needs.',
-  },
-  {
-    name: 'Charger',
-    title: 'Charger',
-    description: 'Set hardware, quantities, ports, and mount strategy.',
-  },
-  {
-    name: 'Electrical',
-    title: 'Electrical',
-    description: 'Capture service, panel, utility, and room details.',
-  },
-  {
-    name: 'Permits & Network',
-    title: 'Permits & Network',
-    description: 'Cover permits, engineering, and charger connectivity.',
-  },
-  {
-    name: 'Accessories & Scope',
-    title: 'Accessories & Scope',
-    description: 'Set bollards, signage, pads, and responsibility split.',
-  },
-  {
-    name: 'Pricing & Notes',
-    title: 'Pricing & Notes',
-    description: 'Tune pricing controls and add final context.',
-  },
-];
-
-function emptyInput(): EstimateInput {
-  return {
-    project: {
-      name: '',
-      salesRep: '',
-      projectType: 'full_turnkey',
-      timeline: '',
-      isNewConstruction: null,
-    },
-    customer: {
-      companyName: '',
-      contactName: '',
-      contactEmail: '',
-      contactPhone: '',
-      billingAddress: '',
-    },
-    site: {
-      address: '',
-      siteType: null,
-      state: '',
-      location: null,
-      mapPlan: createEmptySiteMapPlan(),
-    },
-    parkingEnvironment: {
-      type: null,
-      hasPTSlab: null,
-      slabScanRequired: null,
-      coringRequired: null,
-      surfaceType: null,
-      trenchingRequired: null,
-      boringRequired: null,
-      trafficControlRequired: null,
-      indoorOutdoor: null,
-      fireRatedPenetrations: null,
-      accessRestrictions: '',
-    },
-    charger: {
-      brand: '',
-      model: '',
-      count: 0,
-      pedestalCount: 0,
-      portType: null,
-      mountType: null,
-      isCustomerSupplied: false,
-      chargingLevel: null,
-      ampsPerCharger: null,
-      volts: null,
-    },
-    electrical: {
-      serviceType: null,
-      availableCapacityKnown: false,
-      availableAmps: null,
-      breakerSpaceAvailable: null,
-      panelUpgradeRequired: null,
-      transformerRequired: null,
-      switchgearRequired: null,
-      distanceToPanel_ft: null,
-      utilityCoordinationRequired: null,
-      electricalRoomDescription: '',
-    },
-    civil: { installationLocationDescription: '' },
-    permit: { responsibility: null, feeAllowance: null },
-    designEngineering: { responsibility: null, stampedPlansRequired: null },
-    network: { type: null, wifiInstallResponsibility: null },
-    accessories: {
-      bollardQty: 0,
-      signQty: 0,
-      wheelStopQty: 0,
-      stripingRequired: false,
-      padRequired: false,
-      debrisRemoval: false,
-    },
-    makeReady: { responsibility: null },
-    chargerInstall: { responsibility: null },
-    purchasingChargers: { responsibility: null },
-    signageBollards: { responsibility: null },
-    estimateControls: {
-      pricingTier: 'msrp',
-      taxRate: 7.0,
-      contingencyPercent: 10,
-      markupPercent: 20,
-    },
-    notes: '',
-  };
+  ProjectSection, CustomerSection, SiteSection, ParkingSection,
+  ChargerSection, ElectricalSection, CivilSection, PermitSection,
+  NetworkSection, AccessoriesSection, ResponsibilitiesSection, PricingSection,
+} from '@/components/estimate/sections';
+import { useAutoEstimate } from '@/hooks/useAutoEstimate';
+import { LiveEstimateSummary } from '@/components/estimate/LiveEstimateSummary';
+import { OnboardingWizard } from '@/components/estimate/OnboardingWizard';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { getFlowAdvice, SECTION_TIPS } from '@/lib/estimate/flow-advisor';
+import type { TabName as FlowTabName } from '@/lib/estimate/flow-advisor';
+function fmt(n: number): string {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 }
 
-function fmt(value: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(value);
-}
+const TAB_META: Record<string, { icon: string; description: string; required: string[] }> = {
+  'Project': { icon: '1', description: 'Basic project info and type of work', required: ['project.name', 'project.projectType'] },
+  'Customer': { icon: '2', description: 'Client contact and billing details', required: ['customer.companyName'] },
+  'Site': { icon: '3', description: 'Physical location and site classification', required: ['site.address', 'site.state'] },
+  'Parking': { icon: '4', description: 'Parking lot conditions and access requirements', required: [] },
+  'Charger': { icon: '5', description: 'EV charger specs — brand, model, quantity, power', required: ['charger.brand', 'charger.count', 'charger.chargingLevel'] },
+  'Electrical': { icon: '6', description: 'Existing electrical infrastructure and upgrade needs', required: [] },
+  'Civil': { icon: '7', description: 'Site work and trenching details', required: [] },
+  'Permit/Design': { icon: '8', description: 'Permitting responsibilities and engineering plans', required: [] },
+  'Network': { icon: '9', description: 'Connectivity for charger management', required: [] },
+  'Accessories': { icon: '10', description: 'Bollards, signs, striping, pads', required: [] },
+  'Responsibilities': { icon: '11', description: 'Who handles what — Bullet vs Client', required: [] },
+  'Controls': { icon: '12', description: 'Pricing tier, tax rate, markup, contingency', required: [] },
+};
 
-function setByPath(input: EstimateInput, path: string, value: unknown): void {
-  const segments = path.split('.');
-  let cursor = input as unknown as Record<string, unknown>;
+const TABS = Object.keys(TAB_META) as (keyof typeof TAB_META)[];
+type TabName = (typeof TABS)[number];
 
-  for (let index = 0; index < segments.length - 1; index += 1) {
-    cursor = cursor[segments[index]] as Record<string, unknown>;
+function getFieldValue(input: EstimateInput, path: string): unknown {
+  const parts = path.split('.');
+  let obj: unknown = input;
+  for (const part of parts) {
+    if (obj === null || obj === undefined || typeof obj !== 'object') return undefined;
+    obj = (obj as Record<string, unknown>)[part];
   }
-
-  cursor[segments[segments.length - 1]] = value;
+  return obj;
 }
 
-function normalizeScenarioInput(input: EstimateInput): EstimateInput {
-  return {
-    ...structuredClone(input),
-    site: {
-      ...structuredClone(input.site),
-      location: input.site.location ?? null,
-      mapPlan: input.site.mapPlan ?? createEmptySiteMapPlan(),
-    },
-  };
+function isFieldFilled(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+  if (typeof value === 'string') return value.trim().length > 0;
+  if (typeof value === 'number') return value > 0;
+  return true;
 }
 
-function getStateCode(value: string): string {
-  if (!value) return '';
-  if (value.length <= 2) return value.toUpperCase();
-
-  const stateMap: Record<string, string> = {
-    alabama: 'AL',
-    alaska: 'AK',
-    arizona: 'AZ',
-    arkansas: 'AR',
-    california: 'CA',
-    colorado: 'CO',
-    connecticut: 'CT',
-    delaware: 'DE',
-    florida: 'FL',
-    georgia: 'GA',
-    illinois: 'IL',
-    indiana: 'IN',
-    kentucky: 'KY',
-    louisiana: 'LA',
-    maryland: 'MD',
-    massachusetts: 'MA',
-    michigan: 'MI',
-    mississippi: 'MS',
-    missouri: 'MO',
-    new_jersey: 'NJ',
-    new_york: 'NY',
-    north_carolina: 'NC',
-    ohio: 'OH',
-    pennsylvania: 'PA',
-    south_carolina: 'SC',
-    tennessee: 'TN',
-    texas: 'TX',
-    virginia: 'VA',
-    washington: 'WA',
+function getTabStatus(tab: string, input: EstimateInput): 'empty' | 'partial' | 'complete' {
+  const meta = TAB_META[tab];
+  if (!meta) return 'empty';
+  const sectionMap: Record<string, string> = {
+    'Project': 'project', 'Customer': 'customer', 'Site': 'site',
+    'Parking': 'parkingEnvironment', 'Charger': 'charger', 'Electrical': 'electrical',
+    'Civil': 'civil', 'Permit/Design': 'permit', 'Network': 'network',
+    'Accessories': 'accessories', 'Responsibilities': 'makeReady', 'Controls': 'estimateControls',
   };
+  const section = sectionMap[tab];
+  const sectionData = section ? (input as unknown as Record<string, unknown>)[section] : null;
+  let filledCount = 0;
+  let totalCount = 0;
+  if (sectionData && typeof sectionData === 'object') {
+    for (const val of Object.values(sectionData as Record<string, unknown>)) {
+      totalCount++;
+      if (isFieldFilled(val)) filledCount++;
+    }
+  }
+  const requiredFilled = meta.required.length === 0 || meta.required.every(
+    (path) => isFieldFilled(getFieldValue(input, path))
+  );
+  if (requiredFilled && filledCount > 0 && filledCount >= totalCount * 0.5) return 'complete';
+  if (filledCount > 0) return 'partial';
+  return 'empty';
+}
 
-  return stateMap[value.toLowerCase().replace(/\s+/g, '_')] ?? '';
+function getOverallProgress(input: EstimateInput): number {
+  const allRequired = Object.values(TAB_META).flatMap((m) => m.required);
+  if (allRequired.length === 0) return 100;
+  const filled = allRequired.filter((f) => isFieldFilled(getFieldValue(input, f))).length;
+  return Math.round((filled / allRequired.length) * 100);
+}
+
+const SECTION_MAP: Record<string, React.ComponentType> = {
+  'Project': ProjectSection, 'Customer': CustomerSection, 'Site': SiteSection,
+  'Parking': ParkingSection, 'Charger': ChargerSection, 'Electrical': ElectricalSection,
+  'Civil': CivilSection, 'Permit/Design': PermitSection, 'Network': NetworkSection,
+  'Accessories': AccessoriesSection, 'Responsibilities': ResponsibilitiesSection,
+  'Controls': PricingSection,
+};
+
+function SectionRenderer({ tab }: { tab: string }) {
+  const Component = SECTION_MAP[tab];
+  if (!Component) return null;
+  return <Component />;
+}
+
+const QUICK_TABS: TabName[] = ['Project', 'Site', 'Charger', 'Controls'];
+
+/** Reads `?tab=` and `?quick=` from the URL (client navigations). Wrapped separately so the page can use Suspense per Next.js. */
+function TabSyncFromUrl({ setActiveTab, setQuickMode }: { setActiveTab: (t: TabName) => void; setQuickMode: (v: boolean) => void }) {
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && TABS.includes(tabParam as TabName)) {
+      setActiveTab(tabParam as TabName);
+    }
+    if (searchParams.get('quick') === 'true') {
+      setQuickMode(true);
+    }
+  }, [searchParams, setActiveTab, setQuickMode]);
+  return null;
 }
 
 export default function EstimatePage() {
-  return (
-    <Suspense
-      fallback={
-        <main className="min-h-screen text-slate-900">
-          <div className="page-section mx-auto max-w-7xl px-5 pb-16 pt-6 sm:px-6 lg:px-8">
-            <div className="lg-panel-heavy rounded-[var(--radius-lg)] p-8 text-center text-slate-600">
-              Loading estimate workspace...
-            </div>
-          </div>
-        </main>
-      }
-    >
-      <EstimatePageClient />
-    </Suspense>
-  );
-}
-
-function EstimatePageClient() {
-  const searchParams = useSearchParams();
-  const requestedMode = searchParams.get('start') === 'map' ? 'map' : 'form';
-  const requestedScenarioId = searchParams.get('scenario');
-  const requestedScenario = requestedScenarioId
-    ? SCENARIOS.find((scenario) => scenario.id === requestedScenarioId)
-    : null;
-
-  const [input, setInput] = useState<EstimateInput>(() =>
-    requestedScenario ? normalizeScenarioInput(requestedScenario.input) : emptyInput(),
-  );
+  const router = useRouter();
+  const { isAdvanced } = useViewMode();
+  const { input, updateField, applyPatches, setInput, resetEstimate, lastSavedAt } = useEstimate();
+  const autoEstimate = useAutoEstimate();
   const [output, setOutput] = useState<EstimateOutput | null>(null);
-  const [activeTab, setActiveTab] = useState<TabName>(() =>
-    requestedMode === 'map' ? 'Map & Layout' : 'Project',
-  );
+  const [shareStatus, setShareStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+  const [activeTab, setActiveTab] = useState<TabName>('Project');
   const [expandedLines, setExpandedLines] = useState<Set<string>>(new Set());
-  const [experienceMode, setExperienceMode] = useState<'map' | 'form'>(
-    requestedMode,
-  );
+  const [inputMode, setInputMode] = useState<'form' | 'chat'>('form');
+  const [aiStatus, setAiStatus] = useState<{ openai: boolean; gemini: boolean } | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [quickMode, setQuickMode] = useState(false);
+
+  // When quickMode activates, skip onboarding and constrain visible tabs
+  useEffect(() => {
+    if (quickMode) {
+      setShowOnboarding(false);
+    }
+  }, [quickMode]);
+
+  const visibleTabs = useMemo(() => quickMode ? QUICK_TABS : TABS, [quickMode]);
+
+  const isEstimateEmpty = useMemo(() => {
+    return !input.project.name && !input.customer.companyName && !input.site.address && input.charger.count === 0;
+  }, [input.project.name, input.customer.companyName, input.site.address, input.charger.count]);
+
+  const handleEntrySelect = useCallback((entry: 'sow' | 'chat' | 'map' | 'form') => {
+    setShowOnboarding(false);
+    if (entry === 'chat') setInputMode('chat');
+    else if (entry === 'map') router.push('/estimate/map');
+  }, [router]);
+
+  useEffect(() => {
+    if (!isAdvanced) return;
+    fetch('/api/ai/status')
+      .then((r) => r.json())
+      .then((data) => setAiStatus(data))
+      .catch(() => setAiStatus({ openai: false, gemini: false }));
+  }, [isAdvanced]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const scenarioId = params.get('scenario');
+    if (scenarioId) {
+      const found = SCENARIOS.find((s) => s.id === scenarioId);
+      if (found) setInput(found.input);
+    }
+  }, [setInput]);
 
   const loadScenario = useCallback((id: string) => {
-    const found = SCENARIOS.find((scenario) => scenario.id === id);
-    if (!found) return;
-
-    setInput(normalizeScenarioInput(found.input));
-    setOutput(null);
-
-    const url = new URL(window.location.href);
-    url.searchParams.set('scenario', id);
-    window.history.replaceState({}, '', url.toString());
-  }, []);
-
-  const updateField = useCallback((path: string, value: unknown) => {
-    setInput((previous) => {
-      const next = structuredClone(previous);
-      setByPath(next, path, value);
-      return clearMapAppliedField(next, path);
-    });
-  }, []);
-
-  const handleMapPlanChange = useCallback((plan: SiteMapPlan) => {
-    setInput((previous) => applyMapPlanToInput(previous, plan));
-  }, []);
-
-  const handleAddressResolved = useCallback(
-    ({
-      address,
-      location,
-      state,
-    }: {
-      address: string;
-      location: { lat: number; lng: number };
-      state: string;
-    }) => {
-      setInput((previous) => {
-        const next = structuredClone(previous);
-        next.site.address = address;
-        next.site.location = location;
-        if (state) {
-          const stateCode = getStateCode(state);
-          next.site.state = stateCode || next.site.state;
-        }
-        return next;
-      });
-    },
-    [],
-  );
+    const found = SCENARIOS.find((s) => s.id === id);
+    if (found) {
+      setInput(found.input);
+      setOutput(null);
+      const url = new URL(window.location.href);
+      url.searchParams.set('scenario', id);
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [setInput]);
 
   const handleGenerate = useCallback(() => {
     setOutput(generateEstimate(input));
   }, [input]);
 
+  const handleShareInteractive = useCallback(async () => {
+    if (!output) return;
+    setShareStatus('loading');
+    try {
+      const res = await fetch('/api/estimate/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ output }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Share failed');
+      const url = `${window.location.origin}${data.url}`;
+      await navigator.clipboard.writeText(url);
+      setShareStatus('done');
+      setTimeout(() => setShareStatus('idle'), 5000);
+    } catch {
+      setShareStatus('error');
+      setTimeout(() => setShareStatus('idle'), 5000);
+    }
+  }, [output]);
+
+  const handleDownloadPdfWithPreviews = useCallback(async () => {
+    if (!output) return;
+    const previews = buildPreviewAssetsFromOutput(output);
+    await exportEstimatePDFWithPreviews(output, previews);
+  }, [output]);
+
   const toggleLine = useCallback((id: string) => {
-    setExpandedLines((previous) => {
-      const next = new Set(previous);
+    setExpandedLines((prev) => {
+      const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
   }, []);
 
-  const mapPlan = input.site.mapPlan ?? createEmptySiteMapPlan();
-  const mapAppliedFields = Object.entries(mapPlan.appliedFields ?? {});
-  const nextTab = useMemo(() => {
-    const currentIndex = TABS.findIndex((tab) => tab.name === activeTab);
-    return TABS[currentIndex + 1]?.name ?? null;
-  }, [activeTab]);
+  const applyFlatFields = useCallback((fields: Record<string, unknown>) => {
+    applyPatches(Object.entries(fields).map(([fieldPath, value]) => ({ fieldPath, value })));
+  }, [applyPatches]);
+
+  const progress = useMemo(() => getOverallProgress(input), [input]);
+  const tabStatuses = useMemo(() => {
+    const result: Record<string, 'empty' | 'partial' | 'complete'> = {};
+    for (const tab of TABS) result[tab] = getTabStatus(tab, input);
+    return result;
+  }, [input]);
+  const flowAdvice = useMemo(() => getFlowAdvice(input), [input]);
+  const [advisorDismissed, setAdvisorDismissed] = useState(false);
+  const prevNextTabRef = useRef(flowAdvice.nextTab);
+  useEffect(() => {
+    if (flowAdvice.nextTab !== prevNextTabRef.current) {
+      setAdvisorDismissed(false);
+      prevNextTabRef.current = flowAdvice.nextTab;
+    }
+  }, [flowAdvice.nextTab]);
+  const currentTabIdx = visibleTabs.indexOf(activeTab);
+
+  const goNext = useCallback(() => {
+    if (currentTabIdx < visibleTabs.length - 1) setActiveTab(visibleTabs[currentTabIdx + 1]);
+  }, [currentTabIdx, visibleTabs]);
+  const goPrev = useCallback(() => {
+    if (currentTabIdx > 0) setActiveTab(visibleTabs[currentTabIdx - 1]);
+  }, [currentTabIdx, visibleTabs]);
+
+  const handleTabKeyDown = useCallback((e: KeyboardEvent<HTMLButtonElement>, tab: TabName) => {
+    const idx = visibleTabs.indexOf(tab);
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      if (idx < visibleTabs.length - 1) setActiveTab(visibleTabs[idx + 1]);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      if (idx > 0) setActiveTab(visibleTabs[idx - 1]);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      setActiveTab(visibleTabs[0]);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      setActiveTab(visibleTabs[visibleTabs.length - 1]);
+    }
+  }, [visibleTabs]);
 
   return (
-    <main className="min-h-screen text-slate-900">
-      <div className="page-section mx-auto max-w-7xl px-5 pb-16 pt-6 sm:px-6 lg:px-8">
-        <header className="lg-panel-dark-heavy hero-canvas lg-ring rounded-[var(--radius-xl)] px-6 py-6 text-white sm:px-8">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl">
-              <div className="lg-eyebrow text-cyan-100/80">
-                <MapPinned className="h-4 w-4" />
-                Guided Estimate Workflow
-              </div>
-              <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
-                Move from map layout to quote output without losing the form
-              </h1>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-slate-200/88">
-                Start from a live map or use the guided form. Either way, the
-                estimator now keeps site planning, construction features, and
-                quote logic connected in one clearer workflow.
-              </p>
-            </div>
+    <main className="relative min-h-screen pb-20">
+      <Suspense fallback={null}>
+        <TabSyncFromUrl setActiveTab={setActiveTab} setQuickMode={setQuickMode} />
+      </Suspense>
+      <div className="ambient-mesh" />
 
-            <div className="grid gap-3 sm:grid-cols-3">
-              {[
-                ['Mode', experienceMode === 'map' ? 'Map-first' : 'Form-first'],
-                ['Map features', String(mapPlan.features.length)],
-                ['Quote fields posted', String(mapAppliedFields.length)],
-              ].map(([label, value]) => (
-                <div
-                  key={label}
-                  className="rounded-[var(--radius-lg)] border border-white/12 bg-white/10 px-4 py-4 backdrop-blur-xl"
-                >
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-300">
-                    {label}
-                  </p>
-                  <p className="mt-2 text-xl font-semibold text-white">{value}</p>
-                </div>
-              ))}
+      <div className="mx-auto max-w-[1200px] px-5 pt-5 sm:px-6" style={{ position: 'relative', zIndex: 1 }}>
+
+        {/* ─── Header ────────────────────────────────────────── */}
+        <header className="hero-canvas lg-ring" style={{ borderRadius: 'var(--radius-xl)', padding: 'clamp(1.25rem, 2.5vw, 2rem) clamp(1.25rem, 2.5vw, 2rem)' }}>
+          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" style={{ zIndex: 1 }}>
+            <div className="text-white">
+              <p className="flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.06em] text-white/50">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                BulletEV Estimate Studio
+              </p>
+              <h1 className="mt-2 text-xl font-bold tracking-[-0.022em] sm:text-2xl lg:text-3xl">
+                <span className="lg-gradient-text">{quickMode ? 'Quick Quote' : 'Guided Estimate'}</span>
+              </h1>
+            </div>
+            <div className="flex flex-shrink-0 items-center gap-2">
+              {MAP_WORKSPACE_ENABLED && (
+                <Link href="/estimate/map" className="lg-pill lg-pill-active px-4 py-2 text-[0.8125rem] font-semibold">
+                  Map Workspace
+                </Link>
+              )}
+              <ViewModeToggle />
+              <Link href="/" className="lg-pill border-white/15 bg-white/10 px-4 py-2 text-[0.8125rem] font-medium text-white">
+                Home
+              </Link>
             </div>
           </div>
         </header>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr] print:block">
-          <section className="space-y-5 print:hidden">
-            <div className="lg-panel-heavy rounded-[var(--radius-lg)] p-5">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <p className="lg-eyebrow">Workflow Sections</p>
-                  <h2 className="mt-2 text-2xl font-semibold text-slate-900">
-                    Pick a section and keep the map in the loop
-                  </h2>
-                </div>
-                {nextTab && (
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab(nextTab)}
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-                  >
-                    Next Section
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
+        {/* ─── Progress Bar ──────────────────────────────────── */}
+        <div className="mt-4 print:hidden">
+          <div className="lg-panel-heavy p-4" style={{ borderRadius: 'var(--radius-lg)' }}>
+            <div className="flex items-center justify-between mb-2.5">
+              <div className="flex items-center gap-3">
+                <span className="text-[0.8125rem] font-medium text-gray-700">Estimate Progress</span>
+                <span className="lg-pill px-2.5 py-1 text-[0.6875rem] font-bold" style={{
+                  background: progress >= 80 ? 'rgba(52,199,89,0.1)' : progress >= 40 ? 'rgba(255,149,0,0.1)' : 'rgba(0,0,0,0.03)',
+                  color: progress >= 80 ? 'var(--system-green)' : progress >= 40 ? 'var(--system-orange)' : '#8e8e93',
+                }}>{progress}%</span>
+                {lastSavedAt && (
+                  <span className="text-[0.6875rem] text-gray-400">Saved {lastSavedAt}</span>
                 )}
               </div>
-
-              <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-                {TABS.map((tab, index) => (
+              <span className="text-[0.75rem] text-gray-400">
+                Step {currentTabIdx + 1}/{visibleTabs.length}: {activeTab}
+              </span>
+            </div>
+            <div className="flex gap-1">
+              {visibleTabs.map((tab, i) => {
+                const status = tabStatuses[tab];
+                const isCurrent = tab === activeTab;
+                return (
                   <button
-                    key={tab.name}
-                    type="button"
-                    onClick={() => setActiveTab(tab.name)}
-                    className={`rounded-[var(--radius-lg)] border px-4 py-4 text-left transition ${
-                      activeTab === tab.name
-                        ? 'border-slate-900 bg-slate-900 text-white shadow-[0_16px_30px_rgba(15,23,42,0.22)]'
-                        : 'border-slate-200 bg-white/85 text-slate-700 hover:border-slate-300 hover:bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <span
-                        className={`text-xs font-semibold uppercase tracking-[0.2em] ${
-                          activeTab === tab.name ? 'text-slate-300' : 'text-slate-500'
-                        }`}
-                      >
-                        0{index + 1}
-                      </span>
-                      {activeTab === tab.name && (
-                        <Check className="h-4 w-4 text-cyan-300" />
-                      )}
-                    </div>
-                    <p className="mt-3 text-sm font-semibold">{tab.title}</p>
-                    <p
-                      className={`mt-2 text-xs leading-5 ${
-                        activeTab === tab.name ? 'text-slate-300' : 'text-slate-500'
-                      }`}
-                    >
-                      {tab.description}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="lg-panel-heavy rounded-[var(--radius-lg)] p-5 sm:p-6">
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-5">
-                <div>
-                  <p className="lg-eyebrow">
-                    <Layers3 className="h-4 w-4" />
-                    Active Section
-                  </p>
-                  <h2 className="mt-2 text-2xl font-semibold text-slate-900">
-                    {activeTab}
-                  </h2>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                    {TABS.find((tab) => tab.name === activeTab)?.description}
-                  </p>
-                </div>
-                {activeTab !== 'Map & Layout' && mapAppliedFields.length > 0 && (
-                  <div className="rounded-[var(--radius-md)] border border-cyan-200 bg-cyan-50 px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-700">
-                      Map Sync Active
-                    </p>
-                    <p className="mt-1 text-sm text-slate-700">
-                      {mapAppliedFields.length} estimate fields are currently being
-                      driven by the map.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="pt-5">
-                <TabContent
-                  tab={activeTab}
-                  input={input}
-                  updateField={updateField}
-                  onMapPlanChange={handleMapPlanChange}
-                  onAddressResolved={handleAddressResolved}
-                />
-              </div>
-            </div>
-          </section>
-
-          <aside className="space-y-5 print:hidden">
-            <div className="lg-panel rounded-[var(--radius-lg)] p-5 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur-xl lg:sticky lg:top-6">
-              <p className="lg-eyebrow">
-                <Sparkles className="h-4 w-4" />
-                Guided Actions
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">
-                Stay oriented while you build the estimate
-              </h2>
-
-              <div className="mt-5 space-y-4">
-                <div className="rounded-[var(--radius-lg)] border border-slate-200 bg-white px-4 py-4">
-                  <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                    Load Sample Scenario
-                  </label>
-                  <select
-                    className="mt-3 h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-700 outline-none focus:border-slate-400"
-                    defaultValue=""
-                    onChange={(event) => {
-                      if (event.target.value) loadScenario(event.target.value);
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    title={`${tab}: ${status}`}
+                    className="h-2 flex-1 transition-all"
+                    style={{
+                      borderRadius: 999,
+                      background: isCurrent
+                        ? 'var(--system-blue)'
+                        : status === 'complete'
+                          ? 'var(--system-green)'
+                          : status === 'partial'
+                            ? 'var(--system-orange)'
+                            : i <= currentTabIdx
+                              ? 'rgba(0,0,0,0.15)'
+                              : 'rgba(0,0,0,0.06)',
+                      boxShadow: isCurrent ? '0 0 0 2px rgba(0,122,255,0.3)' : 'none',
                     }}
-                  >
-                    <option value="">Select scenario</option>
-                    {SCENARIOS.map((scenario) => (
-                      <option key={scenario.id} value={scenario.id}>
-                        {scenario.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="rounded-[var(--radius-lg)] border border-slate-200 bg-white px-4 py-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                    Map Highlights
-                  </p>
-                  <div className="mt-3 grid grid-cols-2 gap-3">
-                    {[
-                      ['Chargers', mapPlan.summary.chargerCount],
-                      ['Bollards', mapPlan.summary.bollardCount],
-                      ['Pads', mapPlan.summary.padCount],
-                      ['Trench ft', mapPlan.summary.trenchLengthFt],
-                    ].map(([label, value]) => (
-                      <div
-                        key={label}
-                        className="rounded-2xl bg-slate-50 px-4 py-3"
-                      >
-                        <p className="text-xs uppercase tracking-[0.16em] text-slate-500">
-                          {label}
-                        </p>
-                        <p className="mt-2 text-lg font-semibold text-slate-900">
-                          {value}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="rounded-[var(--radius-lg)] border border-slate-200 bg-white px-4 py-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                    Quote Posting
-                  </p>
-                  <div className="mt-3 space-y-2">
-                    {mapAppliedFields.length === 0 ? (
-                      <p className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                        Add map features to automatically populate estimate
-                        fields and highlight affected line items.
-                      </p>
-                    ) : (
-                      mapAppliedFields.map(([path, field]) => (
-                        <div
-                          key={path}
-                          className="rounded-2xl border border-cyan-200 bg-cyan-50 px-4 py-3"
-                        >
-                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-700">
-                            {path}
-                          </p>
-                          <p className="mt-1 text-sm font-medium text-slate-900">
-                            {String(field.value)}
-                          </p>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                <div className="rounded-[var(--radius-lg)] border border-slate-200 bg-white px-4 py-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                    Quote Controls
-                  </p>
-                  <div className="mt-4 space-y-3">
-                    <button
-                      type="button"
-                      onClick={handleGenerate}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:translate-y-[-1px] hover:shadow-lg"
-                    >
-                      Generate Estimate
-                      <ArrowRight className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setInput(emptyInput());
-                        setOutput(null);
-                        setActiveTab('Project');
-                        setExperienceMode('form');
-                      }}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white"
-                    >
-                      Reset Draft
-                    </button>
-                    <Link
-                      href="/"
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-                    >
-                      Back Home
-                    </Link>
-                  </div>
-                </div>
-              </div>
+                  />
+                );
+              })}
             </div>
-          </aside>
+          </div>
         </div>
 
+        {/* ─── Next Best Action ─────────────────────────────── */}
+        {flowAdvice.nextTab && !advisorDismissed && !isEstimateEmpty && (!quickMode || QUICK_TABS.includes(flowAdvice.nextTab as TabName)) && (
+          <div className="mt-3 print:hidden">
+            <div className="lg-panel-heavy flex items-center gap-3 px-4 py-3" style={{ borderRadius: 'var(--radius-lg)', borderLeft: '3px solid var(--system-blue)' }}>
+              <span className="text-[0.8125rem] font-medium text-gray-700">
+                <span className="mr-1.5 text-blue-500">Suggested:</span>
+                {flowAdvice.nextAction}
+              </span>
+              <button
+                onClick={() => setActiveTab(flowAdvice.nextTab as TabName)}
+                className="lg-pill lg-pill-active ml-auto px-3 py-1.5 text-[0.75rem] font-semibold"
+              >
+                Go to {flowAdvice.nextTab}
+              </button>
+              <button
+                onClick={() => setAdvisorDismissed(true)}
+                className="ml-1 text-gray-400 hover:text-gray-600"
+                title="Dismiss"
+              >
+                &times;
+              </button>
+            </div>
+            {flowAdvice.completionHints.length > 0 && (
+              <div className="mt-1.5 px-4 text-[0.6875rem] text-gray-400">
+                {flowAdvice.completionHints[0]}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─── Onboarding ────────────────────────────────────── */}
+        {showOnboarding && isEstimateEmpty && (
+          <div className="mt-4">
+            <div className="lg-panel-heavy" style={{ borderRadius: 'var(--radius-xl)' }}>
+              <OnboardingWizard onEntrySelect={handleEntrySelect} />
+            </div>
+          </div>
+        )}
+
+        {/* ─── AI Status Banner ──────────────────────────────── */}
+        {isAdvanced && aiStatus && (!aiStatus.openai || !aiStatus.gemini) && (
+          <div className="mt-4 p-4 text-[0.8125rem] print:hidden" style={{ borderRadius: 'var(--radius-md)', background: 'rgba(255,149,0,0.08)', border: '0.5px solid rgba(255,149,0,0.2)', color: '#7a5a00' }}>
+            <strong>AI features partially available:</strong>{' '}
+            {!aiStatus.openai && !aiStatus.gemini
+              ? 'No AI API keys configured. SOW Parser, Chat Builder, AI Reviewer, and Photo Analysis require OPENAI_API_KEY and GEMINI_API_KEY.'
+              : !aiStatus.openai
+                ? 'OPENAI_API_KEY not set — SOW Parser, Chat Builder, and AI Reviewer unavailable.'
+                : 'GEMINI_API_KEY not set — Photo Analysis unavailable.'}
+          </div>
+        )}
+
+        {/* ─── Quick Start ───────────────────────────────────── */}
+        <div className={`mt-4 flex flex-wrap items-center gap-3 print:hidden ${showOnboarding && isEstimateEmpty ? 'hidden' : ''}`}>
+          <span className="text-[0.8125rem] font-medium text-gray-500">Quick Start:</span>
+          <select
+            className="rounded-[var(--radius-sm)] border-0 bg-black/[0.03] px-3 py-2 text-[0.8125rem] ring-1 ring-inset ring-black/[0.06] focus:ring-2 focus:ring-[var(--system-blue)]"
+            defaultValue=""
+            onChange={(e) => { if (e.target.value) loadScenario(e.target.value); }}
+          >
+            <option value="">Load a sample scenario...</option>
+            {SCENARIOS.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+          <button
+            onClick={() => {
+              if (window.confirm('Clear all estimate data? This cannot be undone.')) {
+                resetEstimate();
+                setOutput(null);
+              }
+            }}
+            className="lg-pill text-[0.8125rem] text-gray-600"
+          >
+            Clear All
+          </button>
+        </div>
+
+        {/* ─── Advanced AI Tools ──────────────────────────────── */}
+        {isAdvanced && !(showOnboarding && isEstimateEmpty) && (
+          <div className="mt-4 grid gap-4 md:grid-cols-2 print:hidden">
+            <SOWParser onApplyFields={applyFlatFields} />
+            <PhotoAnalysis onApplyFields={applyFlatFields} />
+          </div>
+        )}
+
+        {/* ─── Input Mode Toggle ─────────────────────────────── */}
+        {isAdvanced && !(showOnboarding && isEstimateEmpty) && (
+          <div className="mt-4 flex gap-2 print:hidden">
+            <button
+              onClick={() => setInputMode('form')}
+              className={`lg-pill px-4 py-2 text-[0.8125rem] font-semibold ${inputMode === 'form' ? 'lg-pill-active' : 'text-gray-600'}`}
+            >
+              Form Input
+            </button>
+            <button
+              onClick={() => setInputMode('chat')}
+              className={`lg-pill px-4 py-2 text-[0.8125rem] font-semibold ${inputMode === 'chat' ? 'lg-pill-active' : 'text-gray-600'}`}
+              style={inputMode === 'chat' ? { background: 'var(--system-green)' } : {}}
+            >
+              Chat Builder
+            </button>
+          </div>
+        )}
+
+        {/* ─── Chat Builder ──────────────────────────────────── */}
+        {isAdvanced && inputMode === 'chat' && !(showOnboarding && isEstimateEmpty) && (
+          <div className="mt-4 print:hidden">
+            <ChatBuilder currentInput={input} onApplyFields={applyFlatFields} onGenerateEstimate={handleGenerate} />
+          </div>
+        )}
+
+        {/* ─── Form Panel ────────────────────────────────────── */}
+        <div className={`mt-4 print:hidden ${(isAdvanced && inputMode === 'chat') || (showOnboarding && isEstimateEmpty) ? 'hidden' : ''}`}>
+          <div className="lg-panel-heavy overflow-hidden" style={{ borderRadius: 'var(--radius-xl)' }}>
+
+            {/* Tab Bar */}
+            <div role="tablist" className="flex gap-0 overflow-x-auto scrollbar-none" style={{ borderBottom: '0.5px solid rgba(0,0,0,0.06)', background: 'rgba(0,0,0,0.02)' }}>
+              {visibleTabs.map((tab) => {
+                const status = tabStatuses[tab];
+                const isSkipped = flowAdvice.skipTabs.includes(tab as FlowTabName);
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeTab === tab}
+                    aria-controls="estimate-tab-panel"
+                    tabIndex={activeTab === tab ? 0 : -1}
+                    onKeyDown={(e) => handleTabKeyDown(e, tab)}
+                    onClick={() => setActiveTab(tab)}
+                    title={isSkipped ? `Not applicable for ${input.project.projectType?.replace(/_/g, ' ') ?? 'this'} projects` : undefined}
+                    className={`relative flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap px-4 py-3 text-[0.8125rem] font-medium transition ${isSkipped ? 'opacity-40' : ''}`}
+                    style={{
+                      color: activeTab === tab ? 'var(--system-blue)' : '#636366',
+                      borderBottom: activeTab === tab ? '2px solid var(--system-blue)' : '2px solid transparent',
+                      background: activeTab === tab ? 'rgba(0,122,255,0.04)' : 'transparent',
+                    }}
+                  >
+                    {status === 'complete' && <span className="lg-dot" style={{ width: 6, height: 6, background: 'var(--system-green)' }} />}
+                    {status === 'partial' && <span className="lg-dot" style={{ width: 6, height: 6, background: 'var(--system-orange)' }} />}
+                    {tab}
+                    {isSkipped && <span className="ml-1 rounded bg-gray-200 px-1 text-[9px] font-bold text-gray-500">N/A</span>}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Section Header */}
+            <div className="px-5 py-3.5 sm:px-6" style={{ borderBottom: '0.5px solid rgba(0,0,0,0.04)', background: 'rgba(0,122,255,0.02)' }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-[0.9375rem] font-semibold text-gray-900">{activeTab}</h2>
+                  <p className="mt-0.5 text-[0.75rem] text-gray-400">{TAB_META[activeTab]?.description}</p>
+                </div>
+                {TAB_META[activeTab]?.required.length > 0 && (
+                  <span className="lg-pill px-2.5 py-1 text-[0.6875rem] font-medium" style={{ background: 'rgba(0,122,255,0.06)', color: 'var(--system-blue)' }}>
+                    {TAB_META[activeTab].required.filter(f => isFieldFilled(getFieldValue(input, f))).length}/{TAB_META[activeTab].required.length} required
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Pro Tip */}
+            {SECTION_TIPS[activeTab as FlowTabName] && (
+              <div className="mx-5 mt-3 rounded-lg bg-blue-50/60 px-3 py-2 text-[0.6875rem] leading-relaxed text-blue-700 sm:mx-6">
+                <span className="font-semibold">Pro tip:</span> {SECTION_TIPS[activeTab as FlowTabName]}
+              </div>
+            )}
+
+            {/* Tab Content */}
+            <div id="estimate-tab-panel" role="tabpanel" className="p-5 sm:p-6">
+              <ErrorBoundary fallbackLabel={activeTab}>
+                <SectionRenderer tab={activeTab} />
+              </ErrorBoundary>
+            </div>
+
+            {/* Navigation Footer */}
+            <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6" style={{ borderTop: '0.5px solid rgba(0,0,0,0.06)', background: 'rgba(0,0,0,0.02)' }}>
+              <div className="flex gap-2">
+                <button onClick={goPrev} disabled={currentTabIdx === 0} className="lg-pill px-4 py-2 text-[0.8125rem] font-medium text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed">
+                  &larr; Previous
+                </button>
+                <button onClick={goNext} disabled={currentTabIdx === visibleTabs.length - 1} className="lg-pill px-4 py-2 text-[0.8125rem] font-medium text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed">
+                  Next &rarr;
+                </button>
+              </div>
+              <div className="flex w-full items-center gap-3 sm:w-auto">
+                {progress < 40 && <span className="hidden text-[0.75rem] text-gray-400 sm:inline">Fill key fields to improve accuracy</span>}
+                {progress >= 40 && progress < 80 && <span className="hidden text-[0.75rem] sm:inline" style={{ color: 'var(--system-orange)' }}>Good progress — more detail = better estimate</span>}
+                {progress >= 80 && <span className="hidden text-[0.75rem] sm:inline" style={{ color: 'var(--system-green)' }}>Ready for a high-confidence estimate</span>}
+                {quickMode ? (
+                  <button
+                    onClick={() => {
+                      const result = generateEstimate(input);
+                      setOutput(result);
+                      exportEstimatePDF(result);
+                    }}
+                    className="lg-pill lg-pill-active w-full px-6 py-2.5 text-[0.8125rem] font-semibold sm:w-auto"
+                    style={{ background: 'var(--system-green)' }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline -mt-0.5 mr-1"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                    Generate &amp; Print Quote
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleGenerate}
+                    className="lg-pill lg-pill-active w-full px-6 py-2.5 text-[0.8125rem] font-semibold sm:w-auto"
+                    style={{ background: progress >= 40 ? 'var(--system-blue)' : '#8e8e93' }}
+                  >
+                    Generate Estimate
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ─── Results ───────────────────────────────────────── */}
         {output && (
-          <div className="mt-8">
+          <div className="mt-6">
             <EstimateResults
               output={output}
               expandedLines={expandedLines}
               toggleLine={toggleLine}
+              onShareInteractive={handleShareInteractive}
+              shareStatus={shareStatus}
+              onDownloadPdfWithPreviews={handleDownloadPdfWithPreviews}
             />
+            {isAdvanced && (
+              <div className="mt-6 print:hidden">
+                <AIReviewer input={input} output={output} onApplyChange={(field, value) => updateField(field, value)} />
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      <LiveEstimateSummary autoEstimate={autoEstimate} />
     </main>
   );
 }
 
-function TabContent({
-  tab,
-  input,
-  updateField,
-  onMapPlanChange,
-  onAddressResolved,
-}: {
-  tab: TabName;
-  input: EstimateInput;
-  updateField: (path: string, value: unknown) => void;
-  onMapPlanChange: (plan: SiteMapPlan) => void;
-  onAddressResolved: (result: {
-    address: string;
-    location: { lat: number; lng: number };
-    state: string;
-  }) => void;
-}) {
-  const inputCls =
-    'h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-700 outline-none focus:border-slate-400';
-  const textareaCls =
-    'w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400';
-  const labelCls =
-    'mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500';
-  const gridCls = 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3';
-  const accessoryToggles: Array<{
-    label: string;
-    path:
-      | 'accessories.stripingRequired'
-      | 'accessories.padRequired'
-      | 'accessories.debrisRemoval';
-    value: boolean;
-  }> = [
-    {
-      label: 'Striping Required',
-      path: 'accessories.stripingRequired',
-      value: input.accessories.stripingRequired,
-    },
-    {
-      label: 'Concrete Pad Required',
-      path: 'accessories.padRequired',
-      value: input.accessories.padRequired,
-    },
-    {
-      label: 'Debris Removal',
-      path: 'accessories.debrisRemoval',
-      value: input.accessories.debrisRemoval,
-    },
-  ];
-
-  switch (tab) {
-    case 'Map & Layout':
-      return (
-        <div className="space-y-5">
-          <div className="rounded-[var(--radius-lg)] border border-cyan-200 bg-cyan-50 px-5 py-4">
-            <div className="flex items-start gap-3">
-              <span className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-600 text-white">
-                <MapPinned className="h-4 w-4" />
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-slate-900">
-                  Add chargers, panels, bollards, pads, trench runs, conduit
-                  paths, mechanical rooms, and restricted zones directly on the
-                  site.
-                </p>
-                <p className="mt-1 text-sm leading-6 text-slate-600">
-                  As you draw, the planner updates quote-driving fields like
-                  charger count, bollard quantity, pad requirement, trenching,
-                  and distance-to-panel automatically.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <SitePlanner
-            address={input.site.address}
-            value={input.site.mapPlan}
-            onChange={onMapPlanChange}
-            onAddressResolved={onAddressResolved}
-          />
-        </div>
-      );
-
-    case 'Project':
-      return (
-        <div className={gridCls}>
-          <div>
-            <label className={labelCls}>Project Name</label>
-            <input
-              className={inputCls}
-              value={input.project.name}
-              onChange={(event) => updateField('project.name', event.target.value)}
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Sales Rep</label>
-            <input
-              className={inputCls}
-              value={input.project.salesRep}
-              onChange={(event) =>
-                updateField('project.salesRep', event.target.value)
-              }
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Project Type</label>
-            <select
-              className={inputCls}
-              value={input.project.projectType}
-              onChange={(event) =>
-                updateField('project.projectType', event.target.value)
-              }
-            >
-              {[
-                'full_turnkey',
-                'full_turnkey_connectivity',
-                'equipment_install_commission',
-                'install_commission',
-                'equipment_purchase',
-                'remove_replace',
-                'commission_only',
-                'service_work',
-                'supercharger',
-              ].map((value) => (
-                <option key={value} value={value}>
-                  {value.replace(/_/g, ' ')}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>Timeline</label>
-            <input
-              className={inputCls}
-              value={input.project.timeline}
-              onChange={(event) =>
-                updateField('project.timeline', event.target.value)
-              }
-            />
-          </div>
-          <div>
-            <label className={labelCls}>New Construction?</label>
-            <select
-              className={inputCls}
-              value={
-                input.project.isNewConstruction === null
-                  ? 'null'
-                  : String(input.project.isNewConstruction)
-              }
-              onChange={(event) =>
-                updateField(
-                  'project.isNewConstruction',
-                  event.target.value === 'null'
-                    ? null
-                    : event.target.value === 'true',
-                )
-              }
-            >
-              <option value="null">Unknown</option>
-              <option value="true">Yes</option>
-              <option value="false">No</option>
-            </select>
-          </div>
-        </div>
-      );
-
-    case 'Customer':
-      return (
-        <div className={gridCls}>
-          <div>
-            <label className={labelCls}>Company Name</label>
-            <input
-              className={inputCls}
-              value={input.customer.companyName}
-              onChange={(event) =>
-                updateField('customer.companyName', event.target.value)
-              }
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Contact Name</label>
-            <input
-              className={inputCls}
-              value={input.customer.contactName}
-              onChange={(event) =>
-                updateField('customer.contactName', event.target.value)
-              }
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Contact Email</label>
-            <input
-              type="email"
-              className={inputCls}
-              value={input.customer.contactEmail}
-              onChange={(event) =>
-                updateField('customer.contactEmail', event.target.value)
-              }
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Contact Phone</label>
-            <input
-              className={inputCls}
-              value={input.customer.contactPhone}
-              onChange={(event) =>
-                updateField('customer.contactPhone', event.target.value)
-              }
-            />
-          </div>
-          <div className="sm:col-span-2 xl:col-span-3">
-            <label className={labelCls}>Billing Address</label>
-            <input
-              className={inputCls}
-              value={input.customer.billingAddress}
-              onChange={(event) =>
-                updateField('customer.billingAddress', event.target.value)
-              }
-            />
-          </div>
-        </div>
-      );
-
-    case 'Site':
-      return (
-        <div className={gridCls}>
-          <div className="sm:col-span-2 xl:col-span-3">
-            <label className={labelCls}>Site Address</label>
-            <input
-              className={inputCls}
-              value={input.site.address}
-              onChange={(event) => updateField('site.address', event.target.value)}
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Site Type</label>
-            <select
-              className={inputCls}
-              value={input.site.siteType ?? ''}
-              onChange={(event) =>
-                updateField('site.siteType', event.target.value || null)
-              }
-            >
-              <option value="">Select site type</option>
-              {[
-                'airport',
-                'apartment',
-                'event_venue',
-                'fleet_dealer',
-                'hospital',
-                'hotel',
-                'industrial',
-                'mixed_use',
-                'fuel_station',
-                'municipal',
-                'office',
-                'parking_structure',
-                'police_gov',
-                'recreational',
-                'campground',
-                'restaurant',
-                'retail',
-                'school',
-                'other',
-              ].map((value) => (
-                <option key={value} value={value}>
-                  {value.replace(/_/g, ' ')}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>State</label>
-            <input
-              className={inputCls}
-              value={input.site.state}
-              onChange={(event) => updateField('site.state', event.target.value)}
-            />
-          </div>
-          <div className="rounded-[var(--radius-lg)] border border-slate-200 bg-slate-50 px-4 py-4 sm:col-span-2 xl:col-span-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-              Map Location
-            </p>
-            <p className="mt-2 text-sm text-slate-700">
-              {input.site.location
-                ? `${input.site.location.lat.toFixed(5)}, ${input.site.location.lng.toFixed(5)}`
-                : 'No geocoded map location yet. Use the Map & Layout step to locate the site.'}
-            </p>
-          </div>
-        </div>
-      );
-
-    case 'Parking & Civil':
-      return (
-        <div className="space-y-5">
-          <div className={gridCls}>
-            <div>
-              <label className={labelCls}>Parking Type</label>
-              <select
-                className={inputCls}
-                value={input.parkingEnvironment.type ?? ''}
-                onChange={(event) =>
-                  updateField('parkingEnvironment.type', event.target.value || null)
-                }
-              >
-                <option value="">Unknown</option>
-                <option value="surface_lot">Surface Lot</option>
-                <option value="parking_garage">Parking Garage</option>
-                <option value="mixed">Mixed</option>
-              </select>
-            </div>
-            <div>
-              <label className={labelCls}>Surface Type</label>
-              <select
-                className={inputCls}
-                value={input.parkingEnvironment.surfaceType ?? ''}
-                onChange={(event) =>
-                  updateField(
-                    'parkingEnvironment.surfaceType',
-                    event.target.value || null,
-                  )
-                }
-              >
-                <option value="">Unknown</option>
-                <option value="asphalt">Asphalt</option>
-                <option value="concrete">Concrete</option>
-                <option value="gravel">Gravel</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div>
-              <label className={labelCls}>Indoor / Outdoor</label>
-              <select
-                className={inputCls}
-                value={input.parkingEnvironment.indoorOutdoor ?? ''}
-                onChange={(event) =>
-                  updateField(
-                    'parkingEnvironment.indoorOutdoor',
-                    event.target.value || null,
-                  )
-                }
-              >
-                <option value="">Unknown</option>
-                <option value="indoor">Indoor</option>
-                <option value="outdoor">Outdoor</option>
-                <option value="both">Both</option>
-              </select>
-            </div>
-            <BoolField
-              label="Has PT Slab?"
-              path="parkingEnvironment.hasPTSlab"
-              value={input.parkingEnvironment.hasPTSlab}
-              updateField={updateField}
-              cls={inputCls}
-              labelCls={labelCls}
-            />
-            <BoolField
-              label="Trenching Required?"
-              path="parkingEnvironment.trenchingRequired"
-              value={input.parkingEnvironment.trenchingRequired}
-              updateField={updateField}
-              cls={inputCls}
-              labelCls={labelCls}
-            />
-            <BoolField
-              label="Boring Required?"
-              path="parkingEnvironment.boringRequired"
-              value={input.parkingEnvironment.boringRequired}
-              updateField={updateField}
-              cls={inputCls}
-              labelCls={labelCls}
-            />
-            <BoolField
-              label="Coring Required?"
-              path="parkingEnvironment.coringRequired"
-              value={input.parkingEnvironment.coringRequired}
-              updateField={updateField}
-              cls={inputCls}
-              labelCls={labelCls}
-            />
-            <BoolField
-              label="Traffic Control?"
-              path="parkingEnvironment.trafficControlRequired"
-              value={input.parkingEnvironment.trafficControlRequired}
-              updateField={updateField}
-              cls={inputCls}
-              labelCls={labelCls}
-            />
-            <BoolField
-              label="Fire-Rated Penetrations?"
-              path="parkingEnvironment.fireRatedPenetrations"
-              value={input.parkingEnvironment.fireRatedPenetrations}
-              updateField={updateField}
-              cls={inputCls}
-              labelCls={labelCls}
-            />
-            <div className="sm:col-span-2 xl:col-span-3">
-              <label className={labelCls}>Access Restrictions</label>
-              <input
-                className={inputCls}
-                value={input.parkingEnvironment.accessRestrictions}
-                onChange={(event) =>
-                  updateField(
-                    'parkingEnvironment.accessRestrictions',
-                    event.target.value,
-                  )
-                }
-              />
-            </div>
-          </div>
-
-          <div className="rounded-[var(--radius-lg)] border border-slate-200 bg-white px-4 py-4">
-            <label className={labelCls}>Installation Location Description</label>
-            <textarea
-              className={`${textareaCls} h-32`}
-              value={input.civil.installationLocationDescription}
-              onChange={(event) =>
-                updateField(
-                  'civil.installationLocationDescription',
-                  event.target.value,
-                )
-              }
-            />
-          </div>
-        </div>
-      );
-
-    case 'Charger':
-      return (
-        <div className={gridCls}>
-          <div>
-            <label className={labelCls}>Brand</label>
-            <input
-              className={inputCls}
-              value={input.charger.brand}
-              onChange={(event) => updateField('charger.brand', event.target.value)}
-              placeholder="Tesla, ChargePoint, Xeal..."
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Model</label>
-            <input
-              className={inputCls}
-              value={input.charger.model}
-              onChange={(event) => updateField('charger.model', event.target.value)}
-              placeholder="Universal Wall Connector, CT4000..."
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Count</label>
-            <input
-              type="number"
-              min={0}
-              className={inputCls}
-              value={input.charger.count}
-              onChange={(event) =>
-                updateField('charger.count', parseInt(event.target.value, 10) || 0)
-              }
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Pedestal Count</label>
-            <input
-              type="number"
-              min={0}
-              className={inputCls}
-              value={input.charger.pedestalCount}
-              onChange={(event) =>
-                updateField(
-                  'charger.pedestalCount',
-                  parseInt(event.target.value, 10) || 0,
-                )
-              }
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Charging Level</label>
-            <select
-              className={inputCls}
-              value={input.charger.chargingLevel ?? ''}
-              onChange={(event) =>
-                updateField('charger.chargingLevel', event.target.value || null)
-              }
-            >
-              <option value="">Select</option>
-              <option value="l2">Level 2</option>
-              <option value="l3_dcfc">Level 3 / DCFC</option>
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>Mount Type</label>
-            <select
-              className={inputCls}
-              value={input.charger.mountType ?? ''}
-              onChange={(event) =>
-                updateField('charger.mountType', event.target.value || null)
-              }
-            >
-              <option value="">Select</option>
-              <option value="pedestal">Pedestal</option>
-              <option value="wall">Wall</option>
-              <option value="mix">Mix</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>Port Type</label>
-            <select
-              className={inputCls}
-              value={input.charger.portType ?? ''}
-              onChange={(event) =>
-                updateField('charger.portType', event.target.value || null)
-              }
-            >
-              <option value="">Select</option>
-              <option value="single">Single</option>
-              <option value="dual">Dual</option>
-              <option value="mix">Mix</option>
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>Amps per Charger</label>
-            <input
-              type="number"
-              className={inputCls}
-              value={input.charger.ampsPerCharger ?? ''}
-              onChange={(event) =>
-                updateField(
-                  'charger.ampsPerCharger',
-                  event.target.value ? parseInt(event.target.value, 10) : null,
-                )
-              }
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Volts</label>
-            <input
-              type="number"
-              className={inputCls}
-              value={input.charger.volts ?? ''}
-              onChange={(event) =>
-                updateField(
-                  'charger.volts',
-                  event.target.value ? parseInt(event.target.value, 10) : null,
-                )
-              }
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Customer Supplied?</label>
-            <select
-              className={inputCls}
-              value={String(input.charger.isCustomerSupplied)}
-              onChange={(event) =>
-                updateField(
-                  'charger.isCustomerSupplied',
-                  event.target.value === 'true',
-                )
-              }
-            >
-              <option value="false">No</option>
-              <option value="true">Yes</option>
-            </select>
-          </div>
-        </div>
-      );
-
-    case 'Electrical':
-      return (
-        <div className={gridCls}>
-          <div>
-            <label className={labelCls}>Service Type</label>
-            <select
-              className={inputCls}
-              value={input.electrical.serviceType ?? ''}
-              onChange={(event) =>
-                updateField('electrical.serviceType', event.target.value || null)
-              }
-            >
-              <option value="">Unknown</option>
-              <option value="120v">120V</option>
-              <option value="208v">208V</option>
-              <option value="240v">240V</option>
-              <option value="480v_3phase">480V 3-Phase</option>
-              <option value="unknown">Unknown</option>
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>Distance to Panel (ft)</label>
-            <input
-              type="number"
-              className={inputCls}
-              value={input.electrical.distanceToPanel_ft ?? ''}
-              onChange={(event) =>
-                updateField(
-                  'electrical.distanceToPanel_ft',
-                  event.target.value ? parseInt(event.target.value, 10) : null,
-                )
-              }
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Available Amps</label>
-            <input
-              type="number"
-              className={inputCls}
-              value={input.electrical.availableAmps ?? ''}
-              onChange={(event) =>
-                updateField(
-                  'electrical.availableAmps',
-                  event.target.value ? parseInt(event.target.value, 10) : null,
-                )
-              }
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Capacity Known?</label>
-            <select
-              className={inputCls}
-              value={String(input.electrical.availableCapacityKnown)}
-              onChange={(event) =>
-                updateField(
-                  'electrical.availableCapacityKnown',
-                  event.target.value === 'true',
-                )
-              }
-            >
-              <option value="false">No</option>
-              <option value="true">Yes</option>
-            </select>
-          </div>
-          <BoolField
-            label="Breaker Space Available?"
-            path="electrical.breakerSpaceAvailable"
-            value={input.electrical.breakerSpaceAvailable}
-            updateField={updateField}
-            cls={inputCls}
-            labelCls={labelCls}
-          />
-          <BoolField
-            label="Panel Upgrade Required?"
-            path="electrical.panelUpgradeRequired"
-            value={input.electrical.panelUpgradeRequired}
-            updateField={updateField}
-            cls={inputCls}
-            labelCls={labelCls}
-          />
-          <BoolField
-            label="Transformer Required?"
-            path="electrical.transformerRequired"
-            value={input.electrical.transformerRequired}
-            updateField={updateField}
-            cls={inputCls}
-            labelCls={labelCls}
-          />
-          <BoolField
-            label="Switchgear Required?"
-            path="electrical.switchgearRequired"
-            value={input.electrical.switchgearRequired}
-            updateField={updateField}
-            cls={inputCls}
-            labelCls={labelCls}
-          />
-          <BoolField
-            label="Utility Coordination?"
-            path="electrical.utilityCoordinationRequired"
-            value={input.electrical.utilityCoordinationRequired}
-            updateField={updateField}
-            cls={inputCls}
-            labelCls={labelCls}
-          />
-          <div className="sm:col-span-2 xl:col-span-3">
-            <label className={labelCls}>Electrical Room Description</label>
-            <textarea
-              className={`${textareaCls} h-28`}
-              value={input.electrical.electricalRoomDescription}
-              onChange={(event) =>
-                updateField(
-                  'electrical.electricalRoomDescription',
-                  event.target.value,
-                )
-              }
-            />
-          </div>
-        </div>
-      );
-
-    case 'Permits & Network':
-      return (
-        <div className="space-y-5">
-          <div className={gridCls}>
-            <div>
-              <label className={labelCls}>Permit Responsibility</label>
-              <select
-                className={inputCls}
-                value={input.permit.responsibility ?? ''}
-                onChange={(event) =>
-                  updateField('permit.responsibility', event.target.value || null)
-                }
-              >
-                <option value="">TBD</option>
-                <option value="bullet">Bullet</option>
-                <option value="client">Client</option>
-                <option value="tbd">TBD</option>
-              </select>
-            </div>
-            <div>
-              <label className={labelCls}>Permit Fee Allowance ($)</label>
-              <input
-                type="number"
-                className={inputCls}
-                value={input.permit.feeAllowance ?? ''}
-                onChange={(event) =>
-                  updateField(
-                    'permit.feeAllowance',
-                    event.target.value ? parseFloat(event.target.value) : null,
-                  )
-                }
-              />
-            </div>
-            <div>
-              <label className={labelCls}>Design / Eng Responsibility</label>
-              <select
-                className={inputCls}
-                value={input.designEngineering.responsibility ?? ''}
-                onChange={(event) =>
-                  updateField(
-                    'designEngineering.responsibility',
-                    event.target.value || null,
-                  )
-                }
-              >
-                <option value="">TBD</option>
-                <option value="bullet">Bullet</option>
-                <option value="client">Client</option>
-                <option value="tbd">TBD</option>
-              </select>
-            </div>
-            <BoolField
-              label="Stamped Plans Required?"
-              path="designEngineering.stampedPlansRequired"
-              value={input.designEngineering.stampedPlansRequired}
-              updateField={updateField}
-              cls={inputCls}
-              labelCls={labelCls}
-            />
-            <div>
-              <label className={labelCls}>Network Type</label>
-              <select
-                className={inputCls}
-                value={input.network.type ?? ''}
-                onChange={(event) =>
-                  updateField('network.type', event.target.value || null)
-                }
-              >
-                <option value="">Unknown</option>
-                <option value="none">None</option>
-                <option value="customer_lan">Customer LAN</option>
-                <option value="wifi_bridge">WiFi Bridge</option>
-                <option value="cellular_router">Cellular Router</option>
-                <option value="included_in_package">Included in Package</option>
-              </select>
-            </div>
-            <div>
-              <label className={labelCls}>WiFi Install Responsibility</label>
-              <select
-                className={inputCls}
-                value={input.network.wifiInstallResponsibility ?? ''}
-                onChange={(event) =>
-                  updateField(
-                    'network.wifiInstallResponsibility',
-                    event.target.value || null,
-                  )
-                }
-              >
-                <option value="">N/A</option>
-                <option value="bullet">Bullet</option>
-                <option value="client">Client</option>
-                <option value="na">N/A</option>
-                <option value="tbd">TBD</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      );
-
-    case 'Accessories & Scope':
-      return (
-        <div className="space-y-5">
-          <div className={gridCls}>
-            <div>
-              <label className={labelCls}>Bollard Qty</label>
-              <input
-                type="number"
-                min={0}
-                className={inputCls}
-                value={input.accessories.bollardQty}
-                onChange={(event) =>
-                  updateField(
-                    'accessories.bollardQty',
-                    parseInt(event.target.value, 10) || 0,
-                  )
-                }
-              />
-            </div>
-            <div>
-              <label className={labelCls}>Sign Qty</label>
-              <input
-                type="number"
-                min={0}
-                className={inputCls}
-                value={input.accessories.signQty}
-                onChange={(event) =>
-                  updateField(
-                    'accessories.signQty',
-                    parseInt(event.target.value, 10) || 0,
-                  )
-                }
-              />
-            </div>
-            <div>
-              <label className={labelCls}>Wheel Stop Qty</label>
-              <input
-                type="number"
-                min={0}
-                className={inputCls}
-                value={input.accessories.wheelStopQty}
-                onChange={(event) =>
-                  updateField(
-                    'accessories.wheelStopQty',
-                    parseInt(event.target.value, 10) || 0,
-                  )
-                }
-              />
-            </div>
-            {accessoryToggles.map(({ label, path, value }) => (
-              <label
-                key={path}
-                className="flex items-center gap-3 rounded-[var(--radius-lg)] border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700"
-              >
-                <input
-                  type="checkbox"
-                  checked={Boolean(value)}
-                  onChange={(event) => updateField(path, event.target.checked)}
-                />
-                {label}
-              </label>
-            ))}
-          </div>
-
-          <div className={gridCls}>
-            {[
-              {
-                label: 'Make Ready',
-                path: 'makeReady.responsibility',
-                value: input.makeReady.responsibility,
-              },
-              {
-                label: 'Charger Install',
-                path: 'chargerInstall.responsibility',
-                value: input.chargerInstall.responsibility,
-              },
-              {
-                label: 'Purchasing Chargers',
-                path: 'purchasingChargers.responsibility',
-                value: input.purchasingChargers.responsibility,
-              },
-            ].map((field) => (
-              <div key={field.path}>
-                <label className={labelCls}>{field.label}</label>
-                <select
-                  className={inputCls}
-                  value={field.value ?? ''}
-                  onChange={(event) =>
-                    updateField(field.path, event.target.value || null)
-                  }
-                >
-                  <option value="">TBD</option>
-                  <option value="bullet">Bullet</option>
-                  <option value="client">Client</option>
-                  <option value="tbd">TBD</option>
-                </select>
-              </div>
-            ))}
-            <div>
-              <label className={labelCls}>Signage / Bollards</label>
-              <select
-                className={inputCls}
-                value={input.signageBollards.responsibility ?? ''}
-                onChange={(event) =>
-                  updateField(
-                    'signageBollards.responsibility',
-                    event.target.value || null,
-                  )
-                }
-              >
-                <option value="">TBD</option>
-                <option value="signage">Signage Only</option>
-                <option value="bollards">Bollards Only</option>
-                <option value="signage_bollards">Signage + Bollards</option>
-                <option value="none">None</option>
-                <option value="tbd">TBD</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      );
-
-    case 'Pricing & Notes':
-      return (
-        <div className="space-y-5">
-          <div className={gridCls}>
-            <div>
-              <label className={labelCls}>Pricing Tier</label>
-              <select
-                className={inputCls}
-                value={input.estimateControls.pricingTier}
-                onChange={(event) =>
-                  updateField('estimateControls.pricingTier', event.target.value)
-                }
-              >
-                <option value="bulk_discount">Bulk Discount</option>
-                <option value="msrp">MSRP</option>
-              </select>
-            </div>
-            <div>
-              <label className={labelCls}>Tax Rate (%)</label>
-              <input
-                type="number"
-                step="0.1"
-                className={inputCls}
-                value={input.estimateControls.taxRate}
-                onChange={(event) =>
-                  updateField(
-                    'estimateControls.taxRate',
-                    parseFloat(event.target.value) || 0,
-                  )
-                }
-              />
-            </div>
-            <div>
-              <label className={labelCls}>Contingency (%)</label>
-              <input
-                type="number"
-                step="1"
-                className={inputCls}
-                value={input.estimateControls.contingencyPercent}
-                onChange={(event) =>
-                  updateField(
-                    'estimateControls.contingencyPercent',
-                    parseFloat(event.target.value) || 0,
-                  )
-                }
-              />
-            </div>
-            <div>
-              <label className={labelCls}>Markup (%)</label>
-              <input
-                type="number"
-                step="1"
-                className={inputCls}
-                value={input.estimateControls.markupPercent}
-                onChange={(event) =>
-                  updateField(
-                    'estimateControls.markupPercent',
-                    parseFloat(event.target.value) || 0,
-                  )
-                }
-              />
-            </div>
-          </div>
-
-          <div className="rounded-[var(--radius-lg)] border border-slate-200 bg-white px-4 py-4">
-            <label className={labelCls}>Notes</label>
-            <textarea
-              className={`${textareaCls} h-32`}
-              value={input.notes}
-              onChange={(event) => updateField('notes', event.target.value)}
-            />
-          </div>
-        </div>
-      );
-
-    default:
-      return null;
-  }
-}
-
-function BoolField({
-  label,
-  path,
-  value,
-  updateField,
-  cls,
-  labelCls,
-}: {
-  label: string;
-  path: string;
-  value: boolean | null;
-  updateField: (path: string, value: unknown) => void;
-  cls: string;
-  labelCls: string;
-}) {
-  return (
-    <div>
-      <label className={labelCls}>{label}</label>
-      <select
-        className={cls}
-        value={value === null ? 'null' : String(value)}
-        onChange={(event) =>
-          updateField(
-            path,
-            event.target.value === 'null'
-              ? null
-              : event.target.value === 'true',
-          )
-        }
-      >
-        <option value="null">Unknown</option>
-        <option value="true">Yes</option>
-        <option value="false">No</option>
-      </select>
-    </div>
-  );
-}
+/* ─── Badges ─────────────────────────────────────────────────── */
 
 function PricingBadge({ source }: { source: string }) {
-  const colors: Record<string, string> = {
-    catalog_bulk:
-      'border-emerald-200 bg-emerald-50 text-emerald-700',
-    catalog_msrp:
-      'border-emerald-200 bg-emerald-50 text-emerald-700',
-    calculated: 'border-cyan-200 bg-cyan-50 text-cyan-700',
-    allowance: 'border-blue-200 bg-blue-50 text-blue-700',
-    industry_standard:
-      'border-amber-200 bg-amber-50 text-amber-700',
-    manual_override:
-      'border-violet-200 bg-violet-50 text-violet-700',
-    tbd: 'border-rose-200 bg-rose-50 text-rose-700',
+  const styles: Record<string, { bg: string; color: string }> = {
+    catalog_bulk: { bg: 'rgba(52,199,89,0.1)', color: 'var(--system-green)' },
+    catalog_msrp: { bg: 'rgba(52,199,89,0.1)', color: 'var(--system-green)' },
+    calculated: { bg: 'rgba(0,122,255,0.08)', color: 'var(--system-blue)' },
+    allowance: { bg: 'rgba(0,122,255,0.08)', color: 'var(--system-blue)' },
+    industry_standard: { bg: 'rgba(255,149,0,0.1)', color: 'var(--system-orange)' },
+    manual_override: { bg: 'rgba(175,82,222,0.1)', color: 'var(--system-purple)' },
+    sow_import: { bg: 'rgba(88,86,214,0.12)', color: '#4338ca' },
+    tbd: { bg: 'rgba(255,59,48,0.1)', color: 'var(--system-red)' },
   };
-
+  const s = styles[source] ?? { bg: 'rgba(0,0,0,0.04)', color: '#636366' };
   return (
-    <span
-      className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${colors[source] ?? 'border-slate-200 bg-slate-50 text-slate-600'}`}
-    >
+    <span className="inline-flex rounded-full px-2.5 py-1 text-[0.6875rem] font-medium" style={{ background: s.bg, color: s.color }}>
       {source.replace(/_/g, ' ')}
     </span>
   );
 }
 
 function ConfidenceDot({ level }: { level: string }) {
-  const color =
-    level === 'high'
-      ? 'bg-emerald-500'
-      : level === 'medium'
-        ? 'bg-amber-500'
-        : 'bg-rose-500';
-
-  return (
-    <span
-      className={`inline-block h-2.5 w-2.5 rounded-full ${color}`}
-      title={`Confidence: ${level}`}
-    />
-  );
+  const color = level === 'high' ? 'var(--system-green)' : level === 'medium' ? 'var(--system-orange)' : 'var(--system-red)';
+  return <span className="lg-dot" style={{ background: color }} title={`Confidence: ${level}`} />;
 }
 
 function SeverityBadge({ severity }: { severity: string }) {
-  const classes =
-    severity === 'critical'
-      ? 'border-rose-200 bg-rose-50 text-rose-700'
-      : severity === 'warning'
-        ? 'border-amber-200 bg-amber-50 text-amber-700'
-        : 'border-cyan-200 bg-cyan-50 text-cyan-700';
-
-  return (
-    <span
-      className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${classes}`}
-    >
-      {severity}
-    </span>
-  );
+  const map: Record<string, { bg: string; color: string }> = {
+    critical: { bg: 'rgba(255,59,48,0.1)', color: 'var(--system-red)' },
+    warning: { bg: 'rgba(255,149,0,0.1)', color: '#7a5a00' },
+    info: { bg: 'rgba(0,122,255,0.08)', color: 'var(--system-blue)' },
+  };
+  const s = map[severity] ?? map.info;
+  return <span className="inline-flex rounded-full px-2.5 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.04em]" style={{ background: s.bg, color: s.color }}>{severity}</span>;
 }
 
-function EstimateResults({
-  output,
-  expandedLines,
-  toggleLine,
-}: {
-  output: EstimateOutput;
-  expandedLines: Set<string>;
-  toggleLine: (id: string) => void;
-}) {
-  const { summary, metadata, lineItems, exclusions, manualReviewTriggers } =
-    output;
+/* ─── Estimate Results ───────────────────────────────────────── */
 
-  const grouped = lineItems.reduce<Record<string, EstimateLineItem[]>>(
-    (accumulator, lineItem) => {
-      if (!accumulator[lineItem.category]) accumulator[lineItem.category] = [];
-      accumulator[lineItem.category].push(lineItem);
-      return accumulator;
-    },
-    {},
-  );
+const CATEGORY_TO_TAB: Record<string, string> = {
+  'CHARGER': 'Charger', 'PEDESTAL': 'Charger', 'CIVIL': 'Civil',
+  'DES/ENG': 'Permit/Design', 'ELEC LBR': 'Electrical', 'ELEC MAT': 'Electrical',
+  'ELEC LBR MAT': 'Electrical', 'ELEC': 'Electrical', 'MATERIAL': 'Accessories',
+  'NETWORK': 'Network', 'PERMIT': 'Permit/Design', 'SAFETY': 'Parking',
+  'SITE_WORK': 'Civil', 'SOFTWARE': 'Controls', 'SERVICE_FEE': 'Controls',
+};
+
+function EstimateResults({ output, expandedLines, toggleLine, onShareInteractive, shareStatus, onDownloadPdfWithPreviews }: {
+  output: EstimateOutput; expandedLines: Set<string>; toggleLine: (id: string) => void;
+  onShareInteractive: () => void;
+  shareStatus: 'idle' | 'loading' | 'done' | 'error';
+  onDownloadPdfWithPreviews: () => void;
+}) {
+  const { summary, metadata, lineItems, exclusions, manualReviewTriggers } = output;
+  const byCategory = lineItems.reduce<Record<string, EstimateLineItem[]>>((acc, li) => ({
+    ...acc, [li.category]: [...(acc[li.category] ?? []), li],
+  }), {});
 
   return (
-    <div id="estimate-output" className="space-y-6">
-      <div className="lg-panel-heavy rounded-[var(--radius-lg)] p-6 text-slate-900 shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="lg-eyebrow">
-              <FileText className="h-4 w-4" />
-              Estimate Output
-            </p>
-            <h2 className="mt-3 text-3xl font-semibold">
-              {output.input.project.name || 'Untitled Project'}
-            </h2>
-            <p className="mt-2 text-sm text-slate-600">
-              {output.input.customer.companyName || 'No company name'} |{' '}
-              {output.input.site.address || 'No address'}
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              Generated {new Date(metadata.generatedAt).toLocaleString()} | Engine{' '}
-              {metadata.engineVersion}
-            </p>
-          </div>
+    <div id="estimate-output" className="space-y-4">
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              ['Input completeness', `${metadata.inputCompleteness}%`],
-              ['Confidence', metadata.automationConfidence.toUpperCase()],
-              ['Map-applied lines', String(metadata.mapAppliedLineItems)],
-              ['Total', fmt(summary.total)],
-            ].map(([label, value]) => (
-              <div
-                key={label}
-                className="rounded-[var(--radius-md)] border border-slate-200 bg-white px-4 py-3"
-              >
-                <p className="text-xs uppercase tracking-[0.16em] text-slate-500">
-                  {label}
-                </p>
-                <p className="mt-2 text-lg font-semibold text-slate-900">
-                  {value}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* Header */}
+      <div className="lg-panel-heavy p-5 sm:p-6" style={{ borderRadius: 'var(--radius-xl)' }}>
+        <h2 className="text-xl font-bold tracking-[-0.022em] text-gray-900 sm:text-2xl">{output.input.project.name || 'Untitled Project'}</h2>
+        <p className="mt-1 truncate text-[0.8125rem] text-gray-500">{output.input.customer.companyName} | {output.input.site.address}</p>
+        <p className="mt-1 text-[0.6875rem] text-gray-400">Generated {new Date(metadata.generatedAt).toLocaleString()} | Engine {metadata.engineVersion}</p>
 
-      {metadata.mapFeatureCount > 0 && (
-        <div className="rounded-[var(--radius-lg)] border border-cyan-200 bg-cyan-50 px-5 py-4 text-slate-900">
-          <p className="text-sm font-semibold">
-            {metadata.mapFeatureCount} mapped feature(s) were included in this
-            estimate, and {metadata.mapAppliedLineItems} line item(s) are
-            highlighted where map scope posted into the quote.
-          </p>
-        </div>
-      )}
-
-      {manualReviewTriggers.length > 0 && (
-        <div className="rounded-[var(--radius-lg)] border border-amber-200 bg-amber-50 p-6 print:border-gray-300 print:bg-gray-50">
-          <h3 className="text-lg font-semibold text-amber-900">
-            Manual Review Required ({manualReviewTriggers.length})
-          </h3>
-          <div className="mt-4 space-y-3">
-            {manualReviewTriggers.map((trigger: ManualReviewTrigger) => (
-              <div
-                key={trigger.id}
-                className="rounded-[var(--radius-md)] border border-amber-200 bg-white px-4 py-4"
-              >
-                <div className="flex flex-wrap items-center gap-3">
-                  <SeverityBadge severity={trigger.severity} />
-                  <span className="text-xs font-mono text-slate-500">
-                    {trigger.id}
-                  </span>
-                </div>
-                <p className="mt-3 text-sm font-medium text-slate-900">
-                  {trigger.message}
-                </p>
-                <p className="mt-1 text-xs text-slate-500">
-                  Field: {trigger.field} | Condition: {trigger.condition}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="lg-panel rounded-[var(--radius-lg)] p-6 shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
-        <h3 className="text-lg font-semibold text-slate-900">Cost Summary</h3>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-5 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-3">
           {[
-            ['Hardware', summary.hardwareTotal],
-            ['Installation', summary.installationTotal],
-            ['Permit / Design', summary.permitDesignTotal],
-            ['Network', summary.networkTotal],
-            ['Accessories', summary.accessoriesTotal],
-            ['Service / Software', summary.serviceTotal],
-          ].map(([label, value]) => (
-            <div
-              key={label}
-              className="rounded-[var(--radius-md)] border border-slate-200 bg-white px-4 py-3"
-            >
-              <p className="text-xs uppercase tracking-[0.16em] text-slate-500">
-                {label}
-              </p>
-              <p className="mt-2 text-lg font-semibold text-slate-900">
-                {fmt(value as number)}
-              </p>
+            { label: 'Completeness', value: `${metadata.inputCompleteness}%`, color: metadata.inputCompleteness >= 70 ? 'var(--system-green)' : metadata.inputCompleteness >= 40 ? 'var(--system-orange)' : 'var(--system-red)' },
+            { label: 'Confidence', value: metadata.automationConfidence.toUpperCase(), color: metadata.automationConfidence === 'high' ? 'var(--system-green)' : metadata.automationConfidence === 'medium' ? 'var(--system-orange)' : 'var(--system-red)' },
+            { label: 'Total', value: fmt(summary.total), color: '#1c1c1e' },
+          ].map((item) => (
+            <div key={item.label} className="px-3 py-2 sm:px-4" style={{ borderRadius: 'var(--radius-sm)', background: 'rgba(0,0,0,0.03)' }}>
+              <p className="text-[0.6875rem] text-gray-500">{item.label}</p>
+              <p className="text-base font-bold sm:text-lg" style={{ color: item.color }}>{item.value}</p>
             </div>
           ))}
         </div>
-        <div className="mt-4 space-y-2 border-t border-slate-200 pt-4 text-sm text-slate-600">
-          <div className="flex justify-between">
-            <span>
-              Subtotal (with {output.input.estimateControls.markupPercent}% markup)
-            </span>
-            <span className="font-medium text-slate-900">
-              {fmt(summary.subtotal)}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>Tax ({output.input.estimateControls.taxRate}%)</span>
-            <span className="font-medium text-slate-900">{fmt(summary.tax)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>
-              Contingency ({output.input.estimateControls.contingencyPercent}%)
-            </span>
-            <span className="font-medium text-slate-900">
-              {fmt(summary.contingency)}
-            </span>
-          </div>
-          <div className="flex justify-between border-t border-slate-200 pt-3 text-base font-semibold text-slate-900">
-            <span>Total</span>
-            <span>{fmt(summary.total)}</span>
-          </div>
+
+        <div className="mt-4 flex flex-col gap-2 print:hidden sm:flex-row sm:flex-wrap sm:gap-3">
+          <button onClick={() => exportEstimatePDF(output)} className="lg-pill lg-pill-active px-5 py-2.5 text-[0.8125rem] font-semibold" style={{ background: '#1c1c1e' }}>
+            Download PDF
+          </button>
+          <button
+            type="button"
+            onClick={() => void onDownloadPdfWithPreviews()}
+            className="lg-pill px-5 py-2.5 text-[0.8125rem] font-semibold text-gray-800"
+            style={{ background: 'rgba(0,0,0,0.06)' }}
+          >
+            PDF + site images
+          </button>
+          <button
+            type="button"
+            onClick={() => void onShareInteractive()}
+            disabled={shareStatus === 'loading'}
+            className="lg-pill px-5 py-2.5 text-[0.8125rem] font-semibold text-white disabled:opacity-50"
+            style={{ background: 'var(--system-blue)' }}
+          >
+            {shareStatus === 'loading' ? 'Creating link…' : 'Share interactive estimate'}
+          </button>
+          {shareStatus === 'done' && (
+            <span className="self-center text-[0.75rem] text-green-600">Link copied to clipboard</span>
+          )}
+          {shareStatus === 'error' && (
+            <span className="self-center text-[0.75rem] text-red-600">Could not create link</span>
+          )}
+          {MAP_WORKSPACE_ENABLED && (
+            <Link href="/estimate/map" className="lg-pill lg-pill-active px-5 py-2.5 text-center text-[0.8125rem] font-semibold">
+              Open Map Workspace
+            </Link>
+          )}
         </div>
       </div>
 
-      <div className="lg-panel rounded-[var(--radius-lg)] shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
-        <div className="border-b border-slate-200 px-6 py-4">
-          <h3 className="text-lg font-semibold text-slate-900">
-            Line Items ({lineItems.length})
-          </h3>
+      {/* Manual Review Triggers */}
+      {manualReviewTriggers.length > 0 && (
+        <div className="p-5 sm:p-6" style={{ borderRadius: 'var(--radius-lg)', background: 'rgba(255,149,0,0.06)', border: '0.5px solid rgba(255,149,0,0.15)' }}>
+          <h3 className="text-base font-semibold sm:text-lg" style={{ color: '#7a5a00' }}>Manual Review Required ({manualReviewTriggers.length})</h3>
+          <div className="mt-3 space-y-2">
+            {manualReviewTriggers.map((trigger: ManualReviewTrigger) => (
+              <div key={trigger.id} className="lg-card flex items-start gap-2 p-3 sm:gap-3 sm:p-4" style={{ borderRadius: 'var(--radius-md)' }}>
+                <SeverityBadge severity={trigger.severity} />
+                <div>
+                  <p className="text-[0.8125rem] font-medium text-gray-900">{trigger.message}</p>
+                  <p className="text-[0.6875rem] text-gray-500">Field: {trigger.field} | Condition: {trigger.condition}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase tracking-[0.16em] text-slate-500">
-              <tr>
-                <th className="px-4 py-3">ID</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Description</th>
-                <th className="px-4 py-3 text-right">Qty</th>
-                <th className="px-4 py-3">Unit</th>
-                <th className="px-4 py-3 text-right">Unit Price</th>
-                <th className="px-4 py-3 text-right">Ext. Price</th>
-                <th className="px-4 py-3">Source</th>
-                <th className="px-4 py-3 text-center">Conf.</th>
+      )}
+
+      {/* Cost Summary */}
+      <div className="lg-panel p-5 sm:p-6" style={{ borderRadius: 'var(--radius-lg)' }}>
+        <h3 className="text-base font-semibold text-gray-900 sm:text-lg">Cost Summary</h3>
+        <div className="mt-3 grid gap-2 grid-cols-2 sm:mt-4 sm:grid-cols-3">
+          {[
+            { label: 'Hardware', value: summary.hardwareTotal },
+            { label: 'Installation', value: summary.installationTotal },
+            { label: 'Permit/Design', value: summary.permitDesignTotal },
+            { label: 'Network', value: summary.networkTotal },
+            { label: 'Accessories', value: summary.accessoriesTotal },
+            { label: 'Service/Software', value: summary.serviceTotal },
+          ].map((item) => (
+            <div key={item.label} className="flex justify-between px-3.5 py-2" style={{ borderRadius: 'var(--radius-sm)', background: 'rgba(0,0,0,0.03)' }}>
+              <span className="text-[0.8125rem] text-gray-500">{item.label}</span>
+              <span className="text-[0.8125rem] font-medium text-gray-900">{fmt(item.value)}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 space-y-1 pt-4" style={{ borderTop: '0.5px solid rgba(0,0,0,0.06)' }}>
+          <div className="flex justify-between gap-2"><span className="text-[0.75rem] text-gray-500 sm:text-[0.8125rem]">Subtotal ({output.input.estimateControls.markupPercent}% markup)</span><span className="text-[0.75rem] font-medium sm:text-[0.8125rem]">{fmt(summary.subtotal)}</span></div>
+          <div className="flex justify-between gap-2"><span className="text-[0.75rem] text-gray-500 sm:text-[0.8125rem]">Tax ({output.input.estimateControls.taxRate}%)</span><span className="text-[0.75rem] font-medium sm:text-[0.8125rem]">{fmt(summary.tax)}</span></div>
+          <div className="flex justify-between gap-2"><span className="text-[0.75rem] text-gray-500 sm:text-[0.8125rem]">Contingency ({output.input.estimateControls.contingencyPercent}%)</span><span className="text-[0.75rem] font-medium sm:text-[0.8125rem]">{fmt(summary.contingency)}</span></div>
+          <div className="flex justify-between gap-2 pt-2" style={{ borderTop: '0.5px solid rgba(0,0,0,0.08)' }}><span className="text-[0.875rem] font-semibold text-gray-900 sm:text-base">Total</span><span className="text-[0.875rem] font-bold text-gray-900 sm:text-base">{fmt(summary.total)}</span></div>
+        </div>
+      </div>
+
+      {/* Line Items */}
+      <div className="lg-panel overflow-hidden" style={{ borderRadius: 'var(--radius-lg)' }}>
+        <div className="px-5 py-3.5 sm:px-6 sm:py-4" style={{ borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
+          <h3 className="text-base font-semibold text-gray-900 sm:text-lg">Line Items ({lineItems.length})</h3>
+        </div>
+        <div className="overflow-x-auto scrollbar-none">
+          <table className="w-full min-w-[600px] text-[0.8125rem] sm:min-w-0">
+            <thead style={{ background: 'rgba(0,0,0,0.02)' }}>
+              <tr className="text-left text-[0.6875rem] uppercase tracking-[0.04em] text-gray-400">
+                <th className="hidden px-4 py-3 sm:table-cell">ID</th>
+                <th className="hidden px-4 py-3 sm:table-cell">Category</th>
+                <th className="px-3 py-2.5 sm:px-4 sm:py-3">Description</th>
+                <th className="px-3 py-2.5 text-right sm:px-4 sm:py-3">Qty</th>
+                <th className="hidden px-4 py-3 sm:table-cell">Unit</th>
+                <th className="hidden px-4 py-3 text-right lg:table-cell">Unit Price</th>
+                <th className="px-3 py-2.5 text-right sm:px-4 sm:py-3">Ext. Price</th>
+                <th className="hidden px-4 py-3 md:table-cell">Source</th>
+                <th className="hidden px-4 py-3 text-center md:table-cell">Conf.</th>
               </tr>
             </thead>
             <tbody>
-              {Object.entries(grouped).map(([category, items]) => (
-                <CategoryGroup
-                  key={category}
-                  category={category}
-                  items={items}
-                  expandedLines={expandedLines}
-                  toggleLine={toggleLine}
-                />
+              {Object.entries(byCategory).map(([cat, items]) => (
+                <CategoryGroup key={cat} category={cat} items={items} expandedLines={expandedLines} toggleLine={toggleLine} />
               ))}
             </tbody>
           </table>
         </div>
       </div>
 
-      <div className="lg-panel rounded-[var(--radius-lg)] p-6 shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
-        <h3 className="text-lg font-semibold text-slate-900">
-          Exclusions ({exclusions.length})
-        </h3>
-        <ul className="mt-4 space-y-3">
-          {exclusions.map((exclusion) => (
-            <li
-              key={exclusion.id}
-              className="flex items-start gap-3 rounded-[var(--radius-md)] border border-slate-200 bg-white px-4 py-4 text-sm"
-            >
-              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium uppercase tracking-[0.16em] text-slate-600">
-                {exclusion.category}
-              </span>
-              <span className="text-slate-700">{exclusion.text}</span>
+      {/* Exclusions */}
+      <div className="lg-panel p-5 sm:p-6" style={{ borderRadius: 'var(--radius-lg)' }}>
+        <h3 className="text-base font-semibold text-gray-900 sm:text-lg">Exclusions ({exclusions.length})</h3>
+        <ul className="mt-3 space-y-2">
+          {exclusions.map((ex) => (
+            <li key={ex.id} className="flex items-start gap-2 text-[0.75rem] sm:text-[0.8125rem]">
+              <span className="mt-0.5 inline-flex rounded-full px-2 py-0.5 text-[0.6875rem] font-medium" style={{ background: 'rgba(0,0,0,0.04)', color: '#636366' }}>{ex.category}</span>
+              <span className="text-gray-600">{ex.text}</span>
             </li>
           ))}
         </ul>
@@ -1943,130 +803,76 @@ function EstimateResults({
   );
 }
 
-function CategoryGroup({
-  category,
-  items,
-  expandedLines,
-  toggleLine,
-}: {
-  category: string;
-  items: EstimateLineItem[];
-  expandedLines: Set<string>;
-  toggleLine: (id: string) => void;
+function CategoryGroup({ category, items, expandedLines, toggleLine }: {
+  category: string; items: EstimateLineItem[]; expandedLines: Set<string>; toggleLine: (id: string) => void;
 }) {
-  const categoryTotal = items.reduce((sum, item) => sum + item.extendedPrice, 0);
-
+  const catTotal = items.reduce((s, li) => s + li.extendedPrice, 0);
   return (
     <>
-      <tr className="bg-slate-100/80">
-        <td
-          colSpan={6}
-          className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
-        >
-          {category}
+      <tr style={{ background: 'rgba(0,0,0,0.03)' }}>
+        <td colSpan={9} className="px-3 py-2.5 sm:px-4">
+          <div className="flex items-center justify-between">
+            <span className="text-[0.6875rem] font-bold uppercase tracking-[0.04em] text-gray-500">{category}</span>
+            <span className="flex items-center">
+              <span className="text-[0.6875rem] font-bold text-gray-600">{fmt(catTotal)}</span>
+              <a
+                href={`/estimate?tab=${encodeURIComponent(CATEGORY_TO_TAB[category] ?? 'Project')}`}
+                className="ml-2 text-[0.6875rem] font-medium hover:underline"
+                style={{ color: 'var(--system-blue)' }}
+              >
+                Edit
+              </a>
+            </span>
+          </div>
         </td>
-        <td className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
-          {fmt(categoryTotal)}
-        </td>
-        <td colSpan={2} />
       </tr>
-      {items.map((item, index) => (
-        <LineItemRow
-          key={item.id}
-          item={item}
-          isOdd={index % 2 === 1}
-          expanded={expandedLines.has(item.id)}
-          onToggle={() => toggleLine(item.id)}
-        />
+      {items.map((li, idx) => (
+        <LineItemRow key={li.id} item={li} isOdd={idx % 2 === 1} expanded={expandedLines.has(li.id)} onToggle={() => toggleLine(li.id)} />
       ))}
     </>
   );
 }
 
-function LineItemRow({
-  item,
-  isOdd,
-  expanded,
-  onToggle,
-}: {
-  item: EstimateLineItem;
-  isOdd: boolean;
-  expanded: boolean;
-  onToggle: () => void;
+function LineItemRow({ item, isOdd, expanded, onToggle }: {
+  item: EstimateLineItem; isOdd: boolean; expanded: boolean; onToggle: () => void;
 }) {
   return (
     <>
       <tr
-        className={`cursor-pointer transition hover:bg-cyan-50 ${
-          isOdd ? 'bg-slate-50/80' : 'bg-white'
-        } ${
-          item.manualReviewRequired
-            ? 'border-l-4 border-l-amber-400'
-            : item.derivedFromMap
-              ? 'border-l-4 border-l-cyan-400'
-              : ''
-        }`}
+        className="cursor-pointer transition"
         onClick={onToggle}
+        style={{
+          background: isOdd ? 'rgba(0,0,0,0.015)' : 'transparent',
+          borderLeft: item.manualReviewRequired ? '3px solid var(--system-orange)' : 'none',
+        }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,122,255,0.04)'; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = isOdd ? 'rgba(0,0,0,0.015)' : 'transparent'; }}
       >
-        <td className="px-4 py-3 text-xs text-slate-400">{item.id}</td>
-        <td className="px-4 py-3 text-xs text-slate-500">{item.category}</td>
-        <td className="px-4 py-3 text-slate-900">
-          <div className="flex flex-wrap items-center gap-2">
-            <span>{item.description}</span>
-            {item.manualReviewRequired && (
-              <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-700">
-                Review
-              </span>
-            )}
-            {item.derivedFromMap && (
-              <span className="rounded-full bg-cyan-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-cyan-700">
-                Map Applied
-              </span>
-            )}
-          </div>
+        <td className="hidden px-4 py-2.5 text-[0.75rem] text-gray-400 sm:table-cell">{item.id}</td>
+        <td className="hidden px-4 py-2.5 text-[0.75rem] text-gray-400 sm:table-cell">{item.category}</td>
+        <td className="px-3 py-2.5 text-gray-900 sm:px-4">
+          <svg className={`inline-block h-3.5 w-3.5 mr-1.5 text-gray-400 transition-transform ${expanded ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="m9 5 7 7-7 7" /></svg>
+          {item.description}
+          {item.manualReviewRequired && (
+            <span className="ml-1 inline-flex rounded-full px-2 py-0.5 text-[0.6rem] font-semibold uppercase sm:ml-2" style={{ background: 'rgba(255,149,0,0.1)', color: 'var(--system-orange)' }}>review</span>
+          )}
         </td>
-        <td className="px-4 py-3 text-right">{item.quantity}</td>
-        <td className="px-4 py-3 text-xs text-slate-500">{item.unit}</td>
-        <td className="px-4 py-3 text-right">{fmt(item.unitPrice)}</td>
-        <td className="px-4 py-3 text-right font-medium">
-          {fmt(item.extendedPrice)}
-        </td>
-        <td className="px-4 py-3">
-          <PricingBadge source={item.pricingSource} />
-        </td>
-        <td className="px-4 py-3 text-center">
-          <ConfidenceDot level={item.confidence} />
-        </td>
+        <td className="px-3 py-2.5 text-right sm:px-4">{item.quantity}</td>
+        <td className="hidden px-4 py-2.5 text-[0.75rem] text-gray-400 sm:table-cell">{item.unit}</td>
+        <td className="hidden px-4 py-2.5 text-right lg:table-cell">{fmt(item.unitPrice)}</td>
+        <td className="px-3 py-2.5 text-right font-medium sm:px-4">{fmt(item.extendedPrice)}</td>
+        <td className="hidden px-4 py-2.5 md:table-cell"><PricingBadge source={item.pricingSource} /></td>
+        <td className="hidden px-4 py-2.5 text-center md:table-cell"><ConfidenceDot level={item.confidence} /></td>
       </tr>
       {expanded && (
-        <tr className="bg-cyan-50/70">
-          <td colSpan={9} className="px-6 py-4">
-            <div className="space-y-2 text-sm text-slate-700">
-              <p>
-                <span className="font-semibold text-slate-900">Rule:</span>{' '}
-                <span className="font-mono text-xs text-slate-500">
-                  {item.ruleName}
-                </span>
-              </p>
-              <p>
-                <span className="font-semibold text-slate-900">Why this line?</span>{' '}
-                {item.ruleReason}
-              </p>
-              <p>
-                <span className="font-semibold text-slate-900">Source inputs:</span>{' '}
-                {item.sourceInputs.join(', ')}
-              </p>
-              {item.mapFeatureTypes && item.mapFeatureTypes.length > 0 && (
-                <p>
-                  <span className="font-semibold text-slate-900">Map feature types:</span>{' '}
-                  {item.mapFeatureTypes.join(', ')}
-                </p>
-              )}
+        <tr style={{ background: 'rgba(0,122,255,0.03)' }}>
+          <td colSpan={9} className="px-4 py-3.5 sm:px-6 sm:py-4">
+            <div className="space-y-1.5 text-[0.75rem] sm:space-y-2 sm:text-[0.8125rem]">
+              <p><span className="font-medium text-gray-700">Rule:</span> <span className="font-mono text-[0.6875rem] text-gray-400">{item.ruleName}</span></p>
+              <p><span className="font-medium text-gray-700">Why this line?</span> {item.ruleReason}</p>
+              <p><span className="font-medium text-gray-700">Source Inputs:</span> {item.sourceInputs.join(', ')}</p>
               {item.manualReviewReason && (
-                <p className="text-amber-700">
-                  <span className="font-semibold">Review reason:</span>{' '}
-                  {item.manualReviewReason}
-                </p>
+                <p style={{ color: 'var(--system-orange)' }}><span className="font-medium">Review Reason:</span> {item.manualReviewReason}</p>
               )}
             </div>
           </td>

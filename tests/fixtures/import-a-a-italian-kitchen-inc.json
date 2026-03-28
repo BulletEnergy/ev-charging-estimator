@@ -1,0 +1,378 @@
+{
+  "proposalName": "A & A Italian Kitchen Inc. (tabular import)",
+  "sourceFile": "A & A Italian Kitchen Inc..xlsx",
+  "totalFromProposal": 39950,
+  "estimateInput": {
+    "project": {
+      "name": "A & A Italian Kitchen Inc.",
+      "salesRep": "",
+      "projectType": "full_turnkey",
+      "timeline": "",
+      "isNewConstruction": false
+    },
+    "customer": {
+      "companyName": "A & A Italian Kitchen Inc.",
+      "contactName": "",
+      "contactEmail": "",
+      "contactPhone": "",
+      "billingAddress": ""
+    },
+    "site": {
+      "address": "",
+      "siteType": "office",
+      "state": "TX"
+    },
+    "parkingEnvironment": {
+      "type": "surface_lot",
+      "hasPTSlab": null,
+      "slabScanRequired": null,
+      "coringRequired": null,
+      "surfaceType": "concrete",
+      "trenchingRequired": true,
+      "boringRequired": false,
+      "trafficControlRequired": false,
+      "indoorOutdoor": "outdoor",
+      "fireRatedPenetrations": null,
+      "accessRestrictions": ""
+    },
+    "charger": {
+      "brand": "Tesla",
+      "model": "Universal Wall Connector Gen 3",
+      "count": 2,
+      "pedestalCount": 1,
+      "portType": "dual",
+      "mountType": "pedestal",
+      "isCustomerSupplied": false,
+      "chargingLevel": "l2",
+      "ampsPerCharger": null,
+      "volts": null
+    },
+    "electrical": {
+      "serviceType": "208v",
+      "availableCapacityKnown": false,
+      "availableAmps": null,
+      "breakerSpaceAvailable": null,
+      "panelUpgradeRequired": false,
+      "transformerRequired": false,
+      "switchgearRequired": false,
+      "distanceToPanel_ft": 100,
+      "utilityCoordinationRequired": false,
+      "meterRoomRequired": null,
+      "junctionBoxCount": null,
+      "disconnectRequired": null,
+      "electricalRoomDescription": "",
+      "pvcConduit4in_ft": null,
+      "pvcConduit3in_ft": null,
+      "pvcConduit1in_ft": null,
+      "wire500mcm_ft": null
+    },
+    "civil": {
+      "installationLocationDescription": "Imported tabular proposal fixture",
+      "trenchDistance_ft": null,
+      "asphaltRemoval_sf": null,
+      "asphaltRestore_sf": null,
+      "encasement_CY": null,
+      "postFoundation_CY": null,
+      "cabinetPad_CY": null,
+      "groundPrepCabinet": null
+    },
+    "permit": {
+      "responsibility": "bullet",
+      "feeAllowance": 0
+    },
+    "designEngineering": {
+      "responsibility": "bullet",
+      "stampedPlansRequired": false
+    },
+    "network": {
+      "type": "none",
+      "wifiInstallResponsibility": "na"
+    },
+    "accessories": {
+      "bollardQty": 0,
+      "signQty": 0,
+      "wheelStopQty": 0,
+      "stripingRequired": false,
+      "padRequired": false,
+      "debrisRemoval": false
+    },
+    "makeReady": {
+      "responsibility": "bullet"
+    },
+    "chargerInstall": {
+      "responsibility": "bullet"
+    },
+    "purchasingChargers": {
+      "responsibility": "bullet"
+    },
+    "signageBollards": {
+      "responsibility": "signage"
+    },
+    "estimateControls": {
+      "pricingTier": "msrp",
+      "taxRate": 0,
+      "contingencyPercent": 0,
+      "markupPercent": 0
+    },
+    "notes": "",
+    "mapWorkspace": {
+      "conduitDistance_ft": null,
+      "feederDistance_ft": null,
+      "trenchingDistance_ft": null,
+      "boringDistance_ft": null,
+      "concreteCuttingDistance_ft": null,
+      "chargerCountFromMap": null,
+      "siteCoordinates": null,
+      "pvcConduitDistance_ft": null,
+      "cableTrayDistance_ft": null,
+      "concretePadCount": null,
+      "hasPanelPlaced": null,
+      "lightingCount": null,
+      "drawings": null
+    },
+    "rawLineItems": [
+      {
+        "description": "Tesla Universal Wall Connector (Gen 3) – Model 1734412‑02",
+        "quantity": 4,
+        "unit": "EA",
+        "unitPrice": 750,
+        "amount": 3000,
+        "category": "CHARGER"
+      },
+      {
+        "description": "Tesla Wall Connector Pedestal (Includes Mounting Kit)",
+        "quantity": 2,
+        "unit": "EA",
+        "unitPrice": 550,
+        "amount": 1100,
+        "category": "PEDESTAL"
+      },
+      {
+        "description": "Site Visit",
+        "quantity": 1,
+        "unit": "EA",
+        "unitPrice": 1000,
+        "amount": 1000,
+        "category": "DESIGN/ENGINEERING"
+      },
+      {
+        "description": "Base Design/Eng-3-4 sheet, site plan, riser, 1-line, CD50-CD100",
+        "quantity": 1,
+        "unit": "EA",
+        "unitPrice": 4250,
+        "amount": 4250,
+        "category": "DESIGN/ENGINEERING"
+      },
+      {
+        "description": "Load Study/Load Calcs",
+        "quantity": 1,
+        "unit": "EA",
+        "unitPrice": 1050,
+        "amount": 1050,
+        "category": "DESIGN/ENGINEERING"
+      },
+      {
+        "description": "Permit Fees- Cost + 10%",
+        "quantity": 1,
+        "unit": "EA",
+        "unitPrice": 0,
+        "amount": 0,
+        "category": "DESIGN/ENGINEERING"
+      },
+      {
+        "description": "Trenching (No Conduit)-Up to 36\" W and no more than 4' D",
+        "quantity": 100,
+        "unit": "EA",
+        "unitPrice": 45,
+        "amount": 4500,
+        "category": "TRENCHING"
+      },
+      {
+        "description": "Concrete Pads for Pedestals",
+        "quantity": 2,
+        "unit": "EA",
+        "unitPrice": 600,
+        "amount": 1200,
+        "category": "CIVIL"
+      },
+      {
+        "description": "Furnish & Install EMT Conduit-Up to 2\" w/ up to #4 Conductors",
+        "quantity": 230,
+        "unit": "EA",
+        "unitPrice": 32,
+        "amount": 7360,
+        "category": "ELECTRICAL"
+      },
+      {
+        "description": "Furnish & Install PVC Schedule 40-Up to 2\" w/ #4 Conductors",
+        "quantity": 100,
+        "unit": "EA",
+        "unitPrice": 20,
+        "amount": 2000,
+        "category": "ELECTRICAL"
+      },
+      {
+        "description": "Installation & Commissioning Of Pedestal-Mounted Charger - Dual Port",
+        "quantity": 2,
+        "unit": "EA",
+        "unitPrice": 1850,
+        "amount": 3700,
+        "category": "ELECTRICAL"
+      },
+      {
+        "description": "Concrete Removal",
+        "quantity": 4,
+        "unit": "EA",
+        "unitPrice": 725,
+        "amount": 2900,
+        "category": "CIVIL"
+      },
+      {
+        "description": "Concrete Restoration",
+        "quantity": 4,
+        "unit": "EA",
+        "unitPrice": 600,
+        "amount": 2400,
+        "category": "CIVIL"
+      },
+      {
+        "description": "Construction Fence",
+        "quantity": 130,
+        "unit": "EA",
+        "unitPrice": 13,
+        "amount": 1690,
+        "category": "OTHER"
+      },
+      {
+        "description": "Install Signage and Stencils",
+        "quantity": 4,
+        "unit": "EA",
+        "unitPrice": 400,
+        "amount": 1600,
+        "category": "EQUIPMENT"
+      },
+      {
+        "description": "Install Provided Bolt-Down Bollard",
+        "quantity": 4,
+        "unit": "EA",
+        "unitPrice": 550,
+        "amount": 2200,
+        "category": "EQUIPMENT"
+      }
+    ]
+  },
+  "expectedLineItems": [
+    {
+      "category": "CHARGER",
+      "description": "Tesla Universal Wall Connector (Gen 3) – Model 1734412‑02",
+      "qty": 4,
+      "unitPrice": 750,
+      "amount": 3000
+    },
+    {
+      "category": "PEDESTAL",
+      "description": "Tesla Wall Connector Pedestal (Includes Mounting Kit)",
+      "qty": 2,
+      "unitPrice": 550,
+      "amount": 1100
+    },
+    {
+      "category": "DESIGN/ENGINEERING",
+      "description": "Site Visit",
+      "qty": 1,
+      "unitPrice": 1000,
+      "amount": 1000
+    },
+    {
+      "category": "DESIGN/ENGINEERING",
+      "description": "Base Design/Eng-3-4 sheet, site plan, riser, 1-line, CD50-CD100",
+      "qty": 1,
+      "unitPrice": 4250,
+      "amount": 4250
+    },
+    {
+      "category": "DESIGN/ENGINEERING",
+      "description": "Load Study/Load Calcs",
+      "qty": 1,
+      "unitPrice": 1050,
+      "amount": 1050
+    },
+    {
+      "category": "DESIGN/ENGINEERING",
+      "description": "Permit Fees- Cost + 10%",
+      "qty": 1,
+      "unitPrice": 0,
+      "amount": 0
+    },
+    {
+      "category": "TRENCHING",
+      "description": "Trenching (No Conduit)-Up to 36\" W and no more than 4' D",
+      "qty": 100,
+      "unitPrice": 45,
+      "amount": 4500
+    },
+    {
+      "category": "CIVIL",
+      "description": "Concrete Pads for Pedestals",
+      "qty": 2,
+      "unitPrice": 600,
+      "amount": 1200
+    },
+    {
+      "category": "ELECTRICAL",
+      "description": "Furnish & Install EMT Conduit-Up to 2\" w/ up to #4 Conductors",
+      "qty": 230,
+      "unitPrice": 32,
+      "amount": 7360
+    },
+    {
+      "category": "ELECTRICAL",
+      "description": "Furnish & Install PVC Schedule 40-Up to 2\" w/ #4 Conductors",
+      "qty": 100,
+      "unitPrice": 20,
+      "amount": 2000
+    },
+    {
+      "category": "ELECTRICAL",
+      "description": "Installation & Commissioning Of Pedestal-Mounted Charger - Dual Port",
+      "qty": 2,
+      "unitPrice": 1850,
+      "amount": 3700
+    },
+    {
+      "category": "CIVIL",
+      "description": "Concrete Removal",
+      "qty": 4,
+      "unitPrice": 725,
+      "amount": 2900
+    },
+    {
+      "category": "CIVIL",
+      "description": "Concrete Restoration",
+      "qty": 4,
+      "unitPrice": 600,
+      "amount": 2400
+    },
+    {
+      "category": "OTHER",
+      "description": "Construction Fence",
+      "qty": 130,
+      "unitPrice": 13,
+      "amount": 1690
+    },
+    {
+      "category": "EQUIPMENT",
+      "description": "Install Signage and Stencils",
+      "qty": 4,
+      "unitPrice": 400,
+      "amount": 1600
+    },
+    {
+      "category": "EQUIPMENT",
+      "description": "Install Provided Bolt-Down Bollard",
+      "qty": 4,
+      "unitPrice": 550,
+      "amount": 2200
+    }
+  ]
+}

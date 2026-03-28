@@ -25,8 +25,6 @@ function ensureDefaults(body: Record<string, unknown>): EstimateInput {
       address: input.site?.address ?? '',
       siteType: input.site?.siteType ?? null,
       state: input.site?.state ?? '',
-      location: input.site?.location ?? null,
-      mapPlan: input.site?.mapPlan ?? null,
     },
     parkingEnvironment: {
       type: input.parkingEnvironment?.type ?? null,
@@ -63,10 +61,24 @@ function ensureDefaults(body: Record<string, unknown>): EstimateInput {
       switchgearRequired: input.electrical?.switchgearRequired ?? null,
       distanceToPanel_ft: input.electrical?.distanceToPanel_ft ?? null,
       utilityCoordinationRequired: input.electrical?.utilityCoordinationRequired ?? null,
+      meterRoomRequired: input.electrical?.meterRoomRequired ?? null,
+      junctionBoxCount: input.electrical?.junctionBoxCount ?? null,
+      disconnectRequired: input.electrical?.disconnectRequired ?? null,
       electricalRoomDescription: input.electrical?.electricalRoomDescription ?? '',
+      pvcConduit4in_ft: input.electrical?.pvcConduit4in_ft ?? null,
+      pvcConduit3in_ft: input.electrical?.pvcConduit3in_ft ?? null,
+      pvcConduit1in_ft: input.electrical?.pvcConduit1in_ft ?? null,
+      wire500mcm_ft: input.electrical?.wire500mcm_ft ?? null,
     },
     civil: {
       installationLocationDescription: input.civil?.installationLocationDescription ?? '',
+      trenchDistance_ft: input.civil?.trenchDistance_ft ?? null,
+      asphaltRemoval_sf: input.civil?.asphaltRemoval_sf ?? null,
+      asphaltRestore_sf: input.civil?.asphaltRestore_sf ?? null,
+      encasement_CY: input.civil?.encasement_CY ?? null,
+      postFoundation_CY: input.civil?.postFoundation_CY ?? null,
+      cabinetPad_CY: input.civil?.cabinetPad_CY ?? null,
+      groundPrepCabinet: input.civil?.groundPrepCabinet ?? null,
     },
     permit: {
       responsibility: input.permit?.responsibility ?? null,
@@ -108,6 +120,8 @@ function ensureDefaults(body: Record<string, unknown>): EstimateInput {
     },
     notes: input.notes ?? '',
     removeReplace: input.removeReplace,
+    mapWorkspace: input.mapWorkspace,
+    rawLineItems: input.rawLineItems,
   };
 }
 
@@ -126,9 +140,9 @@ export async function POST(request: Request) {
     const output = generateEstimate(input);
     return NextResponse.json(output);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
+    console.error('Generate estimate error:', err);
     return NextResponse.json(
-      { error: `Failed to generate estimate: ${message}` },
+      { error: 'Estimate generation failed. Please try again.' },
       { status: 500 },
     );
   }

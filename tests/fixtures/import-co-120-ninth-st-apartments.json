@@ -1,0 +1,198 @@
+{
+  "proposalName": "(CO) 120 Ninth St Apartments (tabular import)",
+  "sourceFile": "(CO) 120 Ninth St Apartments.xlsx",
+  "totalFromProposal": 45500,
+  "estimateInput": {
+    "project": {
+      "name": "(CO) 120 Ninth St Apartments",
+      "salesRep": "",
+      "projectType": "full_turnkey",
+      "timeline": "",
+      "isNewConstruction": false
+    },
+    "customer": {
+      "companyName": "(CO) 120 Ninth St Apartments",
+      "contactName": "",
+      "contactEmail": "",
+      "contactPhone": "",
+      "billingAddress": ""
+    },
+    "site": {
+      "address": "",
+      "siteType": "office",
+      "state": "TX"
+    },
+    "parkingEnvironment": {
+      "type": "surface_lot",
+      "hasPTSlab": null,
+      "slabScanRequired": null,
+      "coringRequired": null,
+      "surfaceType": "concrete",
+      "trenchingRequired": true,
+      "boringRequired": false,
+      "trafficControlRequired": false,
+      "indoorOutdoor": "outdoor",
+      "fireRatedPenetrations": null,
+      "accessRestrictions": ""
+    },
+    "charger": {
+      "brand": "Tesla",
+      "model": "Universal Wall Connector Gen 3",
+      "count": 2,
+      "pedestalCount": 1,
+      "portType": "dual",
+      "mountType": "pedestal",
+      "isCustomerSupplied": false,
+      "chargingLevel": "l2",
+      "ampsPerCharger": null,
+      "volts": null
+    },
+    "electrical": {
+      "serviceType": "208v",
+      "availableCapacityKnown": false,
+      "availableAmps": null,
+      "breakerSpaceAvailable": null,
+      "panelUpgradeRequired": false,
+      "transformerRequired": false,
+      "switchgearRequired": false,
+      "distanceToPanel_ft": 100,
+      "utilityCoordinationRequired": false,
+      "meterRoomRequired": null,
+      "junctionBoxCount": null,
+      "disconnectRequired": null,
+      "electricalRoomDescription": "",
+      "pvcConduit4in_ft": null,
+      "pvcConduit3in_ft": null,
+      "pvcConduit1in_ft": null,
+      "wire500mcm_ft": null
+    },
+    "civil": {
+      "installationLocationDescription": "Imported tabular proposal fixture",
+      "trenchDistance_ft": null,
+      "asphaltRemoval_sf": null,
+      "asphaltRestore_sf": null,
+      "encasement_CY": null,
+      "postFoundation_CY": null,
+      "cabinetPad_CY": null,
+      "groundPrepCabinet": null
+    },
+    "permit": {
+      "responsibility": "bullet",
+      "feeAllowance": 0
+    },
+    "designEngineering": {
+      "responsibility": "bullet",
+      "stampedPlansRequired": false
+    },
+    "network": {
+      "type": "none",
+      "wifiInstallResponsibility": "na"
+    },
+    "accessories": {
+      "bollardQty": 0,
+      "signQty": 0,
+      "wheelStopQty": 0,
+      "stripingRequired": false,
+      "padRequired": false,
+      "debrisRemoval": false
+    },
+    "makeReady": {
+      "responsibility": "bullet"
+    },
+    "chargerInstall": {
+      "responsibility": "bullet"
+    },
+    "purchasingChargers": {
+      "responsibility": "bullet"
+    },
+    "signageBollards": {
+      "responsibility": "signage"
+    },
+    "estimateControls": {
+      "pricingTier": "msrp",
+      "taxRate": 0,
+      "contingencyPercent": 0,
+      "markupPercent": 0
+    },
+    "notes": "",
+    "mapWorkspace": {
+      "conduitDistance_ft": null,
+      "feederDistance_ft": null,
+      "trenchingDistance_ft": null,
+      "boringDistance_ft": null,
+      "concreteCuttingDistance_ft": null,
+      "chargerCountFromMap": null,
+      "siteCoordinates": null,
+      "pvcConduitDistance_ft": null,
+      "cableTrayDistance_ft": null,
+      "concretePadCount": null,
+      "hasPanelPlaced": null,
+      "lightingCount": null,
+      "drawings": null
+    },
+    "rawLineItems": [
+      {
+        "description": "As Builts (reverse engineer the existing system)",
+        "quantity": 1,
+        "unit": "EA",
+        "unitPrice": 8000,
+        "amount": 8000,
+        "category": "DESIGN/ENGINEERING"
+      },
+      {
+        "description": "Transformer Upgrade (including new pad if necessary)",
+        "quantity": 1,
+        "unit": "EA",
+        "unitPrice": 22000,
+        "amount": 22000,
+        "category": "ELECTRICAL"
+      },
+      {
+        "description": "Panel Upgrade for New System (including breakers)",
+        "quantity": 1,
+        "unit": "EA",
+        "unitPrice": 12000,
+        "amount": 12000,
+        "category": "ELECTRICAL"
+      },
+      {
+        "description": "Permitting & Inspections",
+        "quantity": 1,
+        "unit": "EA",
+        "unitPrice": 3500,
+        "amount": 3500,
+        "category": "DESIGN/ENGINEERING"
+      }
+    ]
+  },
+  "expectedLineItems": [
+    {
+      "category": "DESIGN/ENGINEERING",
+      "description": "As Builts (reverse engineer the existing system)",
+      "qty": 1,
+      "unitPrice": 8000,
+      "amount": 8000
+    },
+    {
+      "category": "ELECTRICAL",
+      "description": "Transformer Upgrade (including new pad if necessary)",
+      "qty": 1,
+      "unitPrice": 22000,
+      "amount": 22000
+    },
+    {
+      "category": "ELECTRICAL",
+      "description": "Panel Upgrade for New System (including breakers)",
+      "qty": 1,
+      "unitPrice": 12000,
+      "amount": 12000
+    },
+    {
+      "category": "DESIGN/ENGINEERING",
+      "description": "Permitting & Inspections",
+      "qty": 1,
+      "unitPrice": 3500,
+      "amount": 3500
+    }
+  ]
+}

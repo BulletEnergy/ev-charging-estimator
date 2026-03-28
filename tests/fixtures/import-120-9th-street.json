@@ -1,0 +1,318 @@
+{
+  "proposalName": "120 9th Street (tabular import)",
+  "sourceFile": "120 9th Street.xlsx",
+  "totalFromProposal": 25290,
+  "estimateInput": {
+    "project": {
+      "name": "120 9th Street",
+      "salesRep": "",
+      "projectType": "full_turnkey",
+      "timeline": "",
+      "isNewConstruction": false
+    },
+    "customer": {
+      "companyName": "120 9th Street",
+      "contactName": "",
+      "contactEmail": "",
+      "contactPhone": "",
+      "billingAddress": ""
+    },
+    "site": {
+      "address": "",
+      "siteType": "office",
+      "state": "TX"
+    },
+    "parkingEnvironment": {
+      "type": "surface_lot",
+      "hasPTSlab": null,
+      "slabScanRequired": null,
+      "coringRequired": null,
+      "surfaceType": "concrete",
+      "trenchingRequired": true,
+      "boringRequired": false,
+      "trafficControlRequired": false,
+      "indoorOutdoor": "outdoor",
+      "fireRatedPenetrations": null,
+      "accessRestrictions": ""
+    },
+    "charger": {
+      "brand": "Tesla",
+      "model": "Universal Wall Connector Gen 3",
+      "count": 2,
+      "pedestalCount": 1,
+      "portType": "dual",
+      "mountType": "pedestal",
+      "isCustomerSupplied": false,
+      "chargingLevel": "l2",
+      "ampsPerCharger": null,
+      "volts": null
+    },
+    "electrical": {
+      "serviceType": "208v",
+      "availableCapacityKnown": false,
+      "availableAmps": null,
+      "breakerSpaceAvailable": null,
+      "panelUpgradeRequired": false,
+      "transformerRequired": false,
+      "switchgearRequired": false,
+      "distanceToPanel_ft": 100,
+      "utilityCoordinationRequired": false,
+      "meterRoomRequired": null,
+      "junctionBoxCount": null,
+      "disconnectRequired": null,
+      "electricalRoomDescription": "",
+      "pvcConduit4in_ft": null,
+      "pvcConduit3in_ft": null,
+      "pvcConduit1in_ft": null,
+      "wire500mcm_ft": null
+    },
+    "civil": {
+      "installationLocationDescription": "Imported tabular proposal fixture",
+      "trenchDistance_ft": null,
+      "asphaltRemoval_sf": null,
+      "asphaltRestore_sf": null,
+      "encasement_CY": null,
+      "postFoundation_CY": null,
+      "cabinetPad_CY": null,
+      "groundPrepCabinet": null
+    },
+    "permit": {
+      "responsibility": "bullet",
+      "feeAllowance": 0
+    },
+    "designEngineering": {
+      "responsibility": "bullet",
+      "stampedPlansRequired": false
+    },
+    "network": {
+      "type": "none",
+      "wifiInstallResponsibility": "na"
+    },
+    "accessories": {
+      "bollardQty": 0,
+      "signQty": 0,
+      "wheelStopQty": 0,
+      "stripingRequired": false,
+      "padRequired": false,
+      "debrisRemoval": false
+    },
+    "makeReady": {
+      "responsibility": "bullet"
+    },
+    "chargerInstall": {
+      "responsibility": "bullet"
+    },
+    "purchasingChargers": {
+      "responsibility": "bullet"
+    },
+    "signageBollards": {
+      "responsibility": "signage"
+    },
+    "estimateControls": {
+      "pricingTier": "msrp",
+      "taxRate": 0,
+      "contingencyPercent": 0,
+      "markupPercent": 0
+    },
+    "notes": "",
+    "mapWorkspace": {
+      "conduitDistance_ft": null,
+      "feederDistance_ft": null,
+      "trenchingDistance_ft": null,
+      "boringDistance_ft": null,
+      "concreteCuttingDistance_ft": null,
+      "chargerCountFromMap": null,
+      "siteCoordinates": null,
+      "pvcConduitDistance_ft": null,
+      "cableTrayDistance_ft": null,
+      "concretePadCount": null,
+      "hasPanelPlaced": null,
+      "lightingCount": null,
+      "drawings": null
+    },
+    "rawLineItems": [
+      {
+        "description": "Base Design/Eng-3-4 sheet, site plan, riser, 1-line, CD50-CD100",
+        "quantity": 1,
+        "unit": "EA",
+        "unitPrice": 4250,
+        "amount": 4250,
+        "category": "DESIGN/ENGINEERING"
+      },
+      {
+        "description": "Load Study/Load Calcs",
+        "quantity": 1,
+        "unit": "EA",
+        "unitPrice": 1050,
+        "amount": 1050,
+        "category": "DESIGN/ENGINEERING"
+      },
+      {
+        "description": "Permit Coordination and Filing-Up to 2 visits in person",
+        "quantity": 1,
+        "unit": "EA",
+        "unitPrice": 950,
+        "amount": 950,
+        "category": "DESIGN/ENGINEERING"
+      },
+      {
+        "description": "Permit Fees- Cost + 10%",
+        "quantity": 1,
+        "unit": "EA",
+        "unitPrice": 0,
+        "amount": 0,
+        "category": "DESIGN/ENGINEERING"
+      },
+      {
+        "description": "Core Drilling >6\" concrete/CMU",
+        "quantity": 1,
+        "unit": "EA",
+        "unitPrice": 800,
+        "amount": 800,
+        "category": "CIVIL"
+      },
+      {
+        "description": "Scan/X-ray-Wall/Floor",
+        "quantity": 1,
+        "unit": "EA",
+        "unitPrice": 600,
+        "amount": 600,
+        "category": "CIVIL"
+      },
+      {
+        "description": "Install Striping-Per stall",
+        "quantity": 4,
+        "unit": "EA",
+        "unitPrice": 220,
+        "amount": 880,
+        "category": "EQUIPMENT"
+      },
+      {
+        "description": "Install Signage and Stencils",
+        "quantity": 4,
+        "unit": "EA",
+        "unitPrice": 400,
+        "amount": 1600,
+        "category": "EQUIPMENT"
+      },
+      {
+        "description": "Misc. Mounting Hardware & BOS (Materials Only)",
+        "quantity": 8,
+        "unit": "EA",
+        "unitPrice": 165,
+        "amount": 1320,
+        "category": "EQUIPMENT"
+      },
+      {
+        "description": "Furnish & Install EMT Conduit-Up to 2\" w/ up to #4 Conductors",
+        "quantity": 170,
+        "unit": "EA",
+        "unitPrice": 32,
+        "amount": 5440,
+        "category": "ELECTRICAL"
+      },
+      {
+        "description": "Installation & Commissioning Of Wall-Mounted Charger - Single Port",
+        "quantity": 8,
+        "unit": "EA",
+        "unitPrice": 850,
+        "amount": 6800,
+        "category": "ELECTRICAL"
+      },
+      {
+        "description": "Removal And Disposal Of Existing Ev Charger",
+        "quantity": 4,
+        "unit": "EA",
+        "unitPrice": 400,
+        "amount": 1600,
+        "category": "ELECTRICAL"
+      }
+    ]
+  },
+  "expectedLineItems": [
+    {
+      "category": "DESIGN/ENGINEERING",
+      "description": "Base Design/Eng-3-4 sheet, site plan, riser, 1-line, CD50-CD100",
+      "qty": 1,
+      "unitPrice": 4250,
+      "amount": 4250
+    },
+    {
+      "category": "DESIGN/ENGINEERING",
+      "description": "Load Study/Load Calcs",
+      "qty": 1,
+      "unitPrice": 1050,
+      "amount": 1050
+    },
+    {
+      "category": "DESIGN/ENGINEERING",
+      "description": "Permit Coordination and Filing-Up to 2 visits in person",
+      "qty": 1,
+      "unitPrice": 950,
+      "amount": 950
+    },
+    {
+      "category": "DESIGN/ENGINEERING",
+      "description": "Permit Fees- Cost + 10%",
+      "qty": 1,
+      "unitPrice": 0,
+      "amount": 0
+    },
+    {
+      "category": "CIVIL",
+      "description": "Core Drilling >6\" concrete/CMU",
+      "qty": 1,
+      "unitPrice": 800,
+      "amount": 800
+    },
+    {
+      "category": "CIVIL",
+      "description": "Scan/X-ray-Wall/Floor",
+      "qty": 1,
+      "unitPrice": 600,
+      "amount": 600
+    },
+    {
+      "category": "EQUIPMENT",
+      "description": "Install Striping-Per stall",
+      "qty": 4,
+      "unitPrice": 220,
+      "amount": 880
+    },
+    {
+      "category": "EQUIPMENT",
+      "description": "Install Signage and Stencils",
+      "qty": 4,
+      "unitPrice": 400,
+      "amount": 1600
+    },
+    {
+      "category": "EQUIPMENT",
+      "description": "Misc. Mounting Hardware & BOS (Materials Only)",
+      "qty": 8,
+      "unitPrice": 165,
+      "amount": 1320
+    },
+    {
+      "category": "ELECTRICAL",
+      "description": "Furnish & Install EMT Conduit-Up to 2\" w/ up to #4 Conductors",
+      "qty": 170,
+      "unitPrice": 32,
+      "amount": 5440
+    },
+    {
+      "category": "ELECTRICAL",
+      "description": "Installation & Commissioning Of Wall-Mounted Charger - Single Port",
+      "qty": 8,
+      "unitPrice": 850,
+      "amount": 6800
+    },
+    {
+      "category": "ELECTRICAL",
+      "description": "Removal And Disposal Of Existing Ev Charger",
+      "qty": 4,
+      "unitPrice": 400,
+      "amount": 1600
+    }
+  ]
+}

@@ -1,0 +1,1742 @@
+{
+  "version": "2026-03-25",
+  "source": "89 real BulletEV proposals",
+  "items": [
+    {
+      "description": "Misc. Mounting Hardware & BOS (Materials Only)",
+      "category": "EQUIPMENT",
+      "basePrice": 165,
+      "observedPrices": {
+        "min": 50,
+        "max": 430,
+        "median": 165,
+        "count": 55
+      },
+      "variancePct": 230.3,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Tesla Universal Wall Connector (Gen 3) – Model 1734412‑02",
+      "category": "CHARGER",
+      "basePrice": 750,
+      "observedPrices": {
+        "min": 690,
+        "max": 750,
+        "median": 750,
+        "count": 50
+      },
+      "variancePct": 8,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Installation & Commissioning Of Pedestal-Mounted Charger - Dual Port",
+      "category": "ELECTRICAL",
+      "basePrice": 1850,
+      "observedPrices": {
+        "min": 1600,
+        "max": 2300,
+        "median": 1850,
+        "count": 46
+      },
+      "variancePct": 37.8,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Install Signage and Stencils",
+      "category": "EQUIPMENT",
+      "basePrice": 400,
+      "observedPrices": {
+        "min": 400,
+        "max": 400,
+        "median": 400,
+        "count": 35
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Site Visit",
+      "category": "DESIGN/ENGINEERING",
+      "basePrice": 1000,
+      "observedPrices": {
+        "min": 350,
+        "max": 1200,
+        "median": 1000,
+        "count": 30
+      },
+      "variancePct": 85,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Base Design/Eng-3-4 sheet, site plan, riser, 1-line, CD50-CD100",
+      "category": "DESIGN/ENGINEERING",
+      "basePrice": 4250,
+      "observedPrices": {
+        "min": 4250,
+        "max": 4250,
+        "median": 4250,
+        "count": 29
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Load Study/Load Calcs",
+      "category": "DESIGN/ENGINEERING",
+      "basePrice": 1050,
+      "observedPrices": {
+        "min": 1050,
+        "max": 1050,
+        "median": 1050,
+        "count": 29
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Permit Coordination and Filing-Up to 2 visits in person",
+      "category": "DESIGN/ENGINEERING",
+      "basePrice": 950,
+      "observedPrices": {
+        "min": 950,
+        "max": 1000,
+        "median": 950,
+        "count": 28
+      },
+      "variancePct": 5.3,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Tesla Wall Connector Pedestal (Includes Mounting Kit)",
+      "category": "PEDESTAL",
+      "basePrice": 550,
+      "observedPrices": {
+        "min": 550,
+        "max": 560,
+        "median": 550,
+        "count": 27
+      },
+      "variancePct": 1.8,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Install Provided Bolt-Down Bollard",
+      "category": "EQUIPMENT",
+      "basePrice": 550,
+      "observedPrices": {
+        "min": 550,
+        "max": 550,
+        "median": 550,
+        "count": 23
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Utility Mark-out",
+      "category": "TRENCHING",
+      "basePrice": 2000,
+      "observedPrices": {
+        "min": 600,
+        "max": 2000,
+        "median": 2000,
+        "count": 22
+      },
+      "variancePct": 70,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Trenching (No Conduit)-Up to 36\" W and no more than 4' D",
+      "category": "TRENCHING",
+      "basePrice": 45,
+      "observedPrices": {
+        "min": 44,
+        "max": 45,
+        "median": 45,
+        "count": 20
+      },
+      "variancePct": 2.2,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Removal And Disposal Of Existing Ev Charger",
+      "category": "ELECTRICAL",
+      "basePrice": 400,
+      "observedPrices": {
+        "min": 100,
+        "max": 400,
+        "median": 400,
+        "count": 18
+      },
+      "variancePct": 75,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Utility Coordination-Up to 2 visits in person",
+      "category": "DESIGN/ENGINEERING",
+      "basePrice": 950,
+      "observedPrices": {
+        "min": 950,
+        "max": 1000,
+        "median": 950,
+        "count": 17
+      },
+      "variancePct": 5.3,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Tesla Wall Connector Pedestal",
+      "category": "PEDESTAL",
+      "basePrice": 550,
+      "observedPrices": {
+        "min": 515,
+        "max": 550,
+        "median": 550,
+        "count": 16
+      },
+      "variancePct": 6.4,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Furnish & Install EMT Conduit-Up to 2\" w/ up to #4 Conductors",
+      "category": "ELECTRICAL",
+      "basePrice": 32,
+      "observedPrices": {
+        "min": 18,
+        "max": 32,
+        "median": 32,
+        "count": 15
+      },
+      "variancePct": 43.8,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Concrete Restoration",
+      "category": "CIVIL",
+      "basePrice": 600,
+      "observedPrices": {
+        "min": 600,
+        "max": 2300,
+        "median": 600,
+        "count": 15
+      },
+      "variancePct": 283.3,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Concrete Pads for Pedestals",
+      "category": "CIVIL",
+      "basePrice": 600,
+      "observedPrices": {
+        "min": 600,
+        "max": 600,
+        "median": 600,
+        "count": 14
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Concrete Removal",
+      "category": "CIVIL",
+      "basePrice": 725,
+      "observedPrices": {
+        "min": 725,
+        "max": 1570,
+        "median": 725,
+        "count": 14
+      },
+      "variancePct": 116.6,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Equipment Rental",
+      "category": "EQUIPMENT",
+      "basePrice": 1500,
+      "observedPrices": {
+        "min": 1000,
+        "max": 5500,
+        "median": 1500,
+        "count": 13
+      },
+      "variancePct": 300,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Furnish & Install PVC Schedule 40-Up to 2\" w/ #4 Conductors",
+      "category": "ELECTRICAL",
+      "basePrice": 20,
+      "observedPrices": {
+        "min": 20,
+        "max": 32,
+        "median": 20,
+        "count": 12
+      },
+      "variancePct": 60,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Installation & Commissioning Of Wall-Mounted Charger - Single Port",
+      "category": "ELECTRICAL",
+      "basePrice": 850,
+      "observedPrices": {
+        "min": 800,
+        "max": 1000,
+        "median": 850,
+        "count": 11
+      },
+      "variancePct": 23.5,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Construction Fence",
+      "category": "OTHER",
+      "basePrice": 13,
+      "observedPrices": {
+        "min": 13,
+        "max": 15.56,
+        "median": 13,
+        "count": 11
+      },
+      "variancePct": 19.7,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Install Striping-Per stall",
+      "category": "EQUIPMENT",
+      "basePrice": 220,
+      "observedPrices": {
+        "min": 220,
+        "max": 375,
+        "median": 220,
+        "count": 9
+      },
+      "variancePct": 70.5,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Scan/X-ray-Wall/Floor",
+      "category": "CIVIL",
+      "basePrice": 600,
+      "observedPrices": {
+        "min": 600,
+        "max": 600,
+        "median": 600,
+        "count": 8
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "On-Site Traffic Control, Safety Fence",
+      "category": "OTHER",
+      "basePrice": 1100,
+      "observedPrices": {
+        "min": 1100,
+        "max": 1200,
+        "median": 1100,
+        "count": 8
+      },
+      "variancePct": 9.1,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Installation & Commissioning Of Pedestal-Mounted Charger - Single Port",
+      "category": "ELECTRICAL",
+      "basePrice": 975,
+      "observedPrices": {
+        "min": 850,
+        "max": 1400,
+        "median": 975,
+        "count": 8
+      },
+      "variancePct": 56.4,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Core Drilling 1\"-6\" concrete/CMU",
+      "category": "CIVIL",
+      "basePrice": 550,
+      "observedPrices": {
+        "min": 550,
+        "max": 550,
+        "median": 550,
+        "count": 6
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Install Owner Provided Wi-Fi Equipment",
+      "category": "OTHER",
+      "basePrice": 450,
+      "observedPrices": {
+        "min": 350,
+        "max": 450,
+        "median": 450,
+        "count": 5
+      },
+      "variancePct": 22.2,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "As Built",
+      "category": "DESIGN/ENGINEERING",
+      "basePrice": 900,
+      "observedPrices": {
+        "min": 900,
+        "max": 900,
+        "median": 900,
+        "count": 4
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Furnish and Install Rubber Wheelstops",
+      "category": "EQUIPMENT",
+      "basePrice": 275,
+      "observedPrices": {
+        "min": 275,
+        "max": 275,
+        "median": 275,
+        "count": 4
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Furnish & Install 3\" Conduit (PVC Schedule 40)",
+      "category": "ELECTRICAL",
+      "basePrice": 20,
+      "observedPrices": {
+        "min": 15,
+        "max": 20,
+        "median": 20,
+        "count": 4
+      },
+      "variancePct": 25,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Ground Prep for Utility Provided Transformer Pad",
+      "category": "EQUIPMENT PADS",
+      "basePrice": 1800,
+      "observedPrices": {
+        "min": 1500,
+        "max": 1800,
+        "median": 1800,
+        "count": 3
+      },
+      "variancePct": 16.7,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Furnish & Install 1\" EMT Conduit",
+      "category": "ELECTRICAL",
+      "basePrice": 20,
+      "observedPrices": {
+        "min": 12,
+        "max": 20,
+        "median": 20,
+        "count": 3
+      },
+      "variancePct": 40,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Mobilization/Demobilization",
+      "category": "OTHER",
+      "basePrice": 3000,
+      "observedPrices": {
+        "min": 3000,
+        "max": 3000,
+        "median": 3000,
+        "count": 3
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Furnish & Install 1 1/4 EMT Conduit",
+      "category": "ELECTRICAL",
+      "basePrice": 18,
+      "observedPrices": {
+        "min": 18,
+        "max": 18,
+        "median": 18,
+        "count": 3
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Encasement of Conduits",
+      "category": "CIVIL",
+      "basePrice": 450,
+      "observedPrices": {
+        "min": 400,
+        "max": 450,
+        "median": 450,
+        "count": 2
+      },
+      "variancePct": 11.1,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Installation of Conductors-Up to #4",
+      "category": "ELECTRICAL",
+      "basePrice": 30,
+      "observedPrices": {
+        "min": 30,
+        "max": 30,
+        "median": 30,
+        "count": 2
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Base Design/Eng-3-4 sheet, site plan, riser, 1-line, CD50-CD100, Load Study/Load Calcs, Property Line Stake/Garage Field Sketch, As Builts",
+      "category": "DESIGN/ENGINEERING",
+      "basePrice": 10000,
+      "observedPrices": {
+        "min": 6000,
+        "max": 10000,
+        "median": 10000,
+        "count": 2
+      },
+      "variancePct": 40,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Equipment Pad - Cabinets / Switchgear / Transformer",
+      "category": "EQUIPMENT PADS",
+      "basePrice": 660,
+      "observedPrices": {
+        "min": 660,
+        "max": 660,
+        "median": 660,
+        "count": 2
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Furnish & Install 1\" Conduit (PVC Schedule 40)",
+      "category": "ELECTRICAL",
+      "basePrice": 15,
+      "observedPrices": {
+        "min": 15,
+        "max": 15,
+        "median": 15,
+        "count": 2
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Furnish & Install 4\" Conduit (PVC Schedule 40)",
+      "category": "ELECTRICAL",
+      "basePrice": 24,
+      "observedPrices": {
+        "min": 24,
+        "max": 24,
+        "median": 24,
+        "count": 2
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Furnish 500/600 MCM / COMM WIRE & BOS",
+      "category": "ELECTRICAL",
+      "basePrice": 8.62,
+      "observedPrices": {
+        "min": 8.62,
+        "max": 8.62,
+        "median": 8.62,
+        "count": 2
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Installation & Commissioning Superchargers",
+      "category": "ELECTRICAL",
+      "basePrice": 10200,
+      "observedPrices": {
+        "min": 10200,
+        "max": 10200,
+        "median": 10200,
+        "count": 2
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "EV Lite Switchgear",
+      "category": "OTHER",
+      "basePrice": 10000,
+      "observedPrices": {
+        "min": 8000,
+        "max": 10000,
+        "median": 10000,
+        "count": 2
+      },
+      "variancePct": 20,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Roll Off Dumpsters & Portocans",
+      "category": "OTHER",
+      "basePrice": 575,
+      "observedPrices": {
+        "min": 575,
+        "max": 575,
+        "median": 575,
+        "count": 2
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Furnish & Install 2\" Conduit (PVC Schedule 40)",
+      "category": "ELECTRICAL",
+      "basePrice": 25,
+      "observedPrices": {
+        "min": 14,
+        "max": 25,
+        "median": 25,
+        "count": 2
+      },
+      "variancePct": 44,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Xeal - Installation & Commissioning Of Pedestal-Mounted Charger - Dual Port",
+      "category": "ELECTRICAL",
+      "basePrice": 2300,
+      "observedPrices": {
+        "min": 2300,
+        "max": 2300,
+        "median": 2300,
+        "count": 2
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Cast in Place Foundations for Posts",
+      "category": "EQUIPMENT PADS",
+      "basePrice": 1640,
+      "observedPrices": {
+        "min": 850,
+        "max": 1640,
+        "median": 1640,
+        "count": 2
+      },
+      "variancePct": 48.2,
+      "humanReviewRequired": true,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Install Signage/ Stencils",
+      "category": "EQUIPMENT",
+      "basePrice": 400,
+      "observedPrices": {
+        "min": 400,
+        "max": 400,
+        "median": 400,
+        "count": 2
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Site Visit & Utility Coordination",
+      "category": "DESIGN/ENGINEERING",
+      "basePrice": 1000,
+      "observedPrices": {
+        "min": 1000,
+        "max": 1000,
+        "median": 1000,
+        "count": 2
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Material to install, conduit, wire, breakers, BOS, mounts",
+      "category": "ELECTRICAL",
+      "basePrice": 32,
+      "observedPrices": {
+        "min": 32,
+        "max": 32,
+        "median": 32,
+        "count": 2
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Level 2 EV Charger Installation (Customer Supplied Charger)",
+      "category": "ELECTRICAL",
+      "basePrice": 995,
+      "observedPrices": {
+        "min": 995,
+        "max": 995,
+        "median": 995,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Misc. Wall Mounting Hardware & BOS",
+      "category": "EQUIPMENT",
+      "basePrice": 10,
+      "observedPrices": {
+        "min": 10,
+        "max": 10,
+        "median": 10,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Permitting Documentation and Submittal (Includes One Line Diagram)",
+      "category": "DESIGN/ENGINEERING",
+      "basePrice": 300,
+      "observedPrices": {
+        "min": 300,
+        "max": 300,
+        "median": 300,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "As Builts (reverse engineer the existing system)",
+      "category": "DESIGN/ENGINEERING",
+      "basePrice": 8000,
+      "observedPrices": {
+        "min": 8000,
+        "max": 8000,
+        "median": 8000,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Transformer Upgrade (including new pad if necessary)",
+      "category": "ELECTRICAL",
+      "basePrice": 22000,
+      "observedPrices": {
+        "min": 22000,
+        "max": 22000,
+        "median": 22000,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Panel Upgrade for New System (including breakers)",
+      "category": "ELECTRICAL",
+      "basePrice": 12000,
+      "observedPrices": {
+        "min": 12000,
+        "max": 12000,
+        "median": 12000,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Permitting & Inspections",
+      "category": "DESIGN/ENGINEERING",
+      "basePrice": 3500,
+      "observedPrices": {
+        "min": 3500,
+        "max": 3500,
+        "median": 3500,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Core Drilling >6\" concrete/CMU",
+      "category": "CIVIL",
+      "basePrice": 800,
+      "observedPrices": {
+        "min": 800,
+        "max": 800,
+        "median": 800,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Installation Of Level 2 EV Charger ( Charger Provided by Homeowner )",
+      "category": "ELECTRICAL",
+      "basePrice": 900,
+      "observedPrices": {
+        "min": 900,
+        "max": 900,
+        "median": 900,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "BOS , Permits , Oneline",
+      "category": "DESIGN/ENGINEERING",
+      "basePrice": 300,
+      "observedPrices": {
+        "min": 300,
+        "max": 300,
+        "median": 300,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Hand Trenching",
+      "category": "TRENCHING",
+      "basePrice": 1400,
+      "observedPrices": {
+        "min": 1400,
+        "max": 1400,
+        "median": 1400,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Boring",
+      "category": "CIVIL",
+      "basePrice": 60,
+      "observedPrices": {
+        "min": 60,
+        "max": 60,
+        "median": 60,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "RMA, consisting removal of existing Powerwall 2 and Gateway 2, replacing with Gateway 3 and new Powerwall 3",
+      "category": "Labor",
+      "basePrice": 850,
+      "observedPrices": {
+        "min": 850,
+        "max": 850,
+        "median": 850,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "TRENCHING",
+      "category": "CIVIL",
+      "basePrice": 44,
+      "observedPrices": {
+        "min": 44,
+        "max": 44,
+        "median": 44,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "GROUND PREP FOR CABINET/TRANSFORMER",
+      "category": "CIVIL",
+      "basePrice": 2500,
+      "observedPrices": {
+        "min": 2500,
+        "max": 2500,
+        "median": 2500,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "PRIVATE UTILITY MARKOUTS THROUGH PROJECT",
+      "category": "CIVIL",
+      "basePrice": 1200,
+      "observedPrices": {
+        "min": 1200,
+        "max": 1200,
+        "median": 1200,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "EV LITE DISCONNECT/LINCOLN-TBD-ALLOWANCE",
+      "category": "EQUIPMENT",
+      "basePrice": 8000,
+      "observedPrices": {
+        "min": 8000,
+        "max": 8000,
+        "median": 8000,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "EQUIPMENT/POST PADS-FORM/STEEL",
+      "category": "CIVIL",
+      "basePrice": 820,
+      "observedPrices": {
+        "min": 820,
+        "max": 820,
+        "median": 820,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "EQUIPMENT PAD-TRANSFORMER-6 PIERS, SONNEN TUBES, STEEL",
+      "category": "CIVIL",
+      "basePrice": 7800,
+      "observedPrices": {
+        "min": 7800,
+        "max": 7800,
+        "median": 7800,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "EQUIPMENT PAD-CABINETS/SWITCHGEAR",
+      "category": "CIVIL",
+      "basePrice": 660,
+      "observedPrices": {
+        "min": 660,
+        "max": 660,
+        "median": 660,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "CURB REMOVAL",
+      "category": "CIVIL",
+      "basePrice": 45,
+      "observedPrices": {
+        "min": 45,
+        "max": 45,
+        "median": 45,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "CURB/GUTTER REPLACEMENT",
+      "category": "CIVIL",
+      "basePrice": 75,
+      "observedPrices": {
+        "min": 75,
+        "max": 75,
+        "median": 75,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "CONCRETE RESTORATION AT ADA STALL",
+      "category": "CIVIL",
+      "basePrice": 600,
+      "observedPrices": {
+        "min": 600,
+        "max": 600,
+        "median": 600,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "4\" AGGREGATE ROAD BASE AT 4TH STALL",
+      "category": "CIVIL",
+      "basePrice": 500,
+      "observedPrices": {
+        "min": 500,
+        "max": 500,
+        "median": 500,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "ENCASEMENT OF CONDUITS/COMPACTION",
+      "category": "CIVIL",
+      "basePrice": 400,
+      "observedPrices": {
+        "min": 400,
+        "max": 400,
+        "median": 400,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "4\" CONDUIT PVC SCH 40 - FROM XFMR TO POSTS-UTILITY PRIMARY TBD",
+      "category": "EQUIPMENT",
+      "basePrice": 24,
+      "observedPrices": {
+        "min": 24,
+        "max": 24,
+        "median": 24,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "500/600MCM/COMM WIRE - CABINET TO POSTS-XFRMR TO CAB-PRIMARY TBD",
+      "category": "EQUIPMENT",
+      "basePrice": 8763,
+      "observedPrices": {
+        "min": 8763,
+        "max": 8763,
+        "median": 8763,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "ADDITIONAL BOS",
+      "category": "EQUIPMENT",
+      "basePrice": 3500,
+      "observedPrices": {
+        "min": 3500,
+        "max": 3500,
+        "median": 3500,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "INSTALL 1 DISCO/CAB/4 POSTS/PULL CONDUCTORS/WIRE/COMMISSION",
+      "category": "ELECTRICAL",
+      "basePrice": 10200,
+      "observedPrices": {
+        "min": 10200,
+        "max": 10200,
+        "median": 10200,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "EQUIPMENT RENTAL",
+      "category": "OTHER",
+      "basePrice": 3000,
+      "observedPrices": {
+        "min": 3000,
+        "max": 3000,
+        "median": 3000,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "CONSTRUCTION TEMP FENCE",
+      "category": "OTHER",
+      "basePrice": 15.56,
+      "observedPrices": {
+        "min": 15.56,
+        "max": 15.56,
+        "median": 15.56,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "ROLL OFF DUMPSTERS",
+      "category": "OTHER",
+      "basePrice": 600,
+      "observedPrices": {
+        "min": 600,
+        "max": 600,
+        "median": 600,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "PORTOCAN",
+      "category": "OTHER",
+      "basePrice": 125,
+      "observedPrices": {
+        "min": 125,
+        "max": 125,
+        "median": 125,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "STRIPING/SIGNAGE WITH ADA COMPLAINCE (3 STALLS-1 ADA)",
+      "category": "OTHER",
+      "basePrice": 1500,
+      "observedPrices": {
+        "min": 1500,
+        "max": 1500,
+        "median": 1500,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Remove & Re-install Client Provided Bolt Down Bollards",
+      "category": "EQUIPMENT",
+      "basePrice": 100,
+      "observedPrices": {
+        "min": 100,
+        "max": 100,
+        "median": 100,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Furnish & Install 4\" EMT Conduit",
+      "category": "ELECTRICAL",
+      "basePrice": 85,
+      "observedPrices": {
+        "min": 85,
+        "max": 85,
+        "median": 85,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Transformer Upgrade",
+      "category": "UTILITY",
+      "basePrice": 100000,
+      "observedPrices": {
+        "min": 100000,
+        "max": 100000,
+        "median": 100000,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Concrete Curb & Gutter, 6 in X 24 in",
+      "category": "CIVIL",
+      "basePrice": 80,
+      "observedPrices": {
+        "min": 80,
+        "max": 80,
+        "median": 80,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Concrete Header Curb, 6 in",
+      "category": "CIVIL",
+      "basePrice": 50,
+      "observedPrices": {
+        "min": 50,
+        "max": 50,
+        "median": 50,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Commissioning of Tesla Chargers",
+      "category": "ELECTRICAL",
+      "basePrice": 90,
+      "observedPrices": {
+        "min": 90,
+        "max": 90,
+        "median": 90,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Gateway Installation",
+      "category": "ELECTRICAL",
+      "basePrice": 200,
+      "observedPrices": {
+        "min": 200,
+        "max": 200,
+        "median": 200,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Permit Fees- Cost + 10% ($6000 is an Estimate Cost)",
+      "category": "DESIGN/ENGINEERING",
+      "basePrice": 6000,
+      "observedPrices": {
+        "min": 6000,
+        "max": 6000,
+        "median": 6000,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Curb Removal",
+      "category": "CIVIL",
+      "basePrice": 500,
+      "observedPrices": {
+        "min": 500,
+        "max": 500,
+        "median": 500,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Curb/Gutter Replacement",
+      "category": "CIVIL",
+      "basePrice": 2250,
+      "observedPrices": {
+        "min": 2250,
+        "max": 2250,
+        "median": 2250,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Concrete Restoration (For New 4th Stall at Island)",
+      "category": "CIVIL",
+      "basePrice": 600,
+      "observedPrices": {
+        "min": 600,
+        "max": 600,
+        "median": 600,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "4\" Aggregate Road Base at 4th Stall",
+      "category": "CIVIL",
+      "basePrice": 500,
+      "observedPrices": {
+        "min": 500,
+        "max": 500,
+        "median": 500,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Equipment/Post Pads-Form/Steel",
+      "category": "EQUIPMENT PADS",
+      "basePrice": 820,
+      "observedPrices": {
+        "min": 820,
+        "max": 820,
+        "median": 820,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Equipment Pad - Cabinets / Switchgear",
+      "category": "EQUIPMENT PADS",
+      "basePrice": 660,
+      "observedPrices": {
+        "min": 660,
+        "max": 660,
+        "median": 660,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Equipment Pad- Transformer-6 Piers, Sonnen Tubes, Steel",
+      "category": "EQUIPMENT PADS",
+      "basePrice": 7800,
+      "observedPrices": {
+        "min": 7800,
+        "max": 7800,
+        "median": 7800,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Additional BOS",
+      "category": "ELECTRICAL",
+      "basePrice": 3500,
+      "observedPrices": {
+        "min": 3500,
+        "max": 3500,
+        "median": 3500,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Roll Off Dumpsters",
+      "category": "OTHER",
+      "basePrice": 450,
+      "observedPrices": {
+        "min": 450,
+        "max": 450,
+        "median": 450,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Portocans",
+      "category": "OTHER",
+      "basePrice": 125,
+      "observedPrices": {
+        "min": 125,
+        "max": 125,
+        "median": 125,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Concrete Curb & Gutter, 6 in X 24 in - Removal",
+      "category": "CIVIL",
+      "basePrice": 80,
+      "observedPrices": {
+        "min": 80,
+        "max": 80,
+        "median": 80,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Concrete Curb & Gutter, 6 in X 24 in - Restoration",
+      "category": "CIVIL",
+      "basePrice": 110,
+      "observedPrices": {
+        "min": 110,
+        "max": 110,
+        "median": 110,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Furnish 250/350 MCM / COMM WIRE & BOS",
+      "category": "ELECTRICAL",
+      "basePrice": 16,
+      "observedPrices": {
+        "min": 16,
+        "max": 16,
+        "median": 16,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Installation & Commissioning L3 Chargers",
+      "category": "ELECTRICAL",
+      "basePrice": 10200,
+      "observedPrices": {
+        "min": 10200,
+        "max": 10200,
+        "median": 10200,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Permits, Design & Engineering",
+      "category": "DESIGN/ENGINEERING",
+      "basePrice": 500,
+      "observedPrices": {
+        "min": 500,
+        "max": 500,
+        "median": 500,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Road Plates",
+      "category": "TRENCHING",
+      "basePrice": 48,
+      "observedPrices": {
+        "min": 48,
+        "max": 48,
+        "median": 48,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Furnish & Install 3/4\" EMT Conduit",
+      "category": "ELECTRICAL",
+      "basePrice": 30,
+      "observedPrices": {
+        "min": 30,
+        "max": 30,
+        "median": 30,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Installation & Commissioning Of Wall-Mounted Charger - Dual Port",
+      "category": "ELECTRICAL",
+      "basePrice": 1600,
+      "observedPrices": {
+        "min": 1600,
+        "max": 1600,
+        "median": 1600,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Concrete Removal & Haul Off",
+      "category": "CIVIL",
+      "basePrice": 1025,
+      "observedPrices": {
+        "min": 1025,
+        "max": 1025,
+        "median": 1025,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "CHGPNT CP6021B-50A-L5.5 (K)",
+      "category": "CHARGER",
+      "basePrice": 8214.26,
+      "observedPrices": {
+        "min": 8214.26,
+        "max": 8214.26,
+        "median": 8214.26,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "CHGPNT CPSUPPORT–ACTIVE INITIAL STATION ACTIVATION & CONFIG",
+      "category": "SOFTWARE",
+      "basePrice": 317.11,
+      "observedPrices": {
+        "min": 317.11,
+        "max": 317.11,
+        "median": 317.11,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "CHGPNT CPCLD–COMMERCIAL–1 1 YEAR PREPAID CLOUD PLAN",
+      "category": "SOFTWARE",
+      "basePrice": 464.84,
+      "observedPrices": {
+        "min": 464.84,
+        "max": 464.84,
+        "median": 464.84,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "CHGPNT CP6000–ASSURE–1 1 YEAR PREPAID CHARGEPOINT ASSURE FOR CP6000",
+      "category": "SOFTWARE",
+      "basePrice": 534.88,
+      "observedPrices": {
+        "min": 534.88,
+        "max": 534.88,
+        "median": 534.88,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Scope includes parts, labor, and new concrete required to extend the existing transformer pad to accommodate the 112.5 kVA transformer upgrade.",
+      "category": "EQUIPMENT",
+      "basePrice": 10371,
+      "observedPrices": {
+        "min": 10371,
+        "max": 10371,
+        "median": 10371,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Asphalt Removal",
+      "category": "CIVIL",
+      "basePrice": 8.5,
+      "observedPrices": {
+        "min": 8.5,
+        "max": 8.5,
+        "median": 8.5,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Asphalt Restoration",
+      "category": "CIVIL",
+      "basePrice": 33,
+      "observedPrices": {
+        "min": 33,
+        "max": 33,
+        "median": 33,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "LITE-ON Cellular (L2-LPC) - Dual Pedestal\nDescription: LITE-ON Cellular 7.6 kW – 32A / J1772 / OCPP / RFID / Cellular / Wi-Fi / Load Management / 3-Year Warranty / 18 FT Cable - Pedestal with Dual Cable Aluminum Retractors Side-by-Side Mount – 7 ft (PD-LHRN7-DCRSS) - SWTCH Essential (SRV-ESS) - Network Activation – L2 (SRV-NA-L2) - Internet Connectivity – Annual (SRV-NM-CELL)",
+      "category": "CHARGER",
+      "basePrice": 5308.4,
+      "observedPrices": {
+        "min": 5308.4,
+        "max": 5308.4,
+        "median": 5308.4,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Property Line Stake/Garage Field Sketch",
+      "category": "DESIGN/ENGINEERING",
+      "basePrice": 1500,
+      "observedPrices": {
+        "min": 1500,
+        "max": 1500,
+        "median": 1500,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Unforeseen Rock and Masonry Removal",
+      "category": "OTHER",
+      "basePrice": 325,
+      "observedPrices": {
+        "min": 325,
+        "max": 325,
+        "median": 325,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    },
+    {
+      "description": "Remove and relocate (1) existing Level 2 charger to new pad location per revised site layout.\nIncludes mobilization, removal, reconnection, testing, and commissioning of the relocated unit.\nAssumes all new electrical conduit, wiring, and concrete pad have been provided and installed by others prior to our arrival.",
+      "category": "ELECTRICAL",
+      "basePrice": 1200,
+      "observedPrices": {
+        "min": 1200,
+        "max": 1200,
+        "median": 1200,
+        "count": 1
+      },
+      "variancePct": 0,
+      "humanReviewRequired": false,
+      "dataQuality": "observed"
+    }
+  ]
+}
