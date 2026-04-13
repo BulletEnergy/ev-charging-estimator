@@ -10,7 +10,8 @@ import { buildPreviewAssetsFromOutput } from '@/lib/map/static-preview-urls';
 import { SCENARIOS } from '@/lib/estimate/scenarios';
 import { useViewMode } from '@/lib/viewMode';
 import { useEstimate } from '@/contexts/EstimateContext';
-import { MAP_WORKSPACE_ENABLED } from '@/lib/map/feature-flags';
+import { MAP_WORKSPACE_ENABLED, GUIDED_FLOW_ENABLED } from '@/lib/map/feature-flags';
+import { GuidedEstimateFlow } from '@/components/estimate/GuidedEstimateFlow';
 import { ViewModeToggle } from '@/components/ViewModeToggle';
 import { SOWParser } from '@/components/advanced/SOWParser';
 import { ChatBuilder } from '@/components/advanced/ChatBuilder';
@@ -277,6 +278,61 @@ export default function EstimatePage() {
     }
   }, [visibleTabs]);
 
+  // ── Guided Flow (new 6-step UI) ───────────────────────────────
+  if (GUIDED_FLOW_ENABLED) {
+    return (
+      <main className="relative min-h-screen pb-20">
+        <div className="ambient-mesh" />
+        <div className="mx-auto max-w-[1200px] px-5 pt-5 sm:px-6" style={{ position: 'relative', zIndex: 1 }}>
+
+          {/* Header */}
+          <header className="hero-canvas lg-ring" style={{ borderRadius: 'var(--radius-xl)', padding: 'clamp(1.25rem, 2.5vw, 2rem)' }}>
+            <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" style={{ zIndex: 1 }}>
+              <div className="text-white">
+                <p className="flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.06em] text-white/50">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                  BulletEV Estimate Studio
+                </p>
+                <h1 className="text-xl font-bold tracking-[-0.022em] sm:text-2xl">Guided Estimate</h1>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link href="/" className="rounded-lg bg-white/10 px-4 py-2 text-xs font-medium text-white/80 backdrop-blur hover:bg-white/20 transition-colors">Home</Link>
+                <button type="button" onClick={() => { resetEstimate(); setOutput(null); }} className="rounded-lg bg-white/10 px-4 py-2 text-xs font-medium text-white/80 backdrop-blur hover:bg-white/20 transition-colors">Reset</button>
+              </div>
+            </div>
+          </header>
+
+          {/* Guided Flow */}
+          <div className="mt-6">
+            <GuidedEstimateFlow onEstimateGenerated={handleGenerate} />
+          </div>
+
+          {/* Live estimate summary */}
+          {autoEstimate && (
+            <div className="mt-6">
+              <LiveEstimateSummary autoEstimate={autoEstimate} />
+            </div>
+          )}
+
+          {/* Estimate results (after generate) */}
+          {output && (
+            <div className="mt-8">
+              <EstimateResults
+                output={output}
+                expandedLines={expandedLines}
+                toggleLine={toggleLine}
+                onShareInteractive={handleShareInteractive}
+                shareStatus={shareStatus}
+                onDownloadPdfWithPreviews={handleDownloadPdfWithPreviews}
+              />
+            </div>
+          )}
+        </div>
+      </main>
+    );
+  }
+
+  // ── Legacy 12-tab form (fallback when GUIDED_FLOW_ENABLED = false) ──
   return (
     <main className="relative min-h-screen pb-20">
       <Suspense fallback={null}>
