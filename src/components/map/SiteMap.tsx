@@ -98,13 +98,21 @@ function syncEquipmentMarkerStyle(
     hovered: boolean;
   },
 ) {
-  const scale = hovered ? 1.15 : selected ? 1.08 : 1;
-  element.style.transform = `scale(${scale})`;
-  element.style.border = selected ? '3px solid #1D4ED8' : '2px solid #2563EB';
-  element.style.boxShadow = selected
-    ? '0 0 0 2px rgba(37,99,235,0.18), 0 4px 12px rgba(0,0,0,0.35)'
-    : '0 2px 6px rgba(0,0,0,0.3)';
+  const badge = element.querySelector<HTMLDivElement>('[data-role="badge"]');
+  const scale = hovered ? 1.12 : selected ? 1.05 : 1;
+
+  element.style.transform = `translateZ(0) scale(${scale})`;
   element.style.cursor = draggable ? 'grab' : 'pointer';
+  element.style.zIndex = selected ? '15' : hovered ? '14' : '10';
+
+  if (badge) {
+    badge.style.border = selected ? '2px solid #1D4ED8' : '1.5px solid #2563EB';
+    badge.style.boxShadow = selected
+      ? '0 6px 18px rgba(15,23,42,0.35)'
+      : hovered
+        ? '0 4px 14px rgba(37,99,235,0.25)'
+        : '0 2px 8px rgba(15,15,15,0.22)';
+  }
 }
 
 function translateLineString(
@@ -661,13 +669,26 @@ export function SiteMap({
       if (!marker) {
         const el = document.createElement('div');
         el.className = 'map-equipment-marker';
-        el.style.cssText = `
-          width: 36px; height: 36px; border-radius: 8px;
-          background: white; border: 2px solid #2563EB;
-          display: flex; align-items: center; justify-content: center;
-          cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-          transition: transform 0.15s ease, box-shadow 0.15s ease, border 0.15s ease;
-        `;
+
+        const badge = document.createElement('div');
+        badge.className = 'map-equipment-marker__badge';
+        badge.dataset.role = 'badge';
+
+        const iconWrapper = document.createElement('div');
+        iconWrapper.className = 'map-equipment-marker__icon';
+        iconWrapper.dataset.role = 'icon';
+        badge.appendChild(iconWrapper);
+
+        const label = document.createElement('div');
+        label.className = 'map-equipment-marker__label';
+        label.dataset.role = 'label';
+
+        const pointer = document.createElement('div');
+        pointer.className = 'map-equipment-marker__pointer';
+
+        el.appendChild(badge);
+        el.appendChild(label);
+        el.appendChild(pointer);
 
         el.addEventListener('mouseenter', () => {
           el.dataset.hovered = 'true';
@@ -698,7 +719,14 @@ export function SiteMap({
           onFeatureSelectRef.current(eq.id);
         });
 
-        marker = new mapboxgl.Marker({ element: el, anchor: 'center', offset: [0, 0], draggable: false })
+        marker = new mapboxgl.Marker({
+          element: el,
+          anchor: 'bottom',
+          offset: [0, -6],
+          draggable: false,
+          pitchAlignment: 'map',
+          rotationAlignment: 'map',
+        })
           .setLngLat(eq.geometry.coordinates as [number, number])
           .addTo(map);
 
@@ -729,7 +757,14 @@ export function SiteMap({
       const isSelected = selectedFeatureId === eq.id;
       const isDraggable = isSelected && selectedTool === null;
 
-      element.innerHTML = getEquipmentSvgHtml(eq.equipmentType, 26);
+      const iconContainer = element.querySelector<HTMLDivElement>('[data-role="icon"]');
+      const labelEl = element.querySelector<HTMLDivElement>('[data-role="label"]');
+      if (iconContainer) {
+        iconContainer.innerHTML = getEquipmentSvgHtml(eq.equipmentType, 26);
+      }
+      if (labelEl) {
+        labelEl.textContent = eq.label;
+      }
       element.title = `${config.label}: ${eq.label}`;
       element.dataset.selected = String(isSelected);
       element.dataset.draggable = String(isDraggable);

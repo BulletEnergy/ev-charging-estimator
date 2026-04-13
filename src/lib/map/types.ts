@@ -101,4 +101,7 @@ export interface FieldMapping {
   readonly aggregation: AggregationType;
   readonly cap?: number;
   readonly capWarning?: string;
+  readonly displayLabel?: string;
+  readonly unit?: string;
+  readonly impact?: string;
 }

@@ -52,7 +52,7 @@ function deepSet(obj: Record<string, unknown>, path: string, value: unknown): Re
 
 // ── Aggregate a single field mapping from map state ──
 
-function aggregateMapping(
+export function computeFieldMappingValue(
   mapping: FieldMapping,
   mapState: MapWorkspaceState,
 ): unknown {
@@ -105,7 +105,7 @@ export function generatePatches(
     if (seen.has(mapping.fieldPath)) continue;
     seen.add(mapping.fieldPath);
 
-    const proposedValue = aggregateMapping(mapping, mapState);
+    const proposedValue = computeFieldMappingValue(mapping, mapState);
     const currentValue = deepGet(currentInput, mapping.fieldPath);
 
     // Only generate patch when values differ

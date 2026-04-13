@@ -29,6 +29,8 @@ import { MapGuidancePanel } from './MapGuidancePanel';
 import { SiteInfoPanel } from './SiteInfoPanel';
 import { PatchReviewPanel } from './PatchReviewPanel';
 import { EstimateImpactPanel } from './EstimateImpactPanel';
+import { ContradictionBanner } from './ContradictionBanner';
+import { MapSyncPanel } from './MapSyncPanel';
 import { SiteAssessmentFlow } from './SiteAssessmentFlow';
 import { SiteIntelligenceCard } from './SiteIntelligenceCard';
 import { SmartQuestionnaire } from './SmartQuestionnaire';
@@ -1025,6 +1027,13 @@ export function MapWorkspace({ input, estimate, onInputChange }: MapWorkspacePro
                 Now click the map to mark where chargers should go
               </button>
             )}
+
+            <ContradictionBanner mapState={mapState} input={input} />
+            <MapSyncPanel
+              mapState={mapState}
+              input={input}
+              patches={patchBatch?.patches ?? []}
+            />
 
             <PatchReviewPanel
               batch={patchBatch}
