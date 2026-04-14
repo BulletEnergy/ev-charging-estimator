@@ -230,8 +230,9 @@ export function StepConditionalDetails({ installationType }: StepConditionalDeta
         })}
       </div>
 
-      {/* Inline map prompt for map-derived fields */}
-      {hasMapFields(installationType) && input.mapWorkspace?.siteCoordinates != null && (() => {
+      {/* Inline map — show for any type that involves physical site work */}
+      {!['commission_only', 'equipment_purchase', 'service_call'].includes(installationType) &&
+        input.mapWorkspace?.siteCoordinates != null && (() => {
         const mapFields = fields.filter((f) => f.mapDerived);
         const template = getTemplateForInstallationType(installationType);
         return (
