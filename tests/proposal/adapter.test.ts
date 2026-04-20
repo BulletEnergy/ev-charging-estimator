@@ -328,6 +328,7 @@ describe('adaptEstimateToProposal', () => {
         'charger',
         'customer',
         'generatedAt',
+        'investmentMetrics',
         'notes',
         'preparedBy',
         'proposalId',
@@ -355,6 +356,49 @@ describe('adaptEstimateToProposal', () => {
     );
     expect(vm.charger.level).toBe('l2');
     expect(vm.totalPorts).toBe(8);
+  });
+
+  it('computes investmentMetrics with L2 assumptions and rebate cap', () => {
+    const vm = adaptEstimateToProposal(buildEstimate());
+    const m = vm.investmentMetrics;
+    // grossTotal 108670 * 0.15 = 16300.5  vs  8 ports * 4000 cap = 32000.
+    // The uncapped percentage is lower, so that's what we expect.
+    expect(m.estimatedRebatesUsd).toBe(16301);
+    expect(m.netTotalUsd).toBe(108670 - 16301);
+    // L2 defaults
+    expect(m.assumedKwhPerSession).toBe(18);
+    expect(m.assumedPricePerKwh).toBe(0.32);
+    expect(m.assumedCostPerKwh).toBe(0.12);
+    expect(m.assumedSessionsPerDay).toBe(20); // 8 ports * 2.5 rounded
+    // Payback should be finite & positive for a profitable site.
+    expect(m.estimatedPaybackYears).toBeGreaterThan(0);
+    expect(m.estimatedPaybackYears).toBeLessThan(15);
+    expect(m.co2OffsetTonsPerYear).toBeGreaterThanOrEqual(0);
+  });
+
+  it('switches investmentMetrics defaults to DCFC assumptions', () => {
+    const estimate = buildEstimate();
+    estimate.input.charger.chargingLevel = 'l3_dcfc';
+    const vm = adaptEstimateToProposal(estimate);
+    expect(vm.investmentMetrics.assumedKwhPerSession).toBe(45);
+    expect(vm.investmentMetrics.assumedPricePerKwh).toBe(0.43);
+  });
+
+  it('caps estimated rebates at $4,000 per port', () => {
+    const estimate = buildEstimate();
+    // Force grossTotal very high so per-port cap binds.
+    estimate.summary.total = 10_000_000;
+    const vm = adaptEstimateToProposal(estimate);
+    // 8 ports * $4k = $32k cap.
+    expect(vm.investmentMetrics.estimatedRebatesUsd).toBe(32000);
+  });
+
+  it('returns zero payback when project cost is zero', () => {
+    const estimate = buildEstimate();
+    estimate.summary.total = 0;
+    const vm = adaptEstimateToProposal(estimate);
+    expect(vm.investmentMetrics.netTotalUsd).toBe(0);
+    expect(vm.investmentMetrics.estimatedPaybackYears).toBe(0);
   });
 });
 

@@ -13,10 +13,13 @@ import { loadEstimateByToken } from '@/lib/proposal/fetchEstimate';
 import { adaptEstimateToProposal } from '@/lib/proposal/adapter';
 import ProposalLayout from '@/components/proposal-portal/ProposalLayout';
 import PortalHero from '@/components/proposal-portal/PortalHero';
+import ValueSection from '@/components/proposal-portal/ValueSection';
 import InvestmentBreakdown from '@/components/proposal-portal/InvestmentBreakdown';
 import EquipmentShowcase from '@/components/proposal-portal/EquipmentShowcase';
 import TimelineSection from '@/components/proposal-portal/TimelineSection';
 import SiteMapSection from '@/components/proposal-portal/SiteMapSection';
+import ROICalculator from '@/components/proposal-portal/ROICalculator';
+import InteractiveSection from '@/components/proposal-portal/InteractiveSection';
 import ProposalFooter from '@/components/proposal-portal/ProposalFooter';
 
 // Always render on-demand — we never want a stale token view cached.
@@ -61,10 +64,15 @@ export default async function ProposalPortalPage({ params }: PageProps) {
   return (
     <ProposalLayout>
       <PortalHero vm={vm} aerialUrl={loaded.aerialSignedUrl} />
-      <SiteMapSection vm={vm} aerialUrl={loaded.aerialSignedUrl} />
+      <ValueSection vm={vm} />
+      <div className="section-divider max-w-5xl mx-auto" />
       <EquipmentShowcase vm={vm} />
+      <div className="section-divider max-w-5xl mx-auto" />
+      <SiteMapSection vm={vm} aerialUrl={loaded.aerialSignedUrl} />
+      <ROICalculator vm={vm} />
       <InvestmentBreakdown vm={vm} />
       <TimelineSection vm={vm} />
+      <InteractiveSection vm={vm} />
       <ProposalFooter vm={vm} />
     </ProposalLayout>
   );
