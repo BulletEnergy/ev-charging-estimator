@@ -22,13 +22,11 @@ export function SiteMapSection({ vm, aerialUrl }: SiteMapSectionProps) {
     <section className="py-16 md:py-24 px-6">
       <div className="max-w-6xl mx-auto">
         <div className="reveal text-center mb-10 md:mb-14">
-          <p className="text-xs uppercase tracking-[0.2em] pp-text-muted font-medium mb-3">
-            Site plan
-          </p>
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tight pp-text-foreground">
+          <p className="pp-eyebrow mb-3">Site plan</p>
+          <h2 className="pp-section-title text-3xl md:text-5xl font-bold pp-text-foreground">
             {vm.site.address || 'Your site'}
           </h2>
-          <p className="pp-text-muted mt-3 text-base md:text-lg max-w-xl mx-auto">
+          <p className="pp-text-muted mt-4 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
             Aerial reference shown below. Exact charger placement is finalized
             during the design phase.
           </p>

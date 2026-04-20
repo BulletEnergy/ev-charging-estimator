@@ -20,22 +20,20 @@ export function InvestmentBreakdown({ vm }: InvestmentBreakdownProps) {
     <section className="py-16 md:py-24 px-6">
       <div className="max-w-3xl mx-auto">
         <div className="reveal text-center mb-10 md:mb-14">
-          <p className="text-xs uppercase tracking-[0.2em] pp-text-muted font-medium mb-3">
-            Line-item breakdown
-          </p>
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tight pp-text-foreground">
+          <p className="pp-eyebrow mb-3">Line-item breakdown</p>
+          <h2 className="pp-section-title text-3xl md:text-5xl font-bold pp-text-foreground">
             Investment
           </h2>
         </div>
 
         <div className="reveal space-y-10">
           {buckets.map((bucket) => (
-            <div key={bucket.key}>
+            <div key={bucket.key} className="pp-bucket" data-bucket={bucket.key}>
               <div className="flex items-baseline justify-between mb-4">
-                <p className="text-xs uppercase tracking-[0.15em] pp-text-muted font-medium">
+                <p className="text-xs uppercase tracking-[0.15em] pp-text-muted font-semibold">
                   {bucket.label}
                 </p>
-                <p className="text-xs pp-text-muted tabular-nums">
+                <p className="text-xs pp-text-muted tabular-nums font-medium">
                   {formatCurrency(bucket.subtotal)}
                 </p>
               </div>

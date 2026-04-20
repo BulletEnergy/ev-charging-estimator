@@ -139,29 +139,32 @@ export function ROICalculator({ vm }: ROICalculatorProps) {
     >
       <div className="max-w-5xl mx-auto">
         <div className="reveal text-center mb-14">
-          <p className="text-xs uppercase tracking-[0.2em] pp-text-muted font-medium mb-3">
-            Model your return
-          </p>
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight pp-text-foreground">
+          <p className="pp-eyebrow mb-3">Model your return</p>
+          <h2 className="pp-section-title text-3xl md:text-5xl lg:text-6xl font-bold pp-text-foreground">
             Calculate your return
           </h2>
-          <p className="pp-text-muted mt-3 text-base md:text-lg">
+          <p className="pp-text-muted mt-4 text-base md:text-lg max-w-lg mx-auto">
             Adjust the sliders to model your revenue potential.
           </p>
         </div>
 
         <div className="reveal grid md:grid-cols-2 gap-10 md:gap-12 items-start">
           {/* Sliders */}
-          <div className="space-y-8">
+          <div className="space-y-4">
             {sliders.map((s) => (
-              <div key={s.label}>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="pp-text-muted">{s.label}</span>
-                  <span className="font-semibold tabular-nums pp-text-foreground">
+              <label
+                key={s.label}
+                htmlFor={`pp-slider-${s.label}`}
+                className="pp-slider-row block"
+              >
+                <div className="flex justify-between items-baseline text-sm mb-3">
+                  <span className="pp-text-muted font-medium">{s.label}</span>
+                  <span className="font-semibold tabular-nums pp-text-foreground text-base">
                     {s.display}
                   </span>
                 </div>
                 <input
+                  id={`pp-slider-${s.label}`}
                   type="range"
                   min={s.min}
                   max={s.max}
@@ -171,12 +174,12 @@ export function ROICalculator({ vm }: ROICalculatorProps) {
                   className="pp-range"
                   aria-label={s.label}
                 />
-              </div>
+              </label>
             ))}
           </div>
 
           {/* Results */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             {results.map((r) => (
               <div
                 key={r.label}
@@ -187,9 +190,11 @@ export function ROICalculator({ vm }: ROICalculatorProps) {
                   r.highlight ? { borderColor: 'hsl(var(--pp-border))' } : undefined
                 }
               >
-                <span className="text-sm pp-text-muted">{r.label}</span>
+                <span className="text-sm pp-text-muted font-medium">
+                  {r.label}
+                </span>
                 <span
-                  className={`text-2xl md:text-3xl font-bold tabular-nums ${
+                  className={`pp-result-value text-2xl md:text-3xl font-bold ${
                     r.highlight ? 'pp-text-primary' : 'pp-text-foreground'
                   }`}
                 >
@@ -204,7 +209,7 @@ export function ROICalculator({ vm }: ROICalculatorProps) {
                 {formatDollars(roi.netInvestment)}
               </span>
             </div>
-            <p className="text-xs pp-text-muted pt-2">
+            <p className="text-xs pp-text-muted pt-3 leading-relaxed">
               Estimates only. Actual utilization, utility rates, and demand
               charges will affect real-world ROI.
             </p>

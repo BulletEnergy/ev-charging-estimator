@@ -65,9 +65,9 @@ export default async function ProposalPortalPage({ params }: PageProps) {
     <ProposalLayout>
       <PortalHero vm={vm} aerialUrl={loaded.aerialSignedUrl} />
       <ValueSection vm={vm} />
-      <div className="section-divider max-w-5xl mx-auto" />
+      <div className="section-divider" />
       <EquipmentShowcase vm={vm} />
-      <div className="section-divider max-w-5xl mx-auto" />
+      <div className="section-divider" />
       <SiteMapSection vm={vm} aerialUrl={loaded.aerialSignedUrl} />
       <ROICalculator vm={vm} />
       <InvestmentBreakdown vm={vm} />
