@@ -730,21 +730,31 @@ function electricalRules(
     }
   }
 
-  // ── Sub-panel (if needed) ──
-  if (electrical.panelUpgradeRequired === true || charger.count >= 4) {
+  // ── Sub-panel (only when explicitly required) ──
+  // Prior heuristic "count >= 4" auto-charged $1,050 on jobs that didn't
+  // need a sub-panel (e.g. Hampton Inn — 4 chargers, panelUpgradeRequired:
+  // false, proposal had no sub-panel line). Emit a review instead.
+  if (electrical.panelUpgradeRequired === true) {
     const subpanelItem = findPricebookItem('eleclbrmat-subpanel');
     if (subpanelItem) {
       items.push(
         pricebookLine(subpanelItem, 1, {
           ruleName: 'EV sub-panel',
-          ruleReason: charger.count >= 4
-            ? `Sub-panel recommended for ${charger.count} chargers`
-            : 'Panel upgrade flagged in SOW',
-          sourceInputs: ['electrical.panelUpgradeRequired', 'charger.count'],
-          confidence: electrical.panelUpgradeRequired === true ? 'high' : 'medium',
+          ruleReason: 'Panel upgrade flagged in SOW',
+          sourceInputs: ['electrical.panelUpgradeRequired'],
+          confidence: 'high',
         }),
       );
     }
+  } else if (charger.count >= 4 && electrical.panelUpgradeRequired !== false) {
+    reviews.push(
+      review({
+        field: 'electrical.panelUpgradeRequired',
+        condition: `${charger.count} chargers with panelUpgradeRequired unknown`,
+        severity: 'warning',
+        message: `${charger.count} chargers often need a dedicated sub-panel. Confirm with electrician; set electrical.panelUpgradeRequired if one is required so the line item gets priced.`,
+      }),
+    );
   }
 
   // ── Transformer (ELEC) ──
@@ -1266,16 +1276,20 @@ function permitDesignRules(
       );
     }
 
-    // Utility coordination
-    const utilCoordItem = findPricebookItem('deseng-utility-coord');
-    if (utilCoordItem) {
-      items.push(
-        pricebookLine(utilCoordItem, 1, {
-          ruleName: 'Utility coordination',
-          ruleReason: `Up to 2 in-person visits at $${utilCoordItem.catalogPrice}`,
-          sourceInputs: ['designEngineering.responsibility'],
-        }),
-      );
+    // Utility coordination — only when explicitly required.
+    // Gating on designEngineering.responsibility alone caused Hampton Inn
+    // to auto-charge $950 even though utilityCoordinationRequired was false.
+    if (input.electrical.utilityCoordinationRequired === true) {
+      const utilCoordItem = findPricebookItem('deseng-utility-coord');
+      if (utilCoordItem) {
+        items.push(
+          pricebookLine(utilCoordItem, 1, {
+            ruleName: 'Utility coordination',
+            ruleReason: `Up to 2 in-person visits at $${utilCoordItem.catalogPrice}`,
+            sourceInputs: ['designEngineering.responsibility', 'electrical.utilityCoordinationRequired'],
+          }),
+        );
+      }
     }
 
     // Private utility mark-out
