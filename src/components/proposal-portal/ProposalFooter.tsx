@@ -31,13 +31,13 @@ export function ProposalFooter({ vm }: ProposalFooterProps) {
             />
           </div>
 
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight pp-text-foreground mb-3">
+          <h2 className="pp-section-title text-2xl md:text-3xl font-bold pp-text-foreground mb-3">
             Ready to move forward?
           </h2>
-          <p className="pp-text-muted max-w-md mx-auto mb-8">
+          <p className="pp-text-muted max-w-md mx-auto mb-8 leading-relaxed">
             Your proposal is valid for 30 days. Accept online or reach out with
             questions — your rep{' '}
-            <span className="font-medium pp-text-foreground">
+            <span className="font-semibold pp-text-foreground">
               {vm.preparedBy}
             </span>{' '}
             is on call.
@@ -54,17 +54,17 @@ export function ProposalFooter({ vm }: ProposalFooterProps) {
           </div>
 
           {(vm.customer.contactEmail || vm.customer.contactPhone) && (
-            <dl className="grid sm:grid-cols-2 gap-4 text-sm pp-text-muted max-w-lg mx-auto">
+            <dl className="flex flex-col sm:grid sm:grid-cols-2 gap-3 sm:gap-4 text-sm pp-text-muted max-w-lg mx-auto">
               {vm.customer.contactEmail && (
-                <div className="flex items-center justify-center gap-2">
-                  <MailIcon className="w-4 h-4 pp-text-primary" />
-                  <span>{vm.customer.contactEmail}</span>
+                <div className="flex items-center justify-center gap-2 min-w-0">
+                  <MailIcon className="w-4 h-4 pp-text-primary shrink-0" />
+                  <span className="truncate">{vm.customer.contactEmail}</span>
                 </div>
               )}
               {vm.customer.contactPhone && (
-                <div className="flex items-center justify-center gap-2">
-                  <PhoneIcon className="w-4 h-4 pp-text-primary" />
-                  <span>{vm.customer.contactPhone}</span>
+                <div className="flex items-center justify-center gap-2 min-w-0">
+                  <PhoneIcon className="w-4 h-4 pp-text-primary shrink-0" />
+                  <span className="truncate">{vm.customer.contactPhone}</span>
                 </div>
               )}
             </dl>

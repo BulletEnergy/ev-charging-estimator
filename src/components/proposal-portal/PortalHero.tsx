@@ -31,8 +31,24 @@ export function PortalHero({ vm, aerialUrl }: PortalHeroProps) {
   const hero = aerialUrl ?? '/brand/property-aerial.jpg';
   const customerName = vm.customer.companyName;
 
+  const stats: Array<{ value: string; label: string; lead?: boolean }> = [
+    {
+      value: formatCurrency(vm.totals.grossTotal),
+      label: 'Total Investment',
+      lead: true,
+    },
+    {
+      value: `${vm.totalPorts}`,
+      label: 'Charging Ports',
+    },
+    {
+      value: formatProposalDate(vm.generatedAt),
+      label: 'Prepared',
+    },
+  ];
+
   return (
-    <section className="reveal relative min-h-[560px] md:min-h-[640px] flex flex-col">
+    <section className="reveal relative min-h-[600px] md:min-h-[680px] flex flex-col">
       <div className="absolute inset-0">
         <Image
           src={hero}
@@ -42,7 +58,7 @@ export function PortalHero({ vm, aerialUrl }: PortalHeroProps) {
           sizes="100vw"
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/30 to-black/70" />
+        <div className="pp-hero-overlay absolute inset-0" />
       </div>
 
       {/* Top bar */}
@@ -60,20 +76,23 @@ export function PortalHero({ vm, aerialUrl }: PortalHeroProps) {
           </div>
         </div>
 
-        <span className="clay-tag" style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.85)', borderColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)' }}>
+        <span className="clay-tag" style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.9)', borderColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)' }}>
           <CalendarIcon className="w-3 h-3" />
           Proposal #{vm.proposalId}
         </span>
       </div>
 
       {/* Centered hero content */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6 py-16">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[0.98] tracking-tight mb-5 max-w-4xl">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6 py-14 md:py-20">
+        <h1
+          className="pp-section-title text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-5 max-w-4xl"
+          style={{ textShadow: '0 2px 24px rgba(15, 23, 42, 0.35)' }}
+        >
           EV Charging
           <br />
-          <span className="text-white/65">for {customerName}</span>
+          <span className="text-white/70">for {customerName}</span>
         </h1>
-        <p className="text-white/75 text-base md:text-lg max-w-xl mb-8">
+        <p className="text-white/80 text-base md:text-lg max-w-xl mb-8">
           {vm.totalPorts}-port deployment
           {vm.site.cityRegion ? ` · ${vm.site.cityRegion}` : ''}
         </p>
@@ -88,7 +107,7 @@ export function PortalHero({ vm, aerialUrl }: PortalHeroProps) {
           <button
             type="button"
             className="clay-btn-ghost press-effect px-6 py-3 text-sm text-white"
-            style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.18)' }}
+            style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.22)' }}
           >
             <DownloadIcon className="w-4 h-4" />
             Download PDF
@@ -96,36 +115,25 @@ export function PortalHero({ vm, aerialUrl }: PortalHeroProps) {
         </div>
       </div>
 
-      {/* Stats bar */}
+      {/* Stats bar — lead stat is the total investment, others are supporting. */}
       <div className="relative z-10 px-6 md:px-10 pb-10">
-        <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            {
-              value: formatCurrency(vm.totals.grossTotal),
-              label: 'Total Investment',
-            },
-            {
-              value: `${vm.totalPorts}`,
-              label: 'Charging Ports',
-            },
-            {
-              value: formatProposalDate(vm.generatedAt),
-              label: 'Prepared',
-            },
-          ].map((stat) => (
+        <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+          {stats.map((stat) => (
             <div
               key={stat.label}
-              className="rounded-xl border p-4"
-              style={{
-                background: 'rgba(255,255,255,0.08)',
-                borderColor: 'rgba(255,255,255,0.15)',
-                backdropFilter: 'blur(10px)',
-              }}
+              data-lead={stat.lead ? 'true' : undefined}
+              className="pp-hero-stat rounded-xl p-4 md:p-5"
             >
-              <p className="text-white/60 text-[0.65rem] uppercase tracking-[0.15em] font-medium">
+              <p className="text-white/65 text-[0.65rem] uppercase tracking-[0.18em] font-medium">
                 {stat.label}
               </p>
-              <p className="text-white text-xl md:text-2xl font-bold tabular-nums mt-1">
+              <p
+                className={`text-white font-bold tabular-nums mt-1.5 ${
+                  stat.lead
+                    ? 'text-2xl md:text-3xl'
+                    : 'text-lg md:text-xl font-semibold'
+                }`}
+              >
                 {stat.value}
               </p>
             </div>

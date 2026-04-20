@@ -77,13 +77,11 @@ export function EquipmentShowcase({ vm }: EquipmentShowcaseProps) {
     <section className="py-16 md:py-24 px-6" style={{ background: 'hsl(var(--pp-surface-cool))' }}>
       <div className="max-w-6xl mx-auto">
         <div className="reveal text-center mb-12 md:mb-16">
-          <p className="text-xs uppercase tracking-[0.2em] pp-text-muted font-medium mb-3">
-            Hardware for your site
-          </p>
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tight pp-text-foreground">
+          <p className="pp-eyebrow mb-3">Hardware for your site</p>
+          <h2 className="pp-section-title text-3xl md:text-5xl font-bold pp-text-foreground">
             Your equipment
           </h2>
-          <p className="pp-text-muted mt-3 text-base md:text-lg max-w-md mx-auto">
+          <p className="pp-text-muted mt-4 text-base md:text-lg max-w-md mx-auto leading-relaxed">
             Selected specifically for the electrical and physical requirements
             of {vm.site.cityRegion || vm.customer.companyName}.
           </p>
@@ -93,12 +91,15 @@ export function EquipmentShowcase({ vm }: EquipmentShowcaseProps) {
           {cards.map((card, idx) => {
             const reversed = idx % 2 !== 0;
             return (
-              <div key={`${card.name}-${idx}`} className="reveal">
+              <div key={`${card.name}-${idx}`} className="reveal pp-equipment-card">
                 <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
                   <div className={reversed ? 'md:order-2' : ''}>
                     <div
-                      className="aspect-[4/3] overflow-hidden rounded-xl"
-                      style={{ background: 'hsl(var(--pp-secondary))' }}
+                      className="pp-equipment-image aspect-[4/3] overflow-hidden rounded-xl"
+                      style={{
+                        background: 'hsl(var(--pp-secondary))',
+                        boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
+                      }}
                     >
                       <Image
                         src={card.image}
@@ -110,10 +111,10 @@ export function EquipmentShowcase({ vm }: EquipmentShowcaseProps) {
                     </div>
                   </div>
                   <div className={reversed ? 'md:order-1' : ''}>
-                    <p className="pp-text-primary text-sm font-medium tracking-wide uppercase mb-3">
+                    <p className="pp-text-primary text-sm font-semibold tracking-[0.14em] uppercase mb-3">
                       {card.levelLabel}
                     </p>
-                    <h3 className="text-2xl md:text-3xl font-bold tracking-tight mb-2 pp-text-foreground">
+                    <h3 className="pp-section-title text-2xl md:text-3xl font-bold mb-3 pp-text-foreground">
                       {card.name}
                     </h3>
                     {card.detail && (

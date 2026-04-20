@@ -487,10 +487,35 @@ body {
   transform: scale(0.97);
 }
 
-/* Section divider (ported from prototype index.css). */
+/* Section divider — subtle gradient fade instead of a flat line. Looks
+ * intentional at full width while the center carries the weight. */
 .proposal-portal .section-divider {
   height: 1px;
-  background: hsl(var(--pp-border));
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(var(--pp-border)) 20%,
+    hsl(var(--pp-border)) 80%,
+    transparent 100%
+  );
+  margin-inline: auto;
+  width: min(100%, 72rem);
+}
+
+/* Consistent section-header treatment — applied via .pp-section-title.
+ * Headers use text-balance (Tailwind v4 / native) so they wrap gracefully. */
+.proposal-portal .pp-section-title {
+  text-wrap: balance;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+}
+
+.proposal-portal .pp-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: hsl(var(--pp-muted-foreground));
 }
 
 /* Staggered reveals for grid children. */
@@ -501,36 +526,183 @@ body {
 .proposal-portal .stagger > :nth-child(5) { transition-delay: 320ms; }
 .proposal-portal .stagger > :nth-child(6) { transition-delay: 400ms; }
 
-/* Range slider styling for the ROI calculator. */
+/* =========================================================
+ * Range slider — custom track + thumb, cross-browser.
+ * The track carries a gradient tint so the slider looks filled
+ * toward the primary color; the thumb is an elevated puck that
+ * lifts on hover and gets a focus ring for keyboard users.
+ * ========================================================= */
 .proposal-portal .pp-range {
   width: 100%;
-  height: 6px;
-  border-radius: 999px;
-  background: hsl(var(--pp-border));
+  height: 22px; /* hit target — track centered inside */
+  background: transparent;
   appearance: none;
   -webkit-appearance: none;
   cursor: pointer;
-  accent-color: hsl(var(--pp-primary));
+  padding: 0;
+  margin: 0;
 }
+
+.proposal-portal .pp-range:focus { outline: none; }
+
+/* WebKit track */
+.proposal-portal .pp-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--pp-primary) / 0.55) 0%,
+    hsl(var(--pp-primary) / 0.25) 60%,
+    hsl(var(--pp-border)) 100%
+  );
+  border: 0;
+}
+
+/* WebKit thumb */
 .proposal-portal .pp-range::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
   background: hsl(var(--pp-primary));
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
   border: 2px solid hsl(var(--pp-background));
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.15),
+    0 4px 10px rgba(37, 99, 235, 0.35);
+  margin-top: -6px; /* center 18px thumb on 6px track */
+  transition: transform 0.15s ease, box-shadow 0.18s ease;
+}
+.proposal-portal .pp-range:hover::-webkit-slider-thumb {
+  transform: scale(1.08);
+  box-shadow:
+    0 2px 4px rgba(15, 23, 42, 0.18),
+    0 6px 16px rgba(37, 99, 235, 0.45);
+}
+.proposal-portal .pp-range:active::-webkit-slider-thumb {
+  transform: scale(1.12);
+}
+.proposal-portal .pp-range:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 4px hsl(var(--pp-primary) / 0.2),
+    0 4px 10px rgba(37, 99, 235, 0.4);
+}
+
+/* Firefox track */
+.proposal-portal .pp-range::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: hsl(var(--pp-border));
+  border: 0;
+}
+/* Progress fill — Firefox exposes a native progress element */
+.proposal-portal .pp-range::-moz-range-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--pp-primary) / 0.9) 0%,
+    hsl(var(--pp-primary)) 100%
+  );
 }
 .proposal-portal .pp-range::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
   background: hsl(var(--pp-primary));
-  cursor: pointer;
   border: 2px solid hsl(var(--pp-background));
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.15),
+    0 4px 10px rgba(37, 99, 235, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.18s ease;
+}
+.proposal-portal .pp-range:hover::-moz-range-thumb {
+  transform: scale(1.08);
+}
+.proposal-portal .pp-range:focus-visible::-moz-range-thumb {
+  box-shadow:
+    0 0 0 4px hsl(var(--pp-primary) / 0.2),
+    0 4px 10px rgba(37, 99, 235, 0.4);
+}
+
+/* Slider row — groups label + value + input. Keeps consistent spacing
+ * across the four sliders and makes them feel like cards without a
+ * heavy container. */
+.proposal-portal .pp-slider-row {
+  padding: 1rem 1.25rem;
+  border-radius: calc(var(--pp-radius) * 1.5);
+  background: hsl(var(--pp-card));
+  border: 1px solid hsl(var(--pp-border));
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.proposal-portal .pp-slider-row:hover,
+.proposal-portal .pp-slider-row:focus-within {
+  border-color: hsl(var(--pp-primary) / 0.35);
+  box-shadow: 0 0 0 4px hsl(var(--pp-primary) / 0.06);
+}
+
+/* Results — money values get a subtle fade-in when they update. */
+.proposal-portal .pp-result-value {
+  transition: color 0.2s ease;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Category accent strip for investment buckets. Mapped by data-bucket
+ * so each line-item group can wear a gentle left-border color tag. */
+.proposal-portal .pp-bucket {
+  position: relative;
+  padding-left: 1rem;
+  border-left: 2px solid transparent;
+  transition: border-color 0.2s ease;
+}
+.proposal-portal .pp-bucket[data-bucket='hardware']       { border-left-color: hsl(222 80% 55% / 0.6); }
+.proposal-portal .pp-bucket[data-bucket='infrastructure'] { border-left-color: hsl(198 85% 45% / 0.6); }
+.proposal-portal .pp-bucket[data-bucket='services']       { border-left-color: hsl(160 60% 40% / 0.6); }
+.proposal-portal .pp-bucket[data-bucket='accessories']    { border-left-color: hsl(42 80% 55% / 0.6); }
+.proposal-portal .pp-bucket[data-bucket='controls']       { border-left-color: hsl(270 60% 55% / 0.6); }
+.proposal-portal .pp-bucket[data-bucket='incentives']     { border-left-color: hsl(340 75% 55% / 0.6); }
+
+/* Equipment card — subtle lift on hover for each product block. */
+.proposal-portal .pp-equipment-card {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.proposal-portal .pp-equipment-card:hover .pp-equipment-image {
+  transform: scale(1.02);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+}
+.proposal-portal .pp-equipment-image {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+/* Hero — rich gradient overlay behind content so light photos still
+ * carry legible white text. Used in place of the plain black overlay. */
+.proposal-portal .pp-hero-overlay {
+  background:
+    radial-gradient(ellipse at 30% 25%, rgba(37, 99, 235, 0.28) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 90%, rgba(15, 23, 42, 0.45) 0%, transparent 55%),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.55) 0%, rgba(15, 23, 42, 0.25) 35%, rgba(15, 23, 42, 0.75) 100%);
+}
+
+/* Hero stat card — slightly more structure than the old 1-px border. */
+.proposal-portal .pp-hero-stat {
+  position: relative;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.proposal-portal .pp-hero-stat:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.24);
+  transform: translateY(-2px);
+}
+.proposal-portal .pp-hero-stat[data-lead='true'] {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -539,6 +711,14 @@ body {
   .proposal-portal .reveal-right {
     opacity: 1;
     transform: none;
+    transition: none;
+  }
+  .proposal-portal .pp-equipment-card:hover .pp-equipment-image,
+  .proposal-portal .pp-hero-stat:hover {
+    transform: none;
+  }
+  .proposal-portal .pp-range::-webkit-slider-thumb,
+  .proposal-portal .pp-range::-moz-range-thumb {
     transition: none;
   }
 }

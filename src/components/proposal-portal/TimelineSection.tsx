@@ -21,19 +21,19 @@ export function TimelineSection({ vm }: TimelineSectionProps) {
       <div className="max-w-5xl mx-auto">
         <div className="reveal text-center mb-12 md:mb-16">
           <p
-            className="text-xs uppercase tracking-[0.2em] font-medium mb-3"
-            style={{ color: 'hsl(var(--pp-background) / 0.55)' }}
+            className="text-xs uppercase tracking-[0.2em] font-semibold mb-3"
+            style={{ color: 'hsl(var(--pp-background) / 0.6)' }}
           >
             Deployment timeline
           </p>
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
+          <h2 className="pp-section-title text-3xl md:text-5xl font-bold">
             {vm.site.cityRegion
               ? `From survey to live charging`
               : `Survey to live charging`}
           </h2>
           <p
-            className="mt-3 text-base md:text-lg max-w-lg mx-auto"
-            style={{ color: 'hsl(var(--pp-background) / 0.65)' }}
+            className="mt-4 text-base md:text-lg max-w-lg mx-auto leading-relaxed"
+            style={{ color: 'hsl(var(--pp-background) / 0.7)' }}
           >
             Typical {vm.totalPorts}-port deployment — {vm.charger.level === 'l3_dcfc' ? 'DC fast charging' : 'Level 2'}.
           </p>

@@ -65,10 +65,10 @@ export function ValueSection({ vm }: ValueSectionProps) {
     <section className="py-20 md:py-28 px-6">
       <div className="max-w-5xl mx-auto">
         <div className="reveal text-center mb-14">
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight pp-text-foreground">
+          <h2 className="pp-section-title text-3xl md:text-5xl lg:text-6xl font-bold pp-text-foreground">
             Why now is the perfect time
           </h2>
-          <p className="pp-text-muted mt-4 text-base md:text-lg max-w-xl mx-auto">
+          <p className="pp-text-muted mt-4 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
             Federal and state incentives, climbing EV adoption, and customer
             demand make 2026 the strongest year yet to deploy on-site charging.
           </p>
@@ -77,13 +77,13 @@ export function ValueSection({ vm }: ValueSectionProps) {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-y-12 gap-x-8 stagger">
           {metrics.map((m) => (
             <div key={m.label} className="reveal text-center">
-              <p className="text-5xl md:text-7xl font-bold tracking-tight tabular-nums pp-text-foreground">
+              <p className="text-5xl md:text-7xl font-bold tracking-tight tabular-nums pp-text-foreground leading-[1.05]">
                 {m.value}
-                <span className="pp-text-muted text-2xl md:text-3xl ml-1">
+                <span className="pp-text-muted text-2xl md:text-3xl ml-1 font-semibold">
                   {m.unit}
                 </span>
               </p>
-              <p className="pp-text-muted text-xs md:text-sm mt-2 tracking-wide uppercase">
+              <p className="pp-text-muted text-xs md:text-sm mt-3 tracking-[0.14em] uppercase font-medium">
                 {m.label}
               </p>
             </div>

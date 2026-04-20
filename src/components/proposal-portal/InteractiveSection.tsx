@@ -53,15 +53,13 @@ export function InteractiveSection({ vm }: InteractiveSectionProps) {
     <section className="py-20 md:py-28 px-6">
       <div className="max-w-2xl mx-auto">
         <div className="reveal text-center mb-10">
-          <p className="text-xs uppercase tracking-[0.2em] pp-text-muted font-medium mb-3">
-            Have questions?
-          </p>
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tight pp-text-foreground">
+          <p className="pp-eyebrow mb-3">Have questions?</p>
+          <h2 className="pp-section-title text-3xl md:text-5xl font-bold pp-text-foreground">
             Questions?
           </h2>
-          <p className="pp-text-muted mt-3 text-base md:text-lg">
+          <p className="pp-text-muted mt-4 text-base md:text-lg leading-relaxed">
             Your rep{' '}
-            <span className="font-medium pp-text-foreground">{vm.preparedBy}</span>{' '}
+            <span className="font-semibold pp-text-foreground">{vm.preparedBy}</span>{' '}
             can walk through any part of this proposal — pricing, equipment,
             rebates, install steps.
           </p>
