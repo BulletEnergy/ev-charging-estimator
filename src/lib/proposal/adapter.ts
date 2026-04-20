@@ -89,6 +89,28 @@ export interface ProposalTimelinePhase {
   detail: string;
 }
 
+/**
+ * Derived metrics used by the ValueSection headline grid and the ROI
+ * calculator's default slider values. These numbers are estimates — the
+ * canonical estimator does not yet track rebates, payback, or CO2, so we
+ * compute defensive placeholders here using industry-standard assumptions.
+ */
+export interface ProposalInvestmentMetrics {
+  /** Conservative estimated rebate / incentive value in whole dollars. */
+  estimatedRebatesUsd: number;
+  /** Gross total minus estimated rebates. */
+  netTotalUsd: number;
+  /** Simple-payback in years, rounded to one decimal. */
+  estimatedPaybackYears: number;
+  /** Annual CO2 offset in metric tons, based on kWh delivered & grid avg. */
+  co2OffsetTonsPerYear: number;
+  /** ROI-calculator defaults, derived from charger level & site. */
+  assumedSessionsPerDay: number;
+  assumedKwhPerSession: number;
+  assumedPricePerKwh: number;
+  assumedCostPerKwh: number;
+}
+
 export interface ProposalViewModel {
   proposalId: string;
   preparedBy: string;
@@ -101,6 +123,7 @@ export interface ProposalViewModel {
   totals: ProposalTotalsView;
   buckets: ProposalBucketView[];
   timeline: ProposalTimelinePhase[];
+  investmentMetrics: ProposalInvestmentMetrics;
   notes: string;
 }
 
@@ -205,6 +228,77 @@ function extractCityRegion(address: string): string {
   return parts.slice(-2).join(', ');
 }
 
+// -----------------------------------------------------------------------------
+// Investment metrics (rebates / payback / CO2 / ROI defaults)
+//
+// The canonical estimator doesn't yet track any of these, so we compute
+// defensible placeholder values here using widely-cited industry assumptions.
+// All numbers are clearly labeled "estimated" in the UI.
+// -----------------------------------------------------------------------------
+
+const AVG_GRID_TONS_CO2_PER_KWH = 0.000371; // EPA eGRID national 2022 avg
+const DEFAULT_SESSIONS_PER_DAY_PER_PORT = 2.5;
+const DEFAULT_KWH_PER_SESSION_L2 = 18;
+const DEFAULT_KWH_PER_SESSION_DCFC = 45;
+const DEFAULT_PRICE_PER_KWH_L2 = 0.32;
+const DEFAULT_PRICE_PER_KWH_DCFC = 0.43;
+const DEFAULT_COST_PER_KWH = 0.12;
+/** Ballpark federal 30C/30D + typical state program coverage, capped below. */
+const REBATE_RATE_OF_GROSS = 0.15;
+/** Cap per port so very large projects don't over-promise. */
+const REBATE_CAP_PER_PORT = 4000;
+
+function computeInvestmentMetrics(
+  grossTotal: number,
+  totalPorts: number,
+  level: 'l2' | 'l3_dcfc' | 'unknown'
+): ProposalInvestmentMetrics {
+  const safeGross = Math.max(0, Number.isFinite(grossTotal) ? grossTotal : 0);
+  const safePorts = Math.max(1, totalPorts);
+  const isDcfc = level === 'l3_dcfc';
+
+  const kwhPerSession = isDcfc
+    ? DEFAULT_KWH_PER_SESSION_DCFC
+    : DEFAULT_KWH_PER_SESSION_L2;
+  const pricePerKwh = isDcfc
+    ? DEFAULT_PRICE_PER_KWH_DCFC
+    : DEFAULT_PRICE_PER_KWH_L2;
+  const sessionsPerDay = Math.round(
+    DEFAULT_SESSIONS_PER_DAY_PER_PORT * safePorts
+  );
+
+  const rebateUncapped = safeGross * REBATE_RATE_OF_GROSS;
+  const rebateCapped = REBATE_CAP_PER_PORT * safePorts;
+  const estimatedRebatesUsd = Math.round(
+    Math.min(rebateUncapped, rebateCapped)
+  );
+  const netTotalUsd = Math.max(0, Math.round(safeGross - estimatedRebatesUsd));
+
+  // Daily profit per the default ROI assumptions, then payback in years.
+  const dailyKwh = sessionsPerDay * kwhPerSession;
+  const dailyProfit = dailyKwh * (pricePerKwh - DEFAULT_COST_PER_KWH);
+  const annualProfit = dailyProfit * 365;
+  const estimatedPaybackYears =
+    annualProfit > 0 ? Math.round((netTotalUsd / annualProfit) * 10) / 10 : 0;
+
+  // CO2 offset = annual kWh delivered × avg-grid emission factor.
+  const annualKwh = dailyKwh * 365;
+  const co2OffsetTonsPerYear = Math.round(
+    annualKwh * AVG_GRID_TONS_CO2_PER_KWH
+  );
+
+  return {
+    estimatedRebatesUsd,
+    netTotalUsd,
+    estimatedPaybackYears,
+    co2OffsetTonsPerYear,
+    assumedSessionsPerDay: sessionsPerDay,
+    assumedKwhPerSession: kwhPerSession,
+    assumedPricePerKwh: pricePerKwh,
+    assumedCostPerKwh: DEFAULT_COST_PER_KWH,
+  };
+}
+
 function defaultTimeline(timelineHint: string): ProposalTimelinePhase[] {
   // timelineHint is a free-text field like "6-8 weeks"; we still show the
   // standard four-phase breakdown so customers understand the rollout.
@@ -296,6 +390,11 @@ export function adaptEstimateToProposal(
     },
     buckets,
     timeline: defaultTimeline(input.project.timeline),
+    investmentMetrics: computeInvestmentMetrics(
+      summary.total,
+      totalPorts,
+      normalizeChargerLevel(input.charger.chargingLevel)
+    ),
     notes: input.notes,
   };
 }
