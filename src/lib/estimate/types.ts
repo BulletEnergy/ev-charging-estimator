@@ -222,6 +222,13 @@ export interface EstimateInput {
   };
   /** When present (tabular SOW), engine may build line items from pasted pricing */
   rawLineItems?: SOWLineItem[];
+  /** Monday.com integration metadata — populated when a deal/lead was loaded from the mirror. */
+  _monday?: {
+    itemId: string;
+    source: 'deal' | 'lead';
+    sowMatched: boolean;
+    loadedAt: string;
+  };
 }
 
 // ============================================================

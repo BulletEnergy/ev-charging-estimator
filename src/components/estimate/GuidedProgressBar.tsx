@@ -8,7 +8,7 @@ interface GuidedProgressBarProps {
   onStepClick: (step: GuidedStep) => void;
 }
 
-const STEPS: GuidedStep[] = [1, 2, 3, 4, 5, 6];
+const STEPS: GuidedStep[] = [0, 1, 2, 3, 4, 5, 6];
 
 export function GuidedProgressBar({ currentStep, completedSteps, onStepClick }: GuidedProgressBarProps) {
   return (
@@ -17,7 +17,8 @@ export function GuidedProgressBar({ currentStep, completedSteps, onStepClick }: 
         {STEPS.map((step, i) => {
           const isCompleted = completedSteps.has(step);
           const isCurrent = step === currentStep;
-          const isClickable = step <= currentStep || completedSteps.has((step - 1) as GuidedStep);
+          const prevStep = (step - 1) as GuidedStep;
+          const isClickable = step <= currentStep || (prevStep >= 0 && completedSteps.has(prevStep));
 
           return (
             <div key={step} className="flex items-center flex-1 last:flex-none">
@@ -39,7 +40,7 @@ export function GuidedProgressBar({ currentStep, completedSteps, onStepClick }: 
                 `}
                 title={STEP_LABELS[step]}
               >
-                {isCompleted ? '\u2713' : step}
+                {isCompleted ? '\u2713' : step === 0 ? 'M' : step}
               </button>
 
               {/* Connector line */}
