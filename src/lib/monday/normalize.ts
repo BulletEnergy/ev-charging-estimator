@@ -1,5 +1,10 @@
 import { EstimateInput } from '../estimate/types';
 import { BOARD_CONFIG } from './config';
+import type {
+  BulletevDealRow,
+  BulletevLeadRow,
+  BulletevSowRow,
+} from './mirror-schema';
 
 // ============================================================
 // monday.com Item Normalizer
@@ -213,4 +218,230 @@ export function normalizeMondayItem(item: MondayItem): EstimateInput {
     },
     notes: getText(item, cols.notes),
   };
+}
+
+// ============================================================
+// Mirror Row Normalizer (Supabase NERBLO 5000)
+// ============================================================
+// Produces a Partial<EstimateInput> that the estimator can deep-merge
+// with its own emptyInput(). Only fills in what the mirror row provides;
+// anything unknown is left undefined so callers can distinguish.
+
+function joinAddress(
+  street: string | null | undefined,
+  city: string | null | undefined,
+  state: string | null | undefined,
+  zip: string | null | undefined,
+): string {
+  const parts: string[] = [];
+  if (street && street.trim()) parts.push(street.trim());
+  const tail: string[] = [];
+  if (city && city.trim()) tail.push(city.trim());
+  if (state && state.trim()) tail.push(state.trim());
+  if (zip && zip.trim()) tail.push(zip.trim());
+  if (tail.length) parts.push(tail.join(', ').replace(', ' + (zip ?? ''), ' ' + (zip ?? '')).trim());
+  return parts.join(', ').trim();
+}
+
+function mapLabelValue(
+  raw: string | null | undefined,
+  labelMap: Record<string, string>,
+): string | null {
+  if (!raw) return null;
+  const mapped = labelMap[raw];
+  return mapped ?? null;
+}
+
+function toNullableString(v: unknown): string | null {
+  if (typeof v === 'string' && v.trim()) return v;
+  return null;
+}
+
+function toNullableNumber(v: unknown): number | null {
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  if (typeof v === 'string' && v.trim()) {
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+/**
+ * Best-effort normalization of a deal/lead row (+ optional matched SOW)
+ * into EstimateInput fragments. Unknown fields are omitted entirely;
+ * callers should deep-merge onto emptyInput().
+ */
+export function normalizeMirrorRow(
+  deal: BulletevDealRow | BulletevLeadRow,
+  sow: BulletevSowRow | null,
+): Partial<EstimateInput> {
+  const labels = BOARD_CONFIG.labelMaps;
+  const out: Partial<EstimateInput> = {};
+
+  // ── Customer ─────────────────────────────────────────────
+  const companyName = deal.site_company ?? deal.name ?? '';
+  const billingAddress = joinAddress(
+    deal.site_address,
+    deal.site_city,
+    deal.site_state,
+    deal.site_zip,
+  );
+  out.customer = {
+    companyName: companyName || '',
+    contactName: deal.site_contact ?? '',
+    contactEmail: deal.site_contact_email ?? '',
+    contactPhone: deal.site_contact_phone ?? '',
+    billingAddress,
+  };
+
+  // ── Site ─────────────────────────────────────────────────
+  const siteType = mapLabelValue(deal.site_type, labels.siteType) as EstimateInput['site']['siteType'];
+  out.site = {
+    address: deal.site_address ?? '',
+    siteType,
+    state: deal.site_state ?? '',
+  };
+
+  // ── Project (may be overridden by SOW below) ─────────────
+  out.project = {
+    name: deal.name ?? '',
+    salesRep: '',
+    projectType: 'full_turnkey',
+    timeline: '',
+    isNewConstruction: null,
+  };
+
+  if (sow) {
+    const projectType = mapLabelValue(
+      sow.project_type ?? null,
+      labels.projectType,
+    ) as EstimateInput['project']['projectType'] | null;
+
+    out.project = {
+      name: sow.name ?? out.project.name,
+      salesRep: sow.sales_rep ?? '',
+      projectType: projectType ?? out.project.projectType,
+      timeline: '',
+      isNewConstruction:
+        typeof sow.new_construction === 'boolean' ? sow.new_construction : null,
+    };
+
+    // Site type may be richer on the SOW row — prefer it when present.
+    const sowSiteType = mapLabelValue(
+      sow.site_type ?? null,
+      labels.siteType,
+    ) as EstimateInput['site']['siteType'];
+    if (sowSiteType) {
+      out.site = { ...out.site, siteType: sowSiteType };
+    }
+
+    // ── Charger ────────────────────────────────────────────
+    const charger: Partial<EstimateInput['charger']> = {};
+    const brand = toNullableString(sow.charger_brand);
+    if (brand) charger.brand = brand;
+    const model = toNullableString(sow.charger_model);
+    if (model) charger.model = model;
+    const count = toNullableNumber(sow.charger_count);
+    if (count !== null) charger.count = count;
+    const pedestalCount = toNullableNumber(sow.pedestal_count);
+    if (pedestalCount !== null) charger.pedestalCount = pedestalCount;
+    const mountType = mapLabelValue(sow.mount_type ?? null, {
+      Pedestal: 'pedestal',
+      Wall: 'wall',
+      Mix: 'mix',
+      Other: 'other',
+    }) as EstimateInput['charger']['mountType'];
+    if (mountType) charger.mountType = mountType;
+    const portType = mapLabelValue(sow.port_type ?? null, {
+      Single: 'single',
+      Dual: 'dual',
+      Mix: 'mix',
+    }) as EstimateInput['charger']['portType'];
+    if (portType) charger.portType = portType;
+    const chargingLevel = mapLabelValue(sow.charging_level ?? null, {
+      'Level 2': 'l2',
+      L2: 'l2',
+      'Level 3 / DCFC': 'l3_dcfc',
+      L3: 'l3_dcfc',
+    }) as EstimateInput['charger']['chargingLevel'];
+    if (chargingLevel) charger.chargingLevel = chargingLevel;
+    const amps = toNullableNumber(sow.amps_per_charger);
+    if (amps !== null) charger.ampsPerCharger = amps;
+    const volts = toNullableNumber(sow.volts);
+    if (volts !== null) charger.volts = volts;
+    if (typeof sow.customer_supplied === 'boolean') {
+      charger.isCustomerSupplied = sow.customer_supplied;
+    }
+    if (Object.keys(charger).length > 0) {
+      out.charger = charger as EstimateInput['charger'];
+    }
+
+    // ── Electrical ─────────────────────────────────────────
+    const electrical: Partial<EstimateInput['electrical']> = {};
+    const serviceType = mapLabelValue(
+      sow.service_type ?? null,
+      labels.serviceType,
+    ) as EstimateInput['electrical']['serviceType'];
+    if (serviceType) electrical.serviceType = serviceType;
+    const dtp = toNullableNumber(sow.distance_to_panel);
+    if (dtp !== null) electrical.distanceToPanel_ft = dtp;
+    if (typeof sow.panel_upgrade === 'boolean') {
+      electrical.panelUpgradeRequired = sow.panel_upgrade;
+    }
+    if (typeof sow.transformer_required === 'boolean') {
+      electrical.transformerRequired = sow.transformer_required;
+    }
+    if (Object.keys(electrical).length > 0) {
+      out.electrical = electrical as EstimateInput['electrical'];
+    }
+
+    // ── Civil / install location notes ─────────────────────
+    const installLoc = toNullableString(sow.install_location);
+    if (installLoc) {
+      out.civil = { installationLocationDescription: installLoc };
+    }
+
+    // ── Responsibilities (best effort) ─────────────────────
+    const resp = labels.responsibility;
+    const permitResp = mapLabelValue(sow.permit_responsibility ?? null, resp) as
+      | EstimateInput['permit']['responsibility']
+      | null;
+    if (permitResp) out.permit = { responsibility: permitResp, feeAllowance: null };
+    const designResp = mapLabelValue(sow.design_responsibility ?? null, resp) as
+      | EstimateInput['designEngineering']['responsibility']
+      | null;
+    if (designResp) {
+      out.designEngineering = {
+        responsibility: designResp,
+        stampedPlansRequired: null,
+      };
+    }
+    const makeReadyResp = mapLabelValue(sow.make_ready_responsibility ?? null, resp) as
+      | EstimateInput['makeReady']['responsibility']
+      | null;
+    if (makeReadyResp) out.makeReady = { responsibility: makeReadyResp };
+    const installResp = mapLabelValue(sow.install_responsibility ?? null, resp) as
+      | EstimateInput['chargerInstall']['responsibility']
+      | null;
+    if (installResp) out.chargerInstall = { responsibility: installResp };
+    const purchasingResp = mapLabelValue(sow.purchasing_responsibility ?? null, resp) as
+      | EstimateInput['purchasingChargers']['responsibility']
+      | null;
+    if (purchasingResp) out.purchasingChargers = { responsibility: purchasingResp };
+
+    // ── Network ────────────────────────────────────────────
+    const networkType = mapLabelValue(
+      sow.network_type ?? null,
+      labels.networkType,
+    ) as EstimateInput['network']['type'];
+    if (networkType) {
+      out.network = { type: networkType, wifiInstallResponsibility: null };
+    }
+
+    // ── Notes ──────────────────────────────────────────────
+    const notes = toNullableString(sow.notes);
+    if (notes) out.notes = notes;
+  }
+
+  return out;
 }

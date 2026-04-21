@@ -10,6 +10,8 @@ import {
   StepInstallationType,
   StepConditionalDetails,
   StepReviewGenerate,
+  StepMondayClient,
+  MondayBadge,
 } from './guided';
 import {
   INSTALLATION_TYPES,
@@ -24,7 +26,8 @@ interface GuidedEstimateFlowProps {
 
 export function GuidedEstimateFlow({ onEstimateGenerated }: GuidedEstimateFlowProps) {
   const { input } = useEstimate();
-  const [currentStep, setCurrentStep] = useState<GuidedStep>(1);
+  const [currentStep, setCurrentStep] = useState<GuidedStep>(0);
+  const [mondaySkipped, setMondaySkipped] = useState(false);
 
   // Derive installation type from current input
   const installationType = useMemo((): InstallationType | null => {
@@ -42,6 +45,9 @@ export function GuidedEstimateFlow({ onEstimateGenerated }: GuidedEstimateFlowPr
   // Track completed steps
   const completedSteps = useMemo(() => {
     const completed = new Set<GuidedStep>();
+
+    // Step 0: Monday client — done if loaded or explicitly skipped.
+    if (input._monday?.itemId || mondaySkipped) completed.add(0);
 
     // Step 1: Installation type — the anchor that drives template prefill
     if (installationType) completed.add(1);
@@ -72,10 +78,11 @@ export function GuidedEstimateFlow({ onEstimateGenerated }: GuidedEstimateFlowPr
     }
 
     return completed;
-  }, [input, installationType]);
+  }, [input, installationType, mondaySkipped]);
 
   const canAdvance = useCallback((step: GuidedStep): boolean => {
     switch (step) {
+      case 0: return true; // skip always allowed
       case 1: return !!installationType;
       case 2: return !!input.project.name.trim();
       case 3: return !!input.site.address.trim();
@@ -109,7 +116,7 @@ export function GuidedEstimateFlow({ onEstimateGenerated }: GuidedEstimateFlowPr
   }, [currentStep, canAdvance, installationType, isSupercharger]);
 
   const handleBack = useCallback(() => {
-    if (currentStep > 1) {
+    if (currentStep > 0) {
       // Skip Equipment step going back for supercharger
       if (currentStep === 5 && isSupercharger) {
         setCurrentStep(3);
@@ -123,9 +130,14 @@ export function GuidedEstimateFlow({ onEstimateGenerated }: GuidedEstimateFlowPr
           return;
         }
       }
-      setCurrentStep((s) => Math.max(1, s - 1) as GuidedStep);
+      setCurrentStep((s) => Math.max(0, s - 1) as GuidedStep);
     }
   }, [currentStep, installationType, isSupercharger]);
+
+  const handleMondayContinue = useCallback(() => {
+    setMondaySkipped(true);
+    setCurrentStep(1);
+  }, []);
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -138,6 +150,8 @@ export function GuidedEstimateFlow({ onEstimateGenerated }: GuidedEstimateFlowPr
       <div className="mt-4">
         {/* Step card */}
         <div className="rounded-2xl border border-black/[0.06] bg-white/80 backdrop-blur-sm p-6 shadow-sm">
+          {currentStep > 0 && <MondayBadge />}
+          {currentStep === 0 && <StepMondayClient onContinue={handleMondayContinue} />}
           {currentStep === 1 && <StepInstallationType />}
           {currentStep === 2 && <StepRepInfo />}
           {currentStep === 3 && <StepContactSite />}
@@ -155,10 +169,10 @@ export function GuidedEstimateFlow({ onEstimateGenerated }: GuidedEstimateFlowPr
           <button
             type="button"
             onClick={handleBack}
-            disabled={currentStep === 1}
+            disabled={currentStep === 0}
             className={`
               px-5 py-2.5 rounded-lg text-sm font-medium transition-all
-              ${currentStep === 1
+              ${currentStep === 0
                 ? 'text-gray-300 cursor-not-allowed'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
               }
@@ -167,7 +181,9 @@ export function GuidedEstimateFlow({ onEstimateGenerated }: GuidedEstimateFlowPr
             &larr; Back
           </button>
 
-          {currentStep < 6 ? (
+          {currentStep === 0 ? (
+            <div /> // Step 0 renders its own continue/skip buttons
+          ) : currentStep < 6 ? (
             <button
               type="button"
               onClick={handleNext}

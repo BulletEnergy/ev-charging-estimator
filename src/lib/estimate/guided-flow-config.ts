@@ -426,9 +426,10 @@ export const SHEET_MAP: Record<InstallationType, { sheetName: string; tabName: s
 
 // ── Guided Flow Step Definitions ──────────────────────────────
 
-export type GuidedStep = 1 | 2 | 3 | 4 | 5 | 6;
+export type GuidedStep = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export const STEP_LABELS: Record<GuidedStep, string> = {
+  0: 'Monday Client',
   1: 'Installation Type',
   2: 'Rep & Project',
   3: 'Contact & Site',

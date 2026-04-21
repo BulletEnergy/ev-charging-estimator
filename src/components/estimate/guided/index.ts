@@ -5,3 +5,5 @@ export { StepInstallationType } from './StepInstallationType';
 export { StepConditionalDetails } from './StepConditionalDetails';
 export { StepReviewGenerate } from './StepReviewGenerate';
 export { InlineMapPrompt } from './InlineMapPrompt';
+export { StepMondayClient } from './StepMondayClient';
+export { MondayBadge } from './MondayBadge';
