@@ -26,9 +26,9 @@ export async function GET(
   if (!bootstrap) {
     return NextResponse.json({ error: 'not found' }, { status: 404 });
   }
-  // Don't leak the legacy SharedEstimateRecord through the HTTP response.
-  // The server page still uses it internally, but clients that refresh
-  // via this route don't need it (they already have the estimate output).
-  const { legacyRecord: _legacyRecord, ...publicShape } = bootstrap;
+  // Strip legacy SharedEstimateRecord before responding — the server page uses
+  // it internally but clients don't need it (they already have the output).
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { legacyRecord, ...publicShape } = bootstrap;
   return NextResponse.json({ success: true, bootstrap: publicShape });
 }

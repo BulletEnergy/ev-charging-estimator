@@ -4,8 +4,6 @@ import { useEstimate } from '@/contexts/EstimateContext';
 import { InputField, SelectField } from '@/components/estimate/FormField';
 import {
   getConditionalFields,
-  getTemplateForInstallationType,
-  hasMapFields,
   type InstallationType,
   type ConditionalField,
 } from '@/lib/estimate/guided-flow-config';
@@ -232,16 +230,7 @@ export function StepConditionalDetails({ installationType }: StepConditionalDeta
 
       {/* Inline map — show for any type that involves physical site work */}
       {!['commission_only', 'equipment_purchase', 'service_call'].includes(installationType) &&
-        input.mapWorkspace?.siteCoordinates != null && (() => {
-        const mapFields = fields.filter((f) => f.mapDerived);
-        const template = getTemplateForInstallationType(installationType);
-        return (
-          <InlineMapPrompt
-            fields={mapFields}
-            suggestedTools={template?.suggestedMapTools ?? []}
-          />
-        );
-      })()}
+        input.mapWorkspace?.siteCoordinates != null && <InlineMapPrompt />}
     </div>
   );
 }

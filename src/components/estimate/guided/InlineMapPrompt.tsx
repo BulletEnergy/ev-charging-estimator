@@ -5,9 +5,8 @@ import dynamic from 'next/dynamic';
 import { useEstimate } from '@/contexts/EstimateContext';
 import { mapReducer, initialMapState } from '@/lib/map/workspace-reducer';
 import { measurePointDistance, deriveRunLengths } from '@/lib/map/measurements';
-import type { ConditionalField } from '@/lib/estimate/guided-flow-config';
 import type { EquipmentType, PointToolType, RunType } from '@/lib/map/types';
-import type { LineString, Point } from 'geojson';
+import type { Point } from 'geojson';
 
 const SiteMap = dynamic(() => import('@/components/map/SiteMap').then((m) => m.SiteMap), {
   ssr: false,
@@ -18,16 +17,11 @@ const SiteMap = dynamic(() => import('@/components/map/SiteMap').then((m) => m.S
   ),
 });
 
-interface InlineMapPromptProps {
-  fields: ConditionalField[];
-  suggestedTools: string[];
-}
-
 type SimpleTool = 'charger' | 'panel' | 'transformer' | null;
 
 let eqIdCounter = 0;
 
-export function InlineMapPrompt({ fields }: InlineMapPromptProps) {
+export function InlineMapPrompt() {
   const { input, updateField } = useEstimate();
   const siteCoordinates = input.mapWorkspace?.siteCoordinates ?? null;
 

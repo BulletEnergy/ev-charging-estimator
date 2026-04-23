@@ -25,7 +25,6 @@ import type {
   EstimateRow,
   PresentationShareRow,
   ProjectRow,
-  SharedEstimateRow,
 } from '@/types/supabase';
 import type { EstimateOutput } from '@/lib/estimate/types';
 import type { SharedEstimateRecord } from '@/lib/estimate/shared-types';
