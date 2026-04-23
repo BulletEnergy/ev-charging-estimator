@@ -16,7 +16,7 @@ export function TimelineSection({ vm }: TimelineSectionProps) {
 
   return (
     <section
-      className="py-16 md:py-24 px-6 pp-bg-foreground pp-text-background"
+      className="py-20 md:py-28 px-6 pp-bg-foreground pp-text-background"
     >
       <div className="max-w-5xl mx-auto">
         <div className="reveal text-center mb-12 md:mb-16">

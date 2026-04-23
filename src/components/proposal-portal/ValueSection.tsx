@@ -62,9 +62,10 @@ export function ValueSection({ vm }: ValueSectionProps) {
   ];
 
   return (
-    <section className="py-20 md:py-28 px-6">
+    <section className="py-24 md:py-32 px-6">
       <div className="max-w-5xl mx-auto">
         <div className="reveal text-center mb-14">
+          <p className="pp-eyebrow mb-3">Value</p>
           <h2 className="pp-section-title text-3xl md:text-5xl lg:text-6xl font-bold pp-text-foreground">
             Why now is the perfect time
           </h2>
