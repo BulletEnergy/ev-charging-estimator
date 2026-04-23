@@ -23,7 +23,7 @@ interface InlineMapPromptProps {
   suggestedTools: string[];
 }
 
-type SimpleTool = 'charger' | 'panel' | null;
+type SimpleTool = 'charger' | 'panel' | 'transformer' | null;
 
 let eqIdCounter = 0;
 
@@ -54,6 +54,12 @@ export function InlineMapPrompt({ fields }: InlineMapPromptProps) {
     () => mapState.equipment.find((e) => e.equipmentType === 'panel'),
     [mapState.equipment],
   );
+  const transformerPlacement = useMemo(
+    () => mapState.equipment.find((e) => e.equipmentType === 'transformer'),
+    [mapState.equipment],
+  );
+
+  const isDcfc = input.charger.chargingLevel === 'l3_dcfc';
 
   // Auto-calculate distances whenever placements change
   useEffect(() => {
@@ -65,6 +71,22 @@ export function InlineMapPrompt({ fields }: InlineMapPromptProps) {
 
     // Update panel placed flag
     updateField('mapWorkspace.hasPanelPlaced', !!panelPlacement);
+
+    // Transformer placement → sync to map workspace + flip electrical.transformerRequired.
+    // Distance uses a 15% routing buffer for MV-feeder conduit run, matching the
+    // trunk-and-branch convention used for panel→charger conduit above.
+    updateField('mapWorkspace.hasTransformerPlaced', !!transformerPlacement);
+    if (transformerPlacement) {
+      updateField('electrical.transformerRequired', true);
+      if (panelPlacement) {
+        const raw = measurePointDistance(transformerPlacement.geometry, panelPlacement.geometry);
+        updateField('mapWorkspace.transformerToPanelDistance_ft', Math.round(raw * 1.15));
+      } else {
+        updateField('mapWorkspace.transformerToPanelDistance_ft', null);
+      }
+    } else {
+      updateField('mapWorkspace.transformerToPanelDistance_ft', null);
+    }
 
     // Calculate conduit/trench run length using trunk-and-branch topology.
     //
@@ -96,38 +118,48 @@ export function InlineMapPrompt({ fields }: InlineMapPromptProps) {
       updateField('mapWorkspace.concretePadCount', chargerCount);
       updateField('accessories.padRequired', true);
     }
-  }, [chargerPlacements, panelPlacement, updateField]);
+  }, [chargerPlacements, panelPlacement, transformerPlacement, updateField]);
 
   // Map the simple tool to actual SiteMap tool types
   const selectedMapTool: RunType | EquipmentType | PointToolType | null = useMemo(() => {
-    if (activeTool === 'charger') return 'charger_l2';
+    if (activeTool === 'charger') return isDcfc ? 'charger_l3' : 'charger_l2';
     if (activeTool === 'panel') return 'panel';
+    if (activeTool === 'transformer') return 'transformer';
     return null;
-  }, [activeTool]);
+  }, [activeTool, isDcfc]);
 
   const handleEquipmentPlace = useCallback(
     (equipmentType: EquipmentType, geometry: Point) => {
-      // If placing panel and one already exists, replace it
+      // Replace existing singleton markers (panel / transformer are 1-per-job).
       if (equipmentType === 'panel' && panelPlacement) {
         dispatch({ type: 'DELETE_EQUIPMENT', id: panelPlacement.id });
       }
+      if (equipmentType === 'transformer' && transformerPlacement) {
+        dispatch({ type: 'DELETE_EQUIPMENT', id: transformerPlacement.id });
+      }
 
       eqIdCounter += 1;
+      const label =
+        equipmentType === 'panel'
+          ? 'Electrical Panel'
+          : equipmentType === 'transformer'
+            ? 'Utility Transformer'
+            : `Charger ${chargerPlacements.length + 1}`;
       const equipment = {
         id: `eq-${eqIdCounter}`,
         equipmentType,
         geometry,
-        label: equipmentType === 'panel' ? 'Electrical Panel' : `Charger ${chargerPlacements.length + 1}`,
+        label,
         properties: {},
       };
       dispatch({ type: 'ADD_EQUIPMENT', equipment });
 
-      // Auto-deselect tool after placing panel (only 1 needed)
-      if (equipmentType === 'panel') {
+      // Auto-deselect singleton tools after one placement.
+      if (equipmentType === 'panel' || equipmentType === 'transformer') {
         setActiveTool(null);
       }
     },
-    [panelPlacement, chargerPlacements.length],
+    [panelPlacement, transformerPlacement, chargerPlacements.length],
   );
 
   const handleEquipmentUpdate = useCallback(
@@ -171,11 +203,13 @@ export function InlineMapPrompt({ fields }: InlineMapPromptProps) {
       {/* Simple instruction */}
       <div className="rounded-lg bg-[#13b3cf]/10 px-4 py-3">
         <p className="text-sm font-medium text-[#0e9ab3]">
-          {!panelPlacement && chargerPlacements.length === 0
+          {chargerPlacements.length === 0
             ? '1. Click "Place Charger" then tap on the map where chargers will go'
             : !panelPlacement
               ? '2. Now click "Place Panel" and tap where the electrical panel is'
-              : `Done! ${chargerPlacements.length} charger${chargerPlacements.length !== 1 ? 's' : ''} placed. Distances auto-calculated. Drag icons to adjust.`}
+              : isDcfc && !transformerPlacement
+                ? '3. Supercharger: click "Place Transformer" and tap where the utility transformer sits'
+                : `Done! ${chargerPlacements.length} charger${chargerPlacements.length !== 1 ? 's' : ''} placed. Distances auto-calculated. Drag icons to adjust.`}
         </p>
       </div>
 
@@ -209,7 +243,25 @@ export function InlineMapPrompt({ fields }: InlineMapPromptProps) {
           {panelPlacement ? 'Panel Placed' : 'Place Panel'}
         </button>
 
-        {(chargerPlacements.length > 0 || panelPlacement) && (
+        {isDcfc && (
+          <button
+            type="button"
+            onClick={() => setActiveTool(activeTool === 'transformer' ? null : 'transformer')}
+            className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${
+              activeTool === 'transformer'
+                ? 'bg-[#2563EB] text-white shadow-md ring-2 ring-[#2563EB]/30'
+                : transformerPlacement
+                  ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+                  : 'bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50'
+            }`}
+            title="Utility transformer (DC fast charge jobs)"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="6" width="16" height="12" rx="1"/><rect x="2" y="8" width="2" height="8" rx="0.5"/><rect x="20" y="8" width="2" height="8" rx="0.5"/><path d="M8 12h8"/></svg>
+            {transformerPlacement ? 'Transformer Placed' : 'Place Transformer'}
+          </button>
+        )}
+
+        {(chargerPlacements.length > 0 || panelPlacement || transformerPlacement) && (
           <button
             type="button"
             onClick={() => {
@@ -253,7 +305,7 @@ export function InlineMapPrompt({ fields }: InlineMapPromptProps) {
           <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-700">
             Auto-Calculated from Map
           </h4>
-          <div className="grid gap-2 sm:grid-cols-3">
+          <div className={`grid gap-2 ${transformerPlacement ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}>
             <div className="rounded-md bg-white px-3 py-2">
               <span className="text-[0.6875rem] text-gray-500">Chargers</span>
               <p className="text-sm font-bold text-gray-900">{chargerPlacements.length}</p>
@@ -274,6 +326,16 @@ export function InlineMapPrompt({ fields }: InlineMapPromptProps) {
                   : '\u2014'}
               </p>
             </div>
+            {transformerPlacement && (
+              <div className="rounded-md bg-white px-3 py-2">
+                <span className="text-[0.6875rem] text-gray-500">Transformer to Panel</span>
+                <p className="text-sm font-bold text-gray-900">
+                  {input.mapWorkspace?.transformerToPanelDistance_ft
+                    ? `${input.mapWorkspace.transformerToPanelDistance_ft} ft`
+                    : '\u2014'}
+                </p>
+              </div>
+            )}
           </div>
           <p className="mt-2 text-[0.6875rem] text-emerald-600">
             Distances include 15% routing buffer. Right-click icons to remove. Drag to reposition.

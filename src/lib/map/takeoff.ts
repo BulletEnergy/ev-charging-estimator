@@ -139,6 +139,7 @@ export function createStandaloneTakeoffSnapshot(
     || extractStateFromAddress(nextAddress)
     || baseInput.site.state;
   const panelCount = countEquipment(mapState, ['panel']) ?? 0;
+  const transformerCount = countEquipment(mapState, ['transformer']) ?? 0;
 
   return {
     ...baseInput,
@@ -161,6 +162,8 @@ export function createStandaloneTakeoffSnapshot(
       cableTrayDistance_ft: sumRunLength(mapState, 'cable_tray'),
       concretePadCount: countEquipment(mapState, ['concrete_pad']),
       hasPanelPlaced: panelCount > 0 ? true : null,
+      hasTransformerPlaced: transformerCount > 0 ? true : null,
+      transformerToPanelDistance_ft: baseInput.mapWorkspace?.transformerToPanelDistance_ft ?? null,
       lightingCount: countEquipment(mapState, ['lighting']),
       drawings: serializeMapDrawings(mapState),
     },

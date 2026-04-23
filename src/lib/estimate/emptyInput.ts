@@ -61,6 +61,8 @@ export function emptyInput(): EstimateInput {
       cableTrayDistance_ft: null,
       concretePadCount: null,
       hasPanelPlaced: null,
+      hasTransformerPlaced: null,
+      transformerToPanelDistance_ft: null,
       lightingCount: null,
       drawings: null,
     },
