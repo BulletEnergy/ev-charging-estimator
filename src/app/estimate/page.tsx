@@ -23,6 +23,7 @@ export default function EstimatePage() {
   const [shareStatus, setShareStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const [proposalStatus, setProposalStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const [proposalUrl, setProposalUrl] = useState<string | null>(null);
+  const [proposalError, setProposalError] = useState<string | null>(null);
   const [expandedLines, setExpandedLines] = useState<Set<string>>(new Set());
 
   const handleGenerate = useCallback(() => {
@@ -54,21 +55,36 @@ export default function EstimatePage() {
     if (!output) return;
     setProposalStatus('loading');
     setProposalUrl(null);
+    setProposalError(null);
     try {
       const res = await fetch('/api/estimate/share-proposal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ output }),
+        redirect: 'manual',
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Create proposal failed');
+      if (res.status === 401 || res.type === 'opaqueredirect') {
+        throw new Error('Session expired. Please log in again.');
+      }
+      const rawText = await res.text();
+      let data: { url?: string; error?: string } = {};
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        throw new Error(`Unexpected response (HTTP ${res.status}): ${rawText.slice(0, 200)}`);
+      }
+      if (!res.ok || !data.url) {
+        throw new Error(data.error ?? `Create proposal failed (HTTP ${res.status})`);
+      }
       const full = `${window.location.origin}${data.url}`;
       setProposalUrl(full);
       await navigator.clipboard.writeText(full).catch(() => {});
       setProposalStatus('done');
-    } catch {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Create proposal failed';
+      setProposalError(message);
       setProposalStatus('error');
-      setTimeout(() => setProposalStatus('idle'), 5000);
+      setTimeout(() => setProposalStatus('idle'), 8000);
     }
   }, [output]);
 
@@ -142,6 +158,7 @@ export default function EstimatePage() {
               onShareProposal={handleShareProposal}
               proposalStatus={proposalStatus}
               proposalUrl={proposalUrl}
+              proposalError={proposalError}
               onDownloadPdfWithPreviews={handleDownloadPdfWithPreviews}
             />
           </div>
@@ -191,13 +208,14 @@ function SeverityBadge({ severity }: { severity: string }) {
 
 /* ── Estimate Results ────────────────────────────────────────── */
 
-function EstimateResults({ output, expandedLines, toggleLine, onShareInteractive, shareStatus, onShareProposal, proposalStatus, proposalUrl, onDownloadPdfWithPreviews }: {
+function EstimateResults({ output, expandedLines, toggleLine, onShareInteractive, shareStatus, onShareProposal, proposalStatus, proposalUrl, proposalError, onDownloadPdfWithPreviews }: {
   output: EstimateOutput; expandedLines: Set<string>; toggleLine: (id: string) => void;
   onShareInteractive: () => void;
   shareStatus: 'idle' | 'loading' | 'done' | 'error';
   onShareProposal: () => void;
   proposalStatus: 'idle' | 'loading' | 'done' | 'error';
   proposalUrl: string | null;
+  proposalError: string | null;
   onDownloadPdfWithPreviews: () => void;
 }) {
   const { summary, metadata, lineItems, exclusions, manualReviewTriggers } = output;
@@ -264,7 +282,9 @@ function EstimateResults({ output, expandedLines, toggleLine, onShareInteractive
             {proposalStatus === 'loading' ? 'Creating proposal\u2026' : 'Create customer proposal'}
           </button>
           {proposalStatus === 'error' && (
-            <span className="self-center text-[0.75rem] text-red-600">Could not create proposal</span>
+            <span className="self-center text-[0.75rem] text-red-600">
+              {proposalError ?? 'Could not create proposal'}
+            </span>
           )}
         </div>
 

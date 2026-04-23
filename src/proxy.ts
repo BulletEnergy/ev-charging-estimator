@@ -19,6 +19,12 @@ export function proxy(request: NextRequest) {
   const authCookie = request.cookies.get('bulletev-auth');
 
   if (authCookie?.value !== SESSION_TOKEN) {
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401 },
+      );
+    }
     const loginUrl = new URL('/login', request.url);
     return NextResponse.redirect(loginUrl);
   }

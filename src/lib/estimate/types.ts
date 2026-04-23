@@ -204,6 +204,10 @@ export interface EstimateInput {
     concretePadCount: number | null;
     /** Whether electrical panel marker was placed on map */
     hasPanelPlaced: boolean | null;
+    /** Whether utility transformer marker was placed on map (DCFC / supercharger jobs only) */
+    hasTransformerPlaced: boolean | null;
+    /** Measured transformer -> panel distance in feet (with 15% routing buffer applied) */
+    transformerToPanelDistance_ft: number | null;
     /** Number of lighting fixtures placed on map */
     lightingCount: number | null;
     /** Captured Mapbox canvas screenshot for PDF export */

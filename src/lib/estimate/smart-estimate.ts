@@ -547,6 +547,8 @@ export function buildSmartEstimate(smartInput: SmartEstimateInput): SmartEstimat
       cableTrayDistance_ft: null,
       concretePadCount: chargerResult.mountType === 'pedestal' ? chargerResult.count : null,
       hasPanelPlaced: true,
+      hasTransformerPlaced: null,
+      transformerToPanelDistance_ft: null,
       lightingCount: null,
     },
   };

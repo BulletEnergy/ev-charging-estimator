@@ -43,3 +43,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 *.zip
+
+# stray reference / design-asset folders not part of the app
+/Bullet ev estimating/
+/Rendering samples/
+/CLAUDE-Rendering-Samples-*.md
+/CLAUDE-Rendering-Samples-*.txt
+/CLAUDE-Start-Rendering-Work.txt

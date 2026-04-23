@@ -180,6 +180,8 @@ export function useSmartEstimate({
         cableTrayDistance_ft: smartResult.input.mapWorkspace?.cableTrayDistance_ft ?? null,
         concretePadCount: smartResult.input.mapWorkspace?.concretePadCount ?? null,
         hasPanelPlaced: smartResult.input.mapWorkspace?.hasPanelPlaced ?? null,
+        hasTransformerPlaced: smartResult.input.mapWorkspace?.hasTransformerPlaced ?? null,
+        transformerToPanelDistance_ft: smartResult.input.mapWorkspace?.transformerToPanelDistance_ft ?? null,
         lightingCount: smartResult.input.mapWorkspace?.lightingCount ?? null,
         // Preserve existing drawings and snapshot
         drawings: current.mapWorkspace?.drawings ?? smartResult.input.mapWorkspace?.drawings,
