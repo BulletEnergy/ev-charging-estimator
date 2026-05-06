@@ -1,13 +1,15 @@
 /**
  * Phase 2.5.1 — session helper contract.
  *
- * These guards prevent the hard-coded-fallback regression from returning
- * to any protected route. If someone adds `?? 'bulletev-session-v1'` or
- * `?? 'Admin'` anywhere, the equivalent test would pass with a forged
- * cookie — so the strongest guard is a real failing test on the helper.
+ * These guards document the auth contract: local/test environments allow
+ * the original Admin/Admin login without an env file, while production
+ * still fails closed when required secrets are missing.
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
+  DEFAULT_ADMIN_PASSWORD,
+  DEFAULT_ADMIN_USERNAME,
+  DEFAULT_SESSION_SECRET,
   MIN_SESSION_SECRET_LEN,
   isAuthenticated,
   resolveAdminEnv,
@@ -29,11 +31,12 @@ function mockRequest(cookieValue: string | null): Parameters<typeof isAuthentica
 
 describe('resolveExpectedSession', () => {
   beforeEach(() => {
+    vi.stubEnv('NODE_ENV', 'test');
     delete process.env.SESSION_SECRET;
   });
 
-  it('returns null when SESSION_SECRET is unset', () => {
-    expect(resolveExpectedSession()).toBeNull();
+  it('returns the local/test default when SESSION_SECRET is unset', () => {
+    expect(resolveExpectedSession()).toBe(DEFAULT_SESSION_SECRET);
   });
 
   it('returns null when SESSION_SECRET is shorter than the minimum', () => {
@@ -46,15 +49,22 @@ describe('resolveExpectedSession', () => {
     process.env.SESSION_SECRET = secret;
     expect(resolveExpectedSession()).toBe(secret);
   });
+
+  it('returns null in production when SESSION_SECRET is unset', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    delete process.env.SESSION_SECRET;
+    expect(resolveExpectedSession()).toBeNull();
+  });
 });
 
 describe('isAuthenticated', () => {
   beforeEach(() => {
+    vi.stubEnv('NODE_ENV', 'test');
     delete process.env.SESSION_SECRET;
   });
 
-  it('rejects when SESSION_SECRET is unset regardless of cookie value', () => {
-    expect(isAuthenticated(mockRequest('bulletev-session-v1'))).toBe(false);
+  it('accepts the local/test default cookie when SESSION_SECRET is unset', () => {
+    expect(isAuthenticated(mockRequest(DEFAULT_SESSION_SECRET))).toBe(true);
     expect(isAuthenticated(mockRequest('anything'))).toBe(false);
     expect(isAuthenticated(mockRequest(null))).toBe(false);
   });
@@ -70,12 +80,22 @@ describe('isAuthenticated', () => {
 
 describe('resolveAdminEnv', () => {
   beforeEach(() => {
+    vi.stubEnv('NODE_ENV', 'test');
     delete process.env.ADMIN_USERNAME;
     delete process.env.ADMIN_PASSWORD;
     delete process.env.SESSION_SECRET;
   });
 
-  it('returns null when any required env is missing', () => {
+  it('returns the local/test default tuple when env is missing', () => {
+    expect(resolveAdminEnv()).toEqual({
+      username: DEFAULT_ADMIN_USERNAME,
+      password: DEFAULT_ADMIN_PASSWORD,
+      sessionSecret: DEFAULT_SESSION_SECRET,
+    });
+  });
+
+  it('returns null in production when any required env is missing', () => {
+    vi.stubEnv('NODE_ENV', 'production');
     expect(resolveAdminEnv()).toBeNull();
     process.env.ADMIN_USERNAME = 'u';
     expect(resolveAdminEnv()).toBeNull();

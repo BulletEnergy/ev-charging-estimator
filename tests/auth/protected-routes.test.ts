@@ -27,6 +27,7 @@ vi.mock('@/lib/estimate/repository', () => ({
 import { GET as mondayGet } from '@/app/api/live/monday-item/[id]/route';
 import { POST as sharePost } from '@/app/api/estimate/share/route';
 import { GET as healthGet } from '@/app/api/health/route';
+import { DEFAULT_SESSION_SECRET } from '@/lib/auth/session';
 
 interface MockCtx {
   cookieValue: string | null;
@@ -62,6 +63,7 @@ function mkRequest(ctx: MockCtx): any {
 }
 
 beforeEach(() => {
+  vi.stubEnv('NODE_ENV', 'test');
   delete process.env.SESSION_SECRET;
   delete process.env.MONDAY_API_TOKEN;
 });
@@ -75,13 +77,13 @@ describe('Monday proxy auth gate', () => {
     expect(res.status).toBe(401);
   });
 
-  it('still 401s when a forged pre-fix fallback cookie is sent with no SESSION_SECRET', async () => {
+  it('allows the local/test default session cookie when no SESSION_SECRET is set', async () => {
     const res = await mondayGet(
-      mkRequest({ cookieValue: 'bulletev-session-v1', ip: '1.1.1.1' }),
+      mkRequest({ cookieValue: DEFAULT_SESSION_SECRET, ip: '1.1.1.1' }),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       { params: Promise.resolve({ id: 'abc' }) } as any,
     );
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(501);
   });
 });
 

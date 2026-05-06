@@ -7,7 +7,7 @@
  * NextRequest. No Supabase round-trip is needed — the 401 is returned
  * before any DB call.
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
 
@@ -40,7 +40,12 @@ function mockRequest(cookieValue: string | null): {
 
 describe('POST /api/presentation/shares — auth fail-closed', () => {
   beforeEach(() => {
+    vi.stubEnv('NODE_ENV', 'production');
     delete process.env.SESSION_SECRET;
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it('rejects with 401 when SESSION_SECRET is unset (no fallback)', async () => {

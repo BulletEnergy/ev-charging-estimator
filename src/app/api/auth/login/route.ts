@@ -1,11 +1,10 @@
 /**
  * POST /api/auth/login
  *
- * Admin/sales-rep login. Fails closed when any of `ADMIN_USERNAME`,
- * `ADMIN_PASSWORD`, or `SESSION_SECRET` is missing or too short —
- * returns 503 rather than authenticating against a hard-coded default.
- * (The previous `?? 'Admin'` / `?? 'Admin'` / `?? 'bulletev-session-v1'`
- * defaults were a critical bypass path in any misconfigured env.)
+ * Admin/sales-rep username login. Production fails closed when any of
+ * `ADMIN_USERNAME`, `ADMIN_PASSWORD`, or `SESSION_SECRET` is missing or
+ * too short. Local/test keeps the original Admin/Admin credentials so the
+ * app works without an env file.
  *
  * Login still rate-limits per-IP to slow credential-stuffing.
  */
@@ -29,7 +28,7 @@ export async function POST(request: Request) {
   const env = resolveAdminEnv();
   if (!env) {
     console.error(
-      '[auth/login] Missing ADMIN_USERNAME / ADMIN_PASSWORD / SESSION_SECRET env (or session secret <16 chars); login disabled.',
+      '[auth/login] Missing ADMIN_USERNAME / ADMIN_PASSWORD / SESSION_SECRET env (or session secret <16 chars); login disabled in production.',
     );
     return NextResponse.json(
       { success: false, error: 'Login unavailable — server misconfigured.' },

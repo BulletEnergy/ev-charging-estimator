@@ -1,14 +1,9 @@
 /**
  * Session-cookie auth shared across protected API routes.
  *
- * Fail-closed contract:
- *   - `resolveExpectedSession()` returns null when `SESSION_SECRET` is
- *     unset or shorter than the minimum length. `isAuthenticated()`
- *     rejects every request in that state — no hard-coded fallback.
- *   - `requireAdminEnv()` asserts `ADMIN_USERNAME` + `ADMIN_PASSWORD` +
- *     `SESSION_SECRET` at login time; returns null if any are missing
- *     so the login route can return 503 rather than silently accepting
- *     a default credential pair.
+ * Production fails closed when `SESSION_SECRET` is unset or too short.
+ * Local/test environments keep the original Admin/Admin login so the app
+ * can run without a separate env file.
  *   - Cookie compare is timing-safe.
  *
  * Phase 2.5.2 will replace the single shared cookie value with an
@@ -22,9 +17,17 @@ import type { NextRequest } from 'next/server';
 export const MIN_SESSION_SECRET_LEN = 16;
 
 export const AUTH_COOKIE_NAME = 'bulletev-auth';
+export const DEFAULT_ADMIN_USERNAME = 'Admin';
+export const DEFAULT_ADMIN_PASSWORD = 'Admin';
+export const DEFAULT_SESSION_SECRET = 'bulletev-session-v1';
+
+function allowDefaultAdminLogin(): boolean {
+  return process.env.NODE_ENV !== 'production';
+}
 
 export function resolveExpectedSession(): string | null {
   const secret = process.env.SESSION_SECRET;
+  if (!secret && allowDefaultAdminLogin()) return DEFAULT_SESSION_SECRET;
   if (!secret || secret.length < MIN_SESSION_SECRET_LEN) return null;
   return secret;
 }
@@ -36,14 +39,16 @@ export interface AdminEnv {
 }
 
 /**
- * Resolve the three env vars the login route needs. Returns null when
- * any are missing or the session secret is too short — login route
- * should map this to a 503, never fall through to defaults.
+ * Resolve login credentials. Production requires env values; local/test
+ * fall back to the original Admin/Admin credentials.
  */
 export function resolveAdminEnv(): AdminEnv | null {
-  const username = process.env.ADMIN_USERNAME;
-  const password = process.env.ADMIN_PASSWORD;
-  const sessionSecret = process.env.SESSION_SECRET;
+  const username =
+    process.env.ADMIN_USERNAME ?? (allowDefaultAdminLogin() ? DEFAULT_ADMIN_USERNAME : undefined);
+  const password =
+    process.env.ADMIN_PASSWORD ?? (allowDefaultAdminLogin() ? DEFAULT_ADMIN_PASSWORD : undefined);
+  const sessionSecret =
+    process.env.SESSION_SECRET ?? (allowDefaultAdminLogin() ? DEFAULT_SESSION_SECRET : undefined);
   if (
     !username ||
     !password ||
